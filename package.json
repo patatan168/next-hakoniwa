@@ -13,6 +13,7 @@
     "fmt-check": "prettier --check **/*.{css,scss,json,md}",
     "ncu:upd": "ncu --target patch -u",
     "prisma": "prisma studio",
+    "prisma:migrate": "prisma migrate dev --name ${name}",
     "prisma:init": "prisma migrate dev --name init",
     "prisma:push": "prisma db push"
   },
