@@ -23,7 +23,7 @@ export default function IslandList() {
   const [tab, setTab] = useState(0);
   const [user, setUser] = useState([{}]);
   const listRef = useRef<HTMLDivElement>(null);
-  const { data, isLoading } = useFetch('/api/public/user', { method: 'GET' });
+  const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
   const { y } = useBoundingClient(listRef.current);
   const merginHeight = 10;
 

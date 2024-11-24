@@ -32,7 +32,7 @@ export default function LoginForm() {
     resolver: zodResolver(userInfoSchema),
   });
   const [body, setBody] = useState('null');
-  const { trigger } = useFetchTrig('/api/public/user', {
+  const { trigger } = useFetchTrig('/api/auth/user', {
     ...POST_HEADER,
     body: body,
   });
