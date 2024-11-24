@@ -2,10 +2,10 @@
 
 This is a [Next.js](https://nextjs.org) project.
 
-## Prisma Setup
+## DetaBase Setup
 
 ```bash
-npm run prisma:init
+npm run db:init
 ```
 
 ## Getting Started

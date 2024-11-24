@@ -5,7 +5,6 @@ module.exports = {
     'next/typescript',
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
-    'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:jsx-a11y/strict',
     'prettier',
