@@ -138,9 +138,9 @@ export const validAuthCookie = async (
       jwt.verify(jwtToken, public_key);
       // Sucess
       valid = true;
-    } catch {
+    } catch (error) {
       // Fail
-      console.error('JWT Verify Fail');
+      console.error(error);
       valid = false;
     }
   }
