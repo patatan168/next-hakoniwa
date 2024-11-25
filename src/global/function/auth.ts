@@ -1,6 +1,7 @@
+import { sessionSchemaType } from '@/db/schema/sessionTable';
 import { default as META, default as META_DATA } from '@/global/define/metadata';
 import sqlite from 'better-sqlite3';
-import { setCookie } from 'cookies-next';
+import { getCookie, setCookie } from 'cookies-next';
 import * as jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto, { generateKeyPairSync } from 'node:crypto';
@@ -93,4 +94,55 @@ export const setAuthCookie = async (
     maxAge: META_DATA.EXPIRES_HOUR * 60 * 60,
     sameSite: 'lax',
   });
+};
+
+/**
+ * クッキー認証
+ * @param client DBクライアント
+ * @param response Next.jsのレスポンス
+ * @param request Next.jsのリクエスト
+ * @returns 認証の成否
+ */
+export const validAuthCookie = async (
+  client: sqlite.Database,
+  response: NextResponse,
+  request: NextRequest
+) => {
+  const jwtToken = await getCookie('token', {
+    res: response,
+    req: request,
+  });
+
+  let valid = false;
+
+  if (jwtToken !== undefined) {
+    try {
+      const rawToken = jwt.decode(jwtToken, { json: true });
+      if (rawToken === null) {
+        console.error('JWT Decode Error');
+        return false;
+      }
+
+      const uuid = rawToken.sub;
+      const sessionId = rawToken.jti;
+      const selectSession = client.prepare(
+        `SELECT public_key FROM session WHERE uuid = ? AND session_id = ?`
+      );
+      const { public_key } = selectSession.get(uuid, sessionId) as sessionSchemaType;
+      if (public_key === undefined) {
+        console.error('Session DB Error');
+        return false;
+      }
+
+      // Verify
+      jwt.verify(jwtToken, public_key);
+      // Sucess
+      valid = true;
+    } catch {
+      // Fail
+      console.error('JWT Verify Fail');
+      valid = false;
+    }
+  }
+  return valid;
 };

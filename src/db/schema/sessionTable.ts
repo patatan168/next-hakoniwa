@@ -12,3 +12,11 @@ export const sessionSchema: DbSchema = [
   { name: 'createdAt', type: 'DATETIME', defVal: 'CURRENT_TIMESTAMP' },
   { name: 'expires', type: 'DATETIME' },
 ];
+
+export type sessionSchemaType = {
+  uuid: string;
+  session_id: string;
+  public_key: string;
+  createdAt: string;
+  expires: string;
+};

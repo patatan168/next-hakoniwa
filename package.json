@@ -21,7 +21,6 @@
     "@hookform/resolvers": "^3.9.1",
     "@mui/material": "^6.1.8",
     "@swc/helpers": "^0.5.15",
-    "@types/jsonwebtoken": "^9.0.7",
     "better-sqlite3": "^11.5.0",
     "cookies-next": "^4.3.0",
     "es-toolkit": "^1.27.0",
@@ -36,6 +35,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
