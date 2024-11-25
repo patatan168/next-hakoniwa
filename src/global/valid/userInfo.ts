@@ -5,14 +5,16 @@ export const userInfoSchema = z
     id: z.coerce
       .string()
       .trim()
-      .min(1, { message: 'IDを入力してください' })
+      .min(4, { message: '4文字上のIDを入力してください' })
       .regex(/^[a-zA-Z0-9]+$/, {
         message: '英大文字、英小文字、数字で入力してください',
       }),
     password: z
       .string()
       .trim()
-      .min(8, { message: '8桁~24桁のパスワードを英大文字、英小文字、数字を含めて入力してください' })
+      .min(8, {
+        message: '8文字~24文字のパスワードを英大文字、英小文字、数字を含めて入力してください',
+      })
       .max(24, {
         message: '24桁以下のパスワードを英大文字、英小文字、数字を含めて入力してください',
       })
