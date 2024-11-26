@@ -7,7 +7,7 @@ export const sessionSchema: DbSchema = [
     primary: true,
     forign: { table: 'user', name: 'uuid' },
   },
-  { name: 'session_id', type: 'INTEGER', unique: true },
+  { name: 'session_id', type: 'TEXT', unique: true },
   { name: 'public_key', type: 'TEXT', unique: true },
   { name: 'createdAt', type: 'DATETIME', defVal: 'CURRENT_TIMESTAMP' },
   { name: 'expires', type: 'DATETIME' },

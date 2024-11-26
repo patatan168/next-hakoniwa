@@ -33,10 +33,25 @@ const es256Gen = () => {
 };
 
 /**
- * JWTのペイロード
- * @note 今のところ予約済みのもの以外は無し
+ * 特殊文字を含むランダムな文字列を生成
+ * @param length 文字数
  */
-const jwtPayload = {};
+const randomString = (length: number) => {
+  const str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+_@!?#$%&=-~^*';
+  let result: string = '';
+  for (let i = 0; i < length; i++) {
+    const random = Math.trunc(Math.random() * str.length);
+    result = result + str[random];
+  }
+  return result;
+};
+
+/**
+ * JWTのペイロード
+ */
+const jwtPayload = (session_id: string) => {
+  return { session_id: session_id };
+};
 
 /**
  * 予約済みのペイロード
@@ -61,8 +76,10 @@ const jwtOptions = (uuid: string, jwi: string) => {
  * @returns JWTトークン(署名付)
  */
 export const createJwtToken = (client: sqlite.Database, uuid: string) => {
-  // JWI(SESSION ID)を作成
+  // JWIを作成
   const jwi = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
+  // SessionIDを作成
+  const session_id = randomString(32);
   const { privateKey, publicKey } = es256Gen();
   const now = new Date();
   //NOTE: UNIX TIME似合わせるためにミリ秒は丸める
@@ -72,9 +89,9 @@ export const createJwtToken = (client: sqlite.Database, uuid: string) => {
     `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, ?)`
   );
 
-  insertSession.run(uuid, jwi, publicKey, express);
+  insertSession.run(uuid, session_id, publicKey, express);
 
-  return jwt.sign(jwtPayload, privateKey, jwtOptions(uuid, jwi.toString()));
+  return jwt.sign(jwtPayload(session_id), privateKey, jwtOptions(uuid, jwi.toString()));
 };
 
 /**
@@ -124,7 +141,7 @@ export const validAuthCookie = async (
       }
 
       const uuid = rawToken.sub;
-      const sessionId = rawToken.jti;
+      const sessionId = rawToken.session_id;
       const selectSession = client.prepare(
         `SELECT public_key FROM session WHERE uuid = ? AND session_id = ?`
       );
