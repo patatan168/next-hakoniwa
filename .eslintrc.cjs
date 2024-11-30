@@ -8,6 +8,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:jsx-a11y/strict',
     'prettier',
+    'plugin:storybook/recommended',
   ],
   ignorePatterns: ['dist', 'node_modules', '.eslintrc.cjs', 'next.config.mjs', 'vitest.config.mts'],
   parser: '@typescript-eslint/parser',

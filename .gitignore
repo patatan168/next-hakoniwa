@@ -37,3 +37,7 @@ src/db/data/*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Story Book
+*storybook.log
+storybook-static

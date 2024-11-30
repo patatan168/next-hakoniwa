@@ -13,7 +13,9 @@
     "fmt": "prettier --write **/*.{css,scss,json,md,ts,tsx}",
     "fmt-check": "prettier --check **/*.{css,scss,json,md}",
     "ncu:upd": "ncu --target patch -u",
-    "db:init": "npx tsx ./src/db/initDb.ts"
+    "db:init": "npx tsx ./src/db/initDb.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
@@ -35,6 +37,14 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.2",
+    "@storybook/addon-essentials": "^8.4.6",
+    "@storybook/addon-interactions": "^8.4.6",
+    "@storybook/addon-onboarding": "^8.4.6",
+    "@storybook/blocks": "^8.4.6",
+    "@storybook/nextjs": "^8.4.6",
+    "@storybook/react": "^8.4.6",
+    "@storybook/test": "^8.4.6",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@types/better-sqlite3": "^7.6.12",
@@ -52,10 +62,12 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-refresh": "^0.4.14",
+    "eslint-plugin-storybook": "^0.11.1",
     "jsdom": "^25.0.1",
     "postcss-styled-syntax": "^0.7.0",
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.1.0",
+    "storybook": "^8.4.6",
     "stylelint": "^16.10.0",
     "stylelint-config-recommended": "^14.0.1",
     "stylelint-declaration-block-no-ignored-properties": "^2.8.0",
