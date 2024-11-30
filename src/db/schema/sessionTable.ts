@@ -7,9 +7,9 @@ export const sessionSchema: DbSchema = [
     primary: true,
     forign: { table: 'user', name: 'uuid' },
   },
-  { name: 'session_id', type: 'TEXT', unique: true },
+  { name: 'session_id', type: 'TEXT' },
   { name: 'public_key', type: 'TEXT', unique: true },
-  { name: 'createdAt', type: 'DATETIME', defVal: 'CURRENT_TIMESTAMP' },
+  { name: 'created_at', type: 'DATETIME', defVal: 'CURRENT_TIMESTAMP' },
   { name: 'expires', type: 'DATETIME' },
 ];
 
@@ -17,6 +17,6 @@ export type sessionSchemaType = {
   uuid: string;
   session_id: string;
   public_key: string;
-  createdAt: string;
+  created_at: string;
   expires: string;
 };
