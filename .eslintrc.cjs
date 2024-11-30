@@ -9,7 +9,7 @@ module.exports = {
     'plugin:jsx-a11y/strict',
     'prettier',
   ],
-  ignorePatterns: ['dist', 'node_modules', '.eslintrc.cjs', 'next.config.mjs'],
+  ignorePatterns: ['dist', 'node_modules', '.eslintrc.cjs', 'next.config.mjs', 'vitest.config.mts'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: '2023',
