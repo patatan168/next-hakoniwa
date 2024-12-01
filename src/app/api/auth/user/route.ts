@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   const hashPass = await sha256Gen(password);
 
   const postUser = db.client.prepare(
-    `INSERT INTO user(uuid, id, password, islandName) values(?, ?, ?, ?)`
+    `INSERT INTO user(uuid, id, password, island_name) values(?, ?, ?, ?)`
   );
 
   postUser.run(uuid, hashId, hashPass, islandName);

@@ -10,8 +10,8 @@ const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
   { width: 100, headName: 'Id', key: 'id' },
   { width: 100, headName: 'Password', key: 'password' },
-  { width: 100, headName: '島名', key: 'islandName' },
-  { width: 100, headName: '登録日', key: 'createdAt' },
+  { width: 100, headName: '島名', key: 'island_name' },
+  { width: 100, headName: '登録日', key: 'created_at' },
 ];
 
 const tabTest: Array<TabOwnProps> = [
