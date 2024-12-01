@@ -7,7 +7,9 @@ type TabsProp = Omit<TabsOwnProps, 'value' | 'onChange'>;
 
 type BaseTabsProps = {
   style?: CSSProperties;
+  /** @see [MUI Tabs](https://mui.com/base-ui/react-tabs/components-api/#tabs) */
   tabsProp?: TabsProp;
+  /** @see [MUI Tab](https://mui.com/base-ui/react-tabs/components-api/#tab) */
   tabContents: Array<TabOwnProps>;
   value: unknown;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
