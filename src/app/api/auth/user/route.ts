@@ -1,5 +1,6 @@
 import { createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
+import { accessLogger } from '@/global/function/logger';
 import sqlite from 'better-sqlite3';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
@@ -29,6 +30,8 @@ export async function POST(request: NextRequest) {
   postUser.run(uuid, hashId, hashPass, islandName);
 
   await setAuthCookie(createJwtToken(db.client, uuid), response, request);
+
+  accessLogger(request).info(`Create uuid=${uuid}`);
 
   return response;
 }
