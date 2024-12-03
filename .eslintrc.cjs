@@ -23,6 +23,8 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'jsx-a11y', 'react', 'react-refresh'],
   rules: {
+    // Emotionのcssがエラーになるので
+    'react/no-unknown-property': ['error', { ignore: ['css'] }],
     // ===にしないとエラー
     eqeqeq: 'error',
     // サイクロマティック複雑度が10を超えるとエラー
