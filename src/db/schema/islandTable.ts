@@ -79,6 +79,8 @@ export type islandSchemaType = {
   public_island_info: islndInfo;
 };
 
+export type islandInfoData = Array<islndInfo>;
+
 export type islndInfo = {
   type: string;
   landValue: number;

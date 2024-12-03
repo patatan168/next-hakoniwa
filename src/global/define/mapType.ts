@@ -21,7 +21,7 @@ export type mapType = {
   /** 単位 */
   readonly unit?: string;
   /** 単位表示 (前後) */
-  readonly unitType?: 'before' | 'aftrer';
+  readonly unitType?: 'before' | 'after';
   /** レベル表示 */
   readonly showLevel?: boolean;
   /** Exp (怪獣用) */
@@ -126,6 +126,45 @@ export const getMapLevel = (typeOrLevel: string | Array<number>, landVal: number
   }
 
   return 0;
+};
+
+export const getMapName = (type: string, landValue: number, name: string | string[]) => {
+  if (typeof name !== 'string') {
+    const levelNum = getMapLevel(type, landValue);
+    return name[levelNum - 1];
+  } else {
+    return name;
+  }
+};
+
+export const getMapImpPath = (type: string, landValue: number, imgPath: string | string[]) => {
+  if (typeof imgPath !== 'string') {
+    const levelNum = getMapLevel(type, landValue);
+    return imgPath[levelNum - 1];
+  } else {
+    return imgPath;
+  }
+};
+
+export const getMapInfoText = (x: number, y: number, type: string, landValue: number) => {
+  const { name, coefficient, unit, unitType, showLevel } = getMapDefine(type);
+  const mapName = getMapName(type, landValue, name);
+  const mapCoefficient = coefficient !== undefined ? coefficient : 1;
+  const mapLandValue = mapCoefficient * landValue;
+
+  if (showLevel) {
+    const levelNum = getMapLevel(type, landValue);
+    return `(${x},${y}) ${mapName}(レベル ${levelNum}/経験値 ${mapLandValue})`;
+  }
+  if (unit !== undefined) {
+    if (unitType === 'after' || unitType === undefined) {
+      return `(${x},${y}) ${mapName}(${mapLandValue}${unit})`;
+    } else {
+      return `(${x},${y}) ${mapName}(${unit}${mapLandValue})`;
+    }
+  }
+
+  return `(${x},${y}) ${mapName}`;
 };
 
 export const dummy: mapType = {
@@ -283,8 +322,9 @@ export const people: mapType = {
   imgPath: ['/img/people/village.gif', '/img/people/town.gif', '/img/people/city.gif'],
   defVal: 1,
   maxVal: 200,
-  level: [1, 30, 200],
+  level: [1, 30, 100],
   coefficient: 100,
+  unit: '人',
 };
 
 // Monument
@@ -292,7 +332,7 @@ export const monument: mapType = {
   type: 'monument',
   baseLand: 'plains',
   name: 'モノリス',
-  imgPath: '/img/millitary/monument0.gif',
+  imgPath: '/img/monument/monument0.gif',
   defVal: 0,
   maxVal: 0,
 };
@@ -302,7 +342,7 @@ export const inora: mapType = {
   type: 'inora',
   baseLand: 'monster',
   name: '怪獣いのら',
-  imgPath: '/img/monstre/inora.gif',
+  imgPath: '/img/monster/inora.gif',
   defVal: 1,
   maxVal: 2,
   unit: '体力',
@@ -314,7 +354,7 @@ export const mekaInora: mapType = {
   type: 'meka_inora',
   baseLand: 'monster',
   name: '怪獣メカいのら',
-  imgPath: '/img/monstre/meka_inora.gif',
+  imgPath: '/img/monster/meka_inora.gif',
   defVal: 2,
   maxVal: 2,
   unit: '体力',
@@ -326,7 +366,7 @@ export const inoraGhost: mapType = {
   type: 'inora_ghost',
   baseLand: 'monster',
   name: '怪獣いのらゴースト',
-  imgPath: '/img/monstre/inora_ghost.gif',
+  imgPath: '/img/monster/inora_ghost.gif',
   defVal: 1,
   maxVal: 1,
   unit: '体力',
@@ -338,7 +378,7 @@ export const redInora: mapType = {
   type: 'red_inora',
   baseLand: 'monster',
   name: '怪獣レッドいのら',
-  imgPath: '/img/monstre/red_inora.gif',
+  imgPath: '/img/monster/red_inora.gif',
   defVal: 3,
   maxVal: 4,
   unit: '体力',
@@ -350,7 +390,7 @@ export const darkInora: mapType = {
   type: 'dark_inora',
   baseLand: 'monster',
   name: '怪獣ダークいのら',
-  imgPath: '/img/monstre/dark_inora.gif',
+  imgPath: '/img/monster/dark_inora.gif',
   defVal: 2,
   maxVal: 3,
   unit: '体力',
@@ -362,7 +402,7 @@ export const kingInora: mapType = {
   type: 'king_inora',
   baseLand: 'monster',
   name: '怪獣キングいのら',
-  imgPath: '/img/monstre/king_inora.gif',
+  imgPath: '/img/monster/king_inora.gif',
   defVal: 5,
   maxVal: 6,
   unit: '体力',
@@ -374,7 +414,7 @@ export const sanjira: mapType = {
   type: 'sanjira',
   baseLand: 'sanjira',
   name: '怪獣サンジラ',
-  imgPath: '/img/monstre/sanjira.gif',
+  imgPath: '/img/monster/sanjira.gif',
   defVal: 2,
   maxVal: 3,
   unit: '体力',
@@ -386,7 +426,7 @@ export const kujira: mapType = {
   type: 'kujira',
   baseLand: 'kujira',
   name: '怪獣クジラ',
-  imgPath: '/img/monstre/kujira.gif',
+  imgPath: '/img/monster/kujira.gif',
   defVal: 4,
   maxVal: 5,
   unit: '体力',
