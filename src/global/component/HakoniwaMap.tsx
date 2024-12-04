@@ -3,7 +3,7 @@ import { default as META } from '@/global/define/metadata';
 import { css } from '@emotion/react';
 import { ImageList, ImageListItem, Tooltip, tooltipClasses, Typography } from '@mui/material';
 import Image from 'next/image';
-import { memo } from 'react';
+import { Fragment, memo } from 'react';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
 
 type SpacerProps = {
@@ -122,21 +122,12 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
         const src = getMapImpPath(type, landValue, imgPath);
         const mapInfoText = getMapInfoText(x, y, type, landValue);
         return (
-          <>
+          <Fragment key={`map-${x}-${y}`}>
             {x === 0 && y % 2 === 0 && (
-              <Spacer
-                key={`spacer-even-${y}`}
-                mapPixel={mapPixel}
-                rows={2}
-                cols={2}
-                num={y}
-                aligin={'left'}
-              />
+              <Spacer mapPixel={mapPixel} rows={2} cols={2} num={y} aligin={'left'} />
             )}
-            {x === 0 && y % 2 === 1 && (
-              <Spacer key={`spacer-odd-${y}`} mapPixel={mapPixel} rows={2} cols={1} num={y} />
-            )}
-            <ImageListItem key={`map-${x}-${y}`} css={hoverImgBright} rows={2} cols={2}>
+            {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
+            <ImageListItem css={hoverImgBright} rows={2} cols={2}>
               <Tooltip
                 slotProps={{
                   popper: {
@@ -163,9 +154,9 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
               </Tooltip>
             </ImageListItem>
             {x === META.MapSize - 1 && y % 2 === 1 && (
-              <Spacer key={`spacer-herf-${y}`} mapPixel={mapPixel} rows={2} cols={1} />
+              <Spacer mapPixel={mapPixel} rows={2} cols={1} />
             )}
-          </>
+          </Fragment>
         );
       })}
     </ImageList>
