@@ -18,6 +18,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Custom Component Document & Test
+
+```bash
+npm run storybook
+```
+
+Open [http://localhost:6006](http://localhost:6006) with your browser to see the result.
+
 ## Dependency
 
 | Library         | Version | Copyright                                            |
