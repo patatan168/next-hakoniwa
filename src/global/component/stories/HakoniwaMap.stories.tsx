@@ -236,11 +236,13 @@ const meta = {
   args: {
     islandName: 'hoge',
     data: dummyData,
+    mapWidth: undefined,
   },
   argTypes: {
     islandName: {
       description: '島の名前',
       control: 'text',
+      type: { name: 'other', value: '', required: true },
       table: {
         type: { summary: 'string' },
       },
@@ -248,8 +250,16 @@ const meta = {
     data: {
       description: 'データー',
       control: 'object',
+      type: { name: 'other', value: '', required: true },
       table: {
         type: { summary: 'undefined|Array<object>' },
+      },
+    },
+    mapWidth: {
+      description: 'マップの横幅',
+      control: 'number',
+      table: {
+        type: { summary: 'undefined|number' },
       },
     },
   },
