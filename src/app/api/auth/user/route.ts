@@ -1,4 +1,5 @@
 import { createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth';
+import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import sqlite from 'better-sqlite3';
@@ -32,6 +33,8 @@ export async function POST(request: NextRequest) {
   await setAuthCookie(createJwtToken(db.client, uuid), response, request);
 
   accessLogger(request).info(`Create uuid=${uuid}`);
+
+  createIsland(db.client, uuid, islandName);
 
   return response;
 }
