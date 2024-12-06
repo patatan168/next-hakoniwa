@@ -66,7 +66,7 @@ export type islandSchemaType = {
   /** 面積 */
   area: number;
   /** 人口 */
-  pupulation: number;
+  population: number;
   /** 農場規模 */
   farm: number;
   /** 工場規模 */
