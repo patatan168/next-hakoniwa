@@ -5,7 +5,7 @@ export const sessionSchema: DbSchema = [
     name: 'uuid',
     type: 'TEXT',
     primary: true,
-    forign: { table: 'user', name: 'uuid' },
+    foreign: { table: 'user', name: 'uuid' },
   },
   { name: 'session_id', type: 'TEXT' },
   { name: 'public_key', type: 'TEXT', unique: true },
