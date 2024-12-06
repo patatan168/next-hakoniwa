@@ -71,7 +71,7 @@ const dummyData = [
   {
     x: 11,
     y: 0,
-    type: 'defence_base',
+    type: 'defense_base',
     landValue: 0,
   },
   {

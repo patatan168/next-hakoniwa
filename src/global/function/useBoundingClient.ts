@@ -1,7 +1,7 @@
 import { throttle } from 'es-toolkit';
 import { useEffect, useState } from 'react';
 
-const initlVal: DOMRect = {
+const initVal: DOMRect = {
   bottom: 0,
   height: 0,
   left: 0,
@@ -21,7 +21,7 @@ const initlVal: DOMRect = {
  * @returns {DOMRect} {bottom,height,left,right,top,width,x,y}
  */
 export function useBoundingClient(element: HTMLElement | null): DOMRect {
-  const [rect, setRect] = useState<DOMRect>(initlVal);
+  const [rect, setRect] = useState<DOMRect>(initVal);
   /* サイズの更新 */
   const updateSize = throttle((): void => {
     if (element !== null) {

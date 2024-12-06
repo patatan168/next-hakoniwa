@@ -16,7 +16,7 @@ type DbForign = {
  * @property name 型
  * @property primary Primary Keyにするか
  */
-type DbColomn = {
+type DbColumn = {
   /** カラム名 */
   name: string;
   /** 型 */
@@ -36,7 +36,7 @@ type DbColomn = {
 };
 
 /** データベースのスキーマ */
-export type DbSchema = Array<DbColomn>;
+export type DbSchema = Array<DbColumn>;
 
 /**
  * データベースに接続する
@@ -75,7 +75,7 @@ export const createDbTable =
     // 外部キーを使用するか
     let isForigin = false;
 
-    let colmun = '';
+    let column = '';
     schema.forEach(({ name, type, nullable, primary, unique, defVal, check, forign }) => {
       // NOTE: 安全のためにdefaultではnullを許容しない
       const nullableKey = nullable ? '' : ' NOT NULL';
@@ -83,19 +83,19 @@ export const createDbTable =
       const uniqueKey = unique ? ' UNIQUE' : '';
       const defaultKey = defVal !== undefined ? ` DEFAULT ${defVal}` : '';
       const checkKey = check !== undefined ? ` CHECK (${defVal})` : '';
-      const forignkKey = forign !== undefined ? ` REFERENCES ${forign.table}(${forign.name})` : '';
+      const forignKey = forign !== undefined ? ` REFERENCES ${forign.table}(${forign.name})` : '';
 
       // 外部キーを使用するテーブルかを判定
       isForigin = isForigin || forign !== undefined;
 
-      colmun =
-        colmun +
-        `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${forignkKey}, `;
+      column =
+        column +
+        `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${forignKey}, `;
     });
     // 末尾の空白とカンマをトリム
-    colmun = colmun.trim().slice(0, -1);
+    column = column.trim().slice(0, -1);
 
     if (isForigin) db.pragma('foreign_keys = ON');
 
-    db.prepare(`${createTable}(${colmun})`).run();
+    db.prepare(`${createTable}(${column})`).run();
   };

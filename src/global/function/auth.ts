@@ -22,7 +22,7 @@ export async function sha256Gen(text: string) {
 /**
  * ES256の秘密鍵と公開鍵を作成
  * @returns es256Gen.privateKey 秘密鍵
- * @returns es256Gen.publickKey 公開鍵
+ * @returns es256Gen.publicKey 公開鍵
  */
 const es256Gen = () => {
   return generateKeyPairSync('ec', {
@@ -153,7 +153,7 @@ export const validAuthCookie = async (
 
       // Verify
       jwt.verify(jwtToken, public_key);
-      // Sucess
+      // Success
       valid = true;
     } catch (error) {
       // Fail

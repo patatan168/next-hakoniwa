@@ -61,8 +61,8 @@ describe('getMapDefine', () => {
     test('submarine_missile', () => {
       expect(MapType.getMapDefine('submarine_missile')).toBe(MapType.submarineMissile);
     });
-    test('defence_base', () => {
-      expect(MapType.getMapDefine('defence_base')).toBe(MapType.defenceBase);
+    test('defense_base', () => {
+      expect(MapType.getMapDefine('defense_base')).toBe(MapType.defenseBase);
     });
   });
   describe('facility', () => {

@@ -61,13 +61,13 @@ export const getMapDefine = (type: string): mapType => {
       return shallows;
     case 'wasteland':
       return wasteland;
-    // Millitary
+    // Military
     case 'missile':
       return missile;
     case 'submarine_missile':
       return submarineMissile;
-    case 'defence_base':
-      return defenceBase;
+    case 'defense_base':
+      return defenseBase;
     // Monument
     case 'monument':
       return monument;
@@ -280,13 +280,13 @@ export const wasteland: mapType = {
   maxVal: 0,
 };
 
-// Millitary
+// Military
 export const missile: mapType = {
   type: 'missile',
   fakeType: 'fake_forest',
   baseLand: 'plains',
   name: 'ミサイル基地',
-  imgPath: '/img/millitary/missile.gif',
+  imgPath: '/img/military/missile.gif',
   defVal: 0,
   maxVal: 200,
   level: [0, 20, 60, 120, 200],
@@ -297,19 +297,19 @@ export const submarineMissile: mapType = {
   fakeType: 'sea',
   baseLand: 'plains',
   name: '海底基地',
-  imgPath: '/img/millitary/submarine_missile.gif',
+  imgPath: '/img/military/submarine_missile.gif',
   defVal: 0,
   maxVal: 200,
   level: [0, 50, 200],
   coefficient: 1,
   showLevel: true,
 };
-export const defenceBase: mapType = {
-  type: 'defence_base',
+export const defenseBase: mapType = {
+  type: 'defense_base',
   fakeType: 'fake_forest',
   baseLand: 'plains',
   name: '防衛基地',
-  imgPath: '/img/millitary/defence_base.gif',
+  imgPath: '/img/military/defense_base.gif',
   defVal: 0,
   maxVal: 0,
 };
