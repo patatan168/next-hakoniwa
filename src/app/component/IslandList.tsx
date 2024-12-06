@@ -25,7 +25,7 @@ export default function IslandList() {
   const listRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
   const { y } = useBoundingClient(listRef.current);
-  const merginHeight = 10;
+  const marginHeight = 10;
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTab(newValue);
@@ -43,7 +43,7 @@ export default function IslandList() {
       <VrTableList
         isLoading={isLoading}
         ref={listRef}
-        style={{ height: `calc(100svh - ${y + merginHeight}px)` }}
+        style={{ height: `calc(100svh - ${y + marginHeight}px)` }}
         columnHeader={header}
         data={user}
       />
