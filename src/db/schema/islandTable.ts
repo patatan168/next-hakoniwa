@@ -6,13 +6,13 @@ export const islandSchema: DbSchema = [
     type: 'TEXT',
     primary: true,
     unique: true,
-    forign: { table: 'user', name: 'uuid' },
+    foreign: { table: 'user', name: 'uuid' },
   },
   {
     name: 'island_name',
     type: 'TEXT',
     unique: true,
-    forign: { table: 'user', name: 'island_name' },
+    foreign: { table: 'user', name: 'island_name' },
   },
   {
     name: 'prize',

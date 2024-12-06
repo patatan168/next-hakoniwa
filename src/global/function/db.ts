@@ -3,7 +3,7 @@
  */
 import sqlite from 'better-sqlite3';
 
-type DbForign = {
+type DbForeign = {
   /** テーブル名 */
   table: string;
   /** カラム名 */
@@ -32,7 +32,7 @@ type DbColumn = {
   /** Check */
   check?: string;
   /** 外部キー(リレーション) */
-  forign?: DbForign;
+  foreign?: DbForeign;
 };
 
 /** データベースのスキーマ */
@@ -73,29 +73,30 @@ export const createDbTable =
     const createTable = `create table${overWriteTable} ${tableName}`;
 
     // 外部キーを使用するか
-    let isForigin = false;
+    let isForeign = false;
 
     let column = '';
-    schema.forEach(({ name, type, nullable, primary, unique, defVal, check, forign }) => {
+    schema.forEach(({ name, type, nullable, primary, unique, defVal, check, foreign }) => {
       // NOTE: 安全のためにdefaultではnullを許容しない
       const nullableKey = nullable ? '' : ' NOT NULL';
       const primaryKey = primary ? ' PRIMARY KEY' : '';
       const uniqueKey = unique ? ' UNIQUE' : '';
       const defaultKey = defVal !== undefined ? ` DEFAULT ${defVal}` : '';
       const checkKey = check !== undefined ? ` CHECK (${defVal})` : '';
-      const forignKey = forign !== undefined ? ` REFERENCES ${forign.table}(${forign.name})` : '';
+      const foreignKey =
+        foreign !== undefined ? ` REFERENCES ${foreign.table}(${foreign.name})` : '';
 
       // 外部キーを使用するテーブルかを判定
-      isForigin = isForigin || forign !== undefined;
+      isForeign = isForeign || foreign !== undefined;
 
       column =
         column +
-        `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${forignKey}, `;
+        `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${foreignKey}, `;
     });
     // 末尾の空白とカンマをトリム
     column = column.trim().slice(0, -1);
 
-    if (isForigin) db.pragma('foreign_keys = ON');
+    if (isForeign) db.pragma('foreign_keys = ON');
 
     db.prepare(`${createTable}(${column})`).run();
   };

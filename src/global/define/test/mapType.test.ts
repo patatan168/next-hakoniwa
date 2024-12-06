@@ -54,7 +54,7 @@ describe('getMapDefine', () => {
       expect(MapType.getMapDefine('wasteland')).toBe(MapType.wasteland);
     });
   });
-  describe('millitary', () => {
+  describe('military', () => {
     test('missile', () => {
       expect(MapType.getMapDefine('missile')).toBe(MapType.missile);
     });
