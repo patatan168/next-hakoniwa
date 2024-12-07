@@ -115,10 +115,11 @@ export const setAuthCookie = async (
 
 /**
  * クッキー認証
+ * @note 認証に失敗したらundefined
  * @param client DBクライアント
  * @param response Next.jsのレスポンス
  * @param request Next.jsのリクエスト
- * @returns 認証の成否
+ * @returns UUID
  */
 export const validAuthCookie = async (
   client: sqlite.Database,
@@ -130,14 +131,11 @@ export const validAuthCookie = async (
     req: request,
   });
 
-  let valid = false;
-
   if (jwtToken !== undefined) {
     try {
       const rawToken = jwt.decode(jwtToken, { json: true });
       if (rawToken === null) {
-        console.error('JWT Decode Error');
-        return false;
+        throw 'JWT Decode Error';
       }
 
       const uuid = rawToken.sub;
@@ -147,19 +145,17 @@ export const validAuthCookie = async (
       );
       const { public_key } = selectSession.get(uuid, sessionId) as sessionSchemaType;
       if (public_key === undefined) {
-        console.error('Session DB Error');
-        return false;
+        throw 'Session DB Error';
       }
 
       // Verify
       jwt.verify(jwtToken, public_key);
       // Success
-      valid = true;
+      return uuid;
     } catch (error) {
       // Fail
       console.error(error);
-      valid = false;
+      return undefined;
     }
   }
-  return valid;
 };
