@@ -11,15 +11,15 @@ type SpacerProps = {
   rows: number;
   cols: number;
   num?: number;
-  aligin?: 'left' | 'center' | 'right';
+  algin?: 'left' | 'center' | 'right';
 };
 
-const Spacer = ({ mapPixel, rows, cols, num, aligin }: SpacerProps) => {
-  // aligin
+const Spacer = ({ mapPixel, rows, cols, num, algin }: SpacerProps) => {
+  // algin
   let left = 50;
-  if (aligin === 'left') {
+  if (algin === 'left') {
     left = 25;
-  } else if (aligin === 'right') {
+  } else if (algin === 'right') {
     left = 75;
   }
 
@@ -33,7 +33,7 @@ const Spacer = ({ mapPixel, rows, cols, num, aligin }: SpacerProps) => {
       -webkit-transform: translate(-50%, -45%);
       transform: translate(-50%, -45%);
       color: #ffd676;
-      font-size: 13px;
+      font-size: ${(13 * mapPixel) / baseMapPixel}px;
       font-weight: 600;
       text-shadow: 2px 1px 1px #653c00;
       margin: 0 !important;
@@ -104,6 +104,15 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
     coordinate.push(i);
   }
 
+  /* NOTE :要素と画像を固定にして環境によるズレを無くす */
+  const map = css`
+    display: inline-block;
+    li {
+      width: ${mapPixel};
+      height: ${mapPixel};
+    }
+  `;
+
   const hoverImgBright = css`
     img:hover {
       filter: brightness(150%) contrast(115%);
@@ -111,54 +120,63 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
   `;
 
   return (
-    <ImageList cols={2 * (META.MapSize + 1)} gap={0}>
-      <Spacer mapPixel={mapPixel} rows={1} cols={2} />
-      {coordinate.map((x) => (
-        <Spacer key={`spacer-${x}`} mapPixel={mapPixel} rows={1} cols={2} num={x} aligin={'left'} />
-      ))}
-      {data.map(({ x, y, type, landValue }) => {
-        const { imgPath, name } = getMapDefine(type);
-        const alt = getMapName(type, landValue, name);
-        const src = getMapImpPath(type, landValue, imgPath);
-        const mapInfoText = getMapInfoText(x, y, type, landValue);
-        return (
-          <Fragment key={`map-${x}-${y}`}>
-            {x === 0 && y % 2 === 0 && (
-              <Spacer mapPixel={mapPixel} rows={2} cols={2} num={y} aligin={'left'} />
-            )}
-            {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
-            <ImageListItem css={hoverImgBright} rows={2} cols={2}>
-              <Tooltip
-                slotProps={{
-                  popper: {
-                    sx: {
-                      [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                        {
-                          marginTop: '20px',
-                        },
+    <div css={map}>
+      <ImageList cols={2 * (META.MapSize + 1)} gap={0}>
+        <Spacer mapPixel={mapPixel} rows={1} cols={2} />
+        {coordinate.map((x) => (
+          <Spacer
+            key={`spacer-${x}`}
+            mapPixel={mapPixel}
+            rows={1}
+            cols={2}
+            num={x}
+            algin={'left'}
+          />
+        ))}
+        {data.map(({ x, y, type, landValue }) => {
+          const { imgPath, name } = getMapDefine(type);
+          const alt = getMapName(type, landValue, name);
+          const src = getMapImpPath(type, landValue, imgPath);
+          const mapInfoText = getMapInfoText(x, y, type, landValue);
+          return (
+            <Fragment key={`map-${x}-${y}`}>
+              {x === 0 && y % 2 === 0 && (
+                <Spacer mapPixel={mapPixel} rows={2} cols={2} num={y} algin={'left'} />
+              )}
+              {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
+              <ImageListItem css={hoverImgBright} rows={2} cols={2}>
+                <Tooltip
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                          {
+                            marginTop: '20px',
+                          },
+                      },
                     },
-                  },
-                }}
-                title={
-                  <MapInfoTips
-                    islandName={islandName}
-                    mapPixel={mapPixel}
-                    mapInfoText={mapInfoText}
-                    src={src}
-                    alt={alt}
-                  />
-                }
-                followCursor
-              >
-                <Image src={src} alt={alt} width={mapPixel} height={mapPixel} loading="lazy" />
-              </Tooltip>
-            </ImageListItem>
-            {x === META.MapSize - 1 && y % 2 === 1 && (
-              <Spacer mapPixel={mapPixel} rows={2} cols={1} />
-            )}
-          </Fragment>
-        );
-      })}
-    </ImageList>
+                  }}
+                  title={
+                    <MapInfoTips
+                      islandName={islandName}
+                      mapPixel={mapPixel}
+                      mapInfoText={mapInfoText}
+                      src={src}
+                      alt={alt}
+                    />
+                  }
+                  followCursor
+                >
+                  <Image src={src} alt={alt} width={mapPixel} height={mapPixel} loading="lazy" />
+                </Tooltip>
+              </ImageListItem>
+              {x === META.MapSize - 1 && y % 2 === 1 && (
+                <Spacer mapPixel={mapPixel} rows={2} cols={1} />
+              )}
+            </Fragment>
+          );
+        })}
+      </ImageList>
+    </div>
   );
 });
