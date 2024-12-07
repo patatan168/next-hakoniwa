@@ -74,9 +74,9 @@ export type islandSchemaType = {
   /** 採掘規模 */
   mining: number;
   /** 島情報 */
-  island_info: islandInfo;
+  island_info: islandInfoData;
   /** 島情報 (公開:基地などは森に) */
-  public_island_info: islandInfo;
+  public_island_info: islandInfoData;
 };
 
 export type islandInfoData = Array<islandInfo>;
