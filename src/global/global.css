@@ -44,10 +44,6 @@ td {
   background-color: rgb(204, 255, 255);
 }
 
-div {
-  background-color: var(--background);
-}
-
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
