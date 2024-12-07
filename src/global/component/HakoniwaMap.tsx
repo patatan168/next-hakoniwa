@@ -104,7 +104,7 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
     coordinate.push(i);
   }
 
-  /* NOTE :要素と画像を固定にして環境によるズレを無くす */
+  /* NOTE: 要素と画像を固定にして環境によるズレを無くす */
   const map = css`
     display: inline-block;
     li {
