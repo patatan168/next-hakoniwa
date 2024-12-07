@@ -1,6 +1,15 @@
 import { islandInfoData } from '@/db/schema/islandTable';
 import sqlite from 'better-sqlite3';
-import { forest, mountain, people, plains, sea, shallows, wasteland } from '../define/mapType';
+import {
+  defenseBase,
+  forest,
+  mountain,
+  people,
+  plains,
+  sea,
+  shallows,
+  wasteland,
+} from '../define/mapType';
 import META_DATA from '../define/metadata';
 import {
   calcAllTypeNum,
@@ -155,8 +164,8 @@ const initDefenseBase = (data: islandInfoData, center: number) => {
       case mountain.type:
         break;
       default:
-        islandInfo.type = mountain.type;
-        islandInfo.landValue = mountain.defVal;
+        islandInfo.type = defenseBase.type;
+        islandInfo.landValue = defenseBase.defVal;
         tmpCount++;
         break;
     }
@@ -167,7 +176,7 @@ const initDefenseBase = (data: islandInfoData, center: number) => {
  * 島を作成する
  */
 export const createIsland = (client: sqlite.Database, uuid: string, islandName: string) => {
-  const center = Math.trunc(META_DATA.MapSize / 2);
+  const center = Math.trunc(META_DATA.MapSize / 2) - 1;
   const data: islandInfoData = initIsland();
 
   initBaseLand(data, center);
