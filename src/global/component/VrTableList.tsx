@@ -6,21 +6,21 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { CSSProperties, forwardRef, memo } from 'react';
+import { CSSProperties, memo } from 'react';
 import { TableComponents, TableVirtuoso } from 'react-virtuoso';
 
 const VirtuosoTableComponents: TableComponents<object, ColumnInfo> = {
-  Scroller: forwardRef<HTMLDivElement>(function _Scroller(props, ref) {
-    return <TableContainer component={Paper} {...props} ref={ref} />;
-  }),
+  Scroller: function _Scroller(props) {
+    return <TableContainer component={Paper} {...props} />;
+  },
   Table: (props) => <Table {...props} />,
-  TableHead: forwardRef<HTMLTableSectionElement>(function _TableHead(props, ref) {
-    return <TableHead {...props} ref={ref} />;
-  }),
+  TableHead: function _TableHead(props) {
+    return <TableHead {...props} />;
+  },
   TableRow,
-  TableBody: forwardRef<HTMLTableSectionElement>(function _TableBody(props, ref) {
-    return <TableBody {...props} ref={ref} />;
-  }),
+  TableBody: function _TableBody(props) {
+    return <TableBody {...props} />;
+  },
 };
 
 function headerContent(columnHeader: ColumnInfo) {
@@ -63,39 +63,35 @@ interface Column {
 
 export type ColumnInfo = Array<Column>;
 
-type VrTableListProps = Omit<PaperProps, 'ref'> & {
+type VrTableListProps = PaperProps & {
   isLoading?: boolean;
   style?: CSSProperties | undefined;
   columnHeader: ColumnInfo;
   data?: Array<object>;
 };
 
-const VrTableList = memo(
-  forwardRef<HTMLDivElement, VrTableListProps>((props, ref) => {
-    const { isLoading, style, columnHeader, data } = props;
-    const fixedHeaderContent = (columnHeader: ColumnInfo) => {
-      return () => headerContent(columnHeader);
-    };
-    const itemContent = (columnHeader: ColumnInfo) => {
-      return (_index: number, row: object) => rowContent(_index, row, columnHeader);
-    };
+export default memo(function HakoniwaMap(props: VrTableListProps) {
+  const { isLoading, style, columnHeader, data, ref } = props;
+  const fixedHeaderContent = (columnHeader: ColumnInfo) => {
+    return () => headerContent(columnHeader);
+  };
+  const itemContent = (columnHeader: ColumnInfo) => {
+    return (_index: number, row: object) => rowContent(_index, row, columnHeader);
+  };
 
-    return !isLoading || isLoading === undefined ? (
-      <Paper sx={{ mr: 2 }} ref={ref} style={style} variant="outlined">
-        <TableVirtuoso
-          data={data}
-          components={VirtuosoTableComponents}
-          fixedHeaderContent={fixedHeaderContent(columnHeader)}
-          itemContent={itemContent(columnHeader)}
-        />
-      </Paper>
-    ) : (
-      <>
-        <Typography style={{ textAlign: 'center' }}>Loading</Typography>
-        <LinearProgress sx={{ mt: 2, mr: 2 }} />
-      </>
-    );
-  })
-);
-
-export default VrTableList;
+  return !isLoading || isLoading === undefined ? (
+    <Paper sx={{ mr: 2 }} ref={ref} style={style} variant="outlined">
+      <TableVirtuoso
+        data={data}
+        components={VirtuosoTableComponents}
+        fixedHeaderContent={fixedHeaderContent(columnHeader)}
+        itemContent={itemContent(columnHeader)}
+      />
+    </Paper>
+  ) : (
+    <>
+      <Typography style={{ textAlign: 'center' }}>Loading</Typography>
+      <LinearProgress sx={{ mt: 2, mr: 2 }} />
+    </>
+  );
+});
