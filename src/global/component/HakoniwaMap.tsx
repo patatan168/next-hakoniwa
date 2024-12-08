@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import { islandInfoData } from '@/db/schema/islandTable';
 import { default as META } from '@/global/define/metadata';
 import { css } from '@emotion/react';
