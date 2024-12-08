@@ -30,7 +30,7 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 
 | Library                   | Version | Copyright                                            |
 | ------------------------- | ------- | ---------------------------------------------------- |
-| Node.js                   | 20.17.0 | Copyright Node.js contributors. All rights reserved. |
+| Node.js                   | 22.11.0 | Copyright Node.js contributors. All rights reserved. |
 | React                     | 19.X.X  | Copyright (c) Meta Platforms, Inc. and affiliates.   |
 | Next.js                   | 15.X.X  | Copyright (c) 2024 Vercel, Inc.                      |
 | swr                       | 2.X.X   | Copyright (c) 2023 Vercel, Inc.                      |
