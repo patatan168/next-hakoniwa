@@ -29,8 +29,8 @@
     "es-toolkit": "^1.27.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.0.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-hook-form": "^7.53.2",
     "react-virtuoso": "^4.12.3",
     "swr": "^2.2.5",
@@ -48,7 +48,7 @@
     "@storybook/react": "^8.4.7",
     "@storybook/test": "^8.4.7",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/react": "^16.0.1",
+    "@testing-library/react": "^16.1.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.4",
@@ -83,6 +83,9 @@
   "overrides": {
     "next": {
       "@swc/helpers": ">=0.5.15"
+    },
+    "swr": {
+      "react": ">=19.0.0"
     }
   },
   "volta": {
