@@ -1,14 +1,14 @@
-import { TabOwnProps } from '@mui/material';
 import type { Meta, StoryObj } from '@storybook/react';
 
-import TabContents from '@/global/component/TabContents';
+import TabContents, { TabType } from '@/global/component/TabContents';
 import { fn } from '@storybook/test';
 import { omit } from 'es-toolkit';
 import { useState } from 'react';
 
-const tabTest: Array<TabOwnProps> = [
+const tabTest: Array<TabType> = [
   { value: 0, label: 'test0' },
   { value: 1, label: 'test1' },
+  { value: 2, label: 'disabled', disabled: true },
 ];
 
 const meta = {
@@ -45,16 +45,8 @@ const meta = {
         type: { summary: 'undefined|CSSProperties' },
       },
     },
-    tabsProp: {
-      description:
-        '[MUI Tabs](https://mui.com/base-ui/react-tabs/components-api/#tabs)のプロパティ',
-      control: 'object',
-      table: {
-        type: { summary: 'undefined|TabsProp' },
-      },
-    },
     tabContents: {
-      description: '[MUI Tab](https://mui.com/base-ui/react-tabs/components-api/#tab)の配列',
+      description: 'タブの値、ラベル、Disabledの配列',
       type: { name: 'other', value: '', required: true },
       control: 'object',
       table: {
@@ -74,7 +66,7 @@ type Story = StoryObj<typeof meta>;
 export const Example: Story = {
   render: (args) => {
     const [tab, setTab] = useState(0);
-    const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+    const handleChange = (newValue: number) => {
       setTab(newValue);
     };
     const props = omit(args, ['value', 'onChange']);

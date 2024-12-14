@@ -1,11 +1,9 @@
-/** @jsxImportSource @emotion/react */
 import { islandInfoData } from '@/db/schema/islandTable';
 import { default as META } from '@/global/define/metadata';
-import { css } from '@emotion/react';
-import { ImageList, ImageListItem, Tooltip, tooltipClasses, Typography } from '@mui/material';
 import Image from 'next/image';
 import { Fragment, memo } from 'react';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
+import Tooltip from './Tooltip';
 
 type SpacerProps = {
   mapPixel: number;
@@ -24,37 +22,29 @@ const Spacer = ({ mapPixel, rows, cols, num, algin }: SpacerProps) => {
     left = 75;
   }
 
-  const overlay = css`
-    position: relative;
-    p {
-      position: absolute;
-      top: 50%;
-      left: ${left}%;
-      -ms-transform: translate(-50%, -45%);
-      -webkit-transform: translate(-50%, -45%);
-      transform: translate(-50%, -45%);
-      color: #ffd676;
-      font-size: ${(13 * mapPixel) / baseMapPixel}px;
-      font-weight: 600;
-      text-shadow: 2px 1px 1px #653c00;
-      margin: 0 !important;
-      padding: 0 !important;
-      pointer-events: none;
-    }
-  `;
-
   return (
     <>
-      <ImageListItem css={overlay} rows={rows} cols={cols}>
+      <li
+        style={{ width: (mapPixel * cols) / 2, height: (mapPixel * rows) / 2 }}
+        className={`col-span-${cols} row-span-${rows} relative`}
+      >
         <Image
+          style={{ aspectRatio: `${cols}/${rows}` }}
           src={'/img/land/sea.gif'}
           alt={'海'}
           height={(mapPixel * rows) / 2}
           width={(mapPixel * cols) / 2}
           loading="lazy"
         />
-        {num !== undefined && <p css={overlay}>{num}</p>}
-      </ImageListItem>
+        {num !== undefined && (
+          <p
+            className="map-overlay"
+            style={{ left: `${left}%`, fontSize: (13 * mapPixel) / baseMapPixel }}
+          >
+            {num}
+          </p>
+        )}
+      </li>
     </>
   );
 };
@@ -67,22 +57,32 @@ type mapInfoTipsProps = {
   alt: string;
 };
 const MapInfoTips = ({ islandName, mapPixel, mapInfoText, src, alt }: mapInfoTipsProps) => {
-  const imgLine = css`
-    img {
-      outline: 1px solid rgb(125, 125, 125);
-    }
-  `;
-
   return (
     <>
-      <div css={imgLine} style={{ display: 'flex', alignItems: 'center' }}>
-        <Image src={src} alt={alt} width={mapPixel} height={mapPixel} loading="lazy" />
-        <Typography sx={{ ml: 1 }} variant="body2">
-          {`${islandName}島`}
-          <br />
-          {mapInfoText}
-        </Typography>
-      </div>
+      <ul
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, min-content)',
+        }}
+      >
+        <li style={{ width: mapPixel, height: mapPixel }}>
+          <Image
+            style={{ outline: '1px solid rgb(125, 125, 125)' }}
+            src={src}
+            alt={alt}
+            width={mapPixel}
+            height={mapPixel}
+            loading="lazy"
+          />
+        </li>
+        <li className="ml-1">
+          <p className="leading-tight">
+            {`${islandName}島`}
+            <br />
+            {mapInfoText}
+          </p>
+        </li>
+      </ul>
     </>
   );
 };
@@ -105,79 +105,56 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
     coordinate.push(i);
   }
 
-  /* NOTE: 要素と画像を固定にして環境によるズレを無くす */
-  const map = css`
-    display: inline-block;
-    li {
-      width: ${mapPixel};
-      height: ${mapPixel};
-    }
-  `;
-
-  const hoverImgBright = css`
-    img:hover {
-      filter: brightness(150%) contrast(115%);
-    }
-  `;
-
   return (
-    <div css={map}>
-      <ImageList cols={2 * (META.MapSize + 1)} gap={0}>
-        <Spacer mapPixel={mapPixel} rows={1} cols={2} />
-        {coordinate.map((x) => (
-          <Spacer
-            key={`spacer-${x}`}
-            mapPixel={mapPixel}
-            rows={1}
-            cols={2}
-            num={x}
-            algin={'left'}
-          />
-        ))}
-        {data.map(({ x, y, type, landValue }) => {
-          const { imgPath, name } = getMapDefine(type);
-          const alt = getMapName(type, landValue, name);
-          const src = getMapImpPath(type, landValue, imgPath);
-          const mapInfoText = getMapInfoText(x, y, type, landValue);
-          return (
-            <Fragment key={`map-${x}-${y}`}>
-              {x === 0 && y % 2 === 0 && (
-                <Spacer mapPixel={mapPixel} rows={2} cols={2} num={y} algin={'left'} />
-              )}
-              {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
-              <ImageListItem css={hoverImgBright} rows={2} cols={2}>
-                <Tooltip
-                  slotProps={{
-                    popper: {
-                      sx: {
-                        [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                          {
-                            marginTop: '20px',
-                          },
-                      },
-                    },
-                  }}
-                  title={
-                    <MapInfoTips
-                      islandName={islandName}
-                      mapPixel={mapPixel}
-                      mapInfoText={mapInfoText}
-                      src={src}
-                      alt={alt}
-                    />
-                  }
-                  followCursor
-                >
-                  <Image src={src} alt={alt} width={mapPixel} height={mapPixel} loading="lazy" />
-                </Tooltip>
-              </ImageListItem>
-              {x === META.MapSize - 1 && y % 2 === 1 && (
-                <Spacer mapPixel={mapPixel} rows={2} cols={1} />
-              )}
-            </Fragment>
-          );
-        })}
-      </ImageList>
-    </div>
+    <ul
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${2 * (META.MapSize + 1)}, min-content)`,
+      }}
+    >
+      <Spacer mapPixel={mapPixel} rows={1} cols={2} />
+      {coordinate.map((x) => (
+        <Spacer key={`spacer-${x}`} mapPixel={mapPixel} rows={1} cols={2} num={x} algin={'left'} />
+      ))}
+      {data.map(({ x, y, type, landValue }) => {
+        const { imgPath, name } = getMapDefine(type);
+        const alt = getMapName(type, landValue, name);
+        const src = getMapImpPath(type, landValue, imgPath);
+        const mapInfoText = getMapInfoText(x, y, type, landValue);
+        return (
+          <Fragment key={`map-${x}-${y}`}>
+            {x === 0 && y % 2 === 0 && (
+              <Spacer mapPixel={mapPixel} rows={2} cols={2} num={y} algin={'left'} />
+            )}
+            {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
+            <li style={{ width: mapPixel, height: mapPixel }} className="col-span-2 row-span-2">
+              <Tooltip
+                tooltipComp={
+                  <MapInfoTips
+                    islandName={islandName}
+                    mapPixel={mapPixel}
+                    mapInfoText={mapInfoText}
+                    src={src}
+                    alt={alt}
+                  />
+                }
+              >
+                <Image
+                  className="hover:contrast-115 hover:brightness-150"
+                  src={src}
+                  alt={alt}
+                  width={mapPixel}
+                  height={mapPixel}
+                  loading="lazy"
+                />
+              </Tooltip>
+            </li>
+            {x === META.MapSize - 1 && y % 2 === 1 && (
+              <Spacer mapPixel={mapPixel} rows={2} cols={1} />
+            )}
+          </Fragment>
+        );
+      })}
+    </ul>
   );
 });

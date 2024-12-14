@@ -9,8 +9,17 @@ module.exports = {
     'plugin:jsx-a11y/strict',
     'prettier',
     'plugin:storybook/recommended',
+    'plugin:tailwindcss/recommended',
   ],
-  ignorePatterns: ['dist', 'node_modules', '.eslintrc.cjs', 'next.config.mjs', 'vitest.config.mts'],
+  ignorePatterns: [
+    'dist',
+    'node_modules',
+    '.eslintrc.cjs',
+    'next.config.mjs',
+    'vitest.config.mts',
+    'tailwind.config.js',
+    'postcss.config.js',
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: '2023',
@@ -23,8 +32,6 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'jsx-a11y', 'react', 'react-refresh'],
   rules: {
-    // Emotionのcssがエラーになるので
-    'react/no-unknown-property': ['error', { ignore: ['css'] }],
     // ===にしないとエラー
     eqeqeq: 'error',
     // サイクロマティック複雑度が10を超えるとエラー
@@ -48,6 +55,8 @@ module.exports = {
     ],
     // Componetの複数exportを警告
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    // TailwindのカスタムCSSを許可
+    'tailwindcss/no-custom-classname': 'off',
   },
   settings: {
     react: {

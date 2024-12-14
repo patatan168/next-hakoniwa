@@ -1,9 +1,9 @@
 'use client';
+import Button from '@/global/component/Button';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useFetchTrig } from '@/global/function/fetch';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Stack } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -44,58 +44,51 @@ export default function LoginForm() {
 
   return (
     <>
-      <Stack sx={{ mb: 2 }} direction="row" justifyContent="space-between">
-        <Button
-          variant="contained"
-          type="submit"
-          onClick={() => {
-            trigger();
-            reset();
-          }}
-        >
-          Post
-        </Button>
-      </Stack>
-      <Stack spacing={2}>
-        <TextFieldRHF
-          required
-          name="islandName"
-          control={control}
-          helperText={' '}
-          id="island-name"
-          label="Island Name"
-          variant="outlined"
-        />
-        <TextFieldRHF
-          required
-          name="id"
-          control={control}
-          helperText={' '}
-          id="user-id"
-          label="User Id"
-          variant="outlined"
-        />
-        <TextFieldRHF
-          required
-          name="password"
-          control={control}
-          helperText={' '}
-          type="password"
-          id="password"
-          label="Password"
-          variant="outlined"
-        />
-        <TextFieldRHF
-          required
-          name="passwordConfirm"
-          control={control}
-          helperText={' '}
-          type="password"
-          id="password-confirm"
-          label="Password (Confirm)"
-          variant="outlined"
-        />
-      </Stack>
+      <ul>
+        <li>
+          <Button
+            type="submit"
+            onClick={() => {
+              trigger();
+              reset();
+            }}
+          >
+            Post
+          </Button>
+        </li>
+        <li>
+          <TextFieldRHF
+            required
+            name="islandName"
+            control={control}
+            id="island-name"
+            placeholder="Island Name"
+          />
+        </li>
+        <li>
+          <TextFieldRHF required name="id" control={control} id="user-id" placeholder="User Id" />
+        </li>
+        <li>
+          <TextFieldRHF
+            required
+            name="password"
+            control={control}
+            type="password"
+            id="password"
+            placeholder="Password"
+          />
+        </li>
+        <li>
+          <TextFieldRHF
+            required
+            name="passwordConfirm"
+            control={control}
+            type="password"
+            id="password-confirm"
+            placeholder="Password (Confirm)"
+          />
+        </li>
+      </ul>
     </>
   );
 }

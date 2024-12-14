@@ -1,22 +1,21 @@
 'use client';
-import TabContents from '@/global/component/TabContents';
+import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useFetch } from '@/global/function/fetch';
 import { useBoundingClient } from '@/global/function/useBoundingClient';
-import { TabOwnProps } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
-  { width: 100, headName: 'Id', key: 'id' },
-  { width: 100, headName: 'Password', key: 'password' },
+  { width: 200, headName: 'Id', key: 'id' },
+  { width: 200, headName: 'Password', key: 'password' },
   { width: 100, headName: '島名', key: 'island_name' },
   { width: 100, headName: '登録日', key: 'created_at' },
 ];
 
-const tabTest: Array<TabOwnProps> = [
-  { value: 0, label: 'test' },
-  { value: 1, label: 'test1' },
+const tabTest: Array<TabType> = [
+  { value: 0, label: '諸島の状況' },
+  { value: 1, label: '近況を見る' },
 ];
 
 export default function IslandList() {
@@ -25,9 +24,8 @@ export default function IslandList() {
   const listRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
   const { y } = useBoundingClient(listRef.current);
-  const marginHeight = 10;
 
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (newValue: number) => {
     setTab(newValue);
   };
 
@@ -43,7 +41,7 @@ export default function IslandList() {
       <VrTableList
         isLoading={isLoading}
         ref={listRef}
-        style={{ height: `calc(100svh - ${y + marginHeight}px)` }}
+        style={{ height: `calc(100svh - ${y}px)` }}
         columnHeader={header}
         data={user}
       />

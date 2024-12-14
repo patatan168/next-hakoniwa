@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --background: #eeffff;
   --foreground: #171717;
@@ -30,20 +34,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-th {
-  border: var(--table-border);
-  background-color: rgb(204, 255, 204);
-  font-size: clamp(18px, 1.6svw, 22px) !important;
-  font-weight: 800 !important;
-  color: rgb(192, 0, 0) !important;
-}
-
-td {
-  border: var(--table-border);
-  font-size: clamp(16px, 1.4svw, 20px) !important;
-  background-color: rgb(204, 255, 255);
-}
-
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
@@ -56,4 +46,18 @@ td {
 
 .sub-title {
   color: var(--sub-title);
+}
+
+.map-overlay {
+  position: absolute;
+  top: 50%;
+  -ms-transform: translate(-50%, -45%);
+  -webkit-transform: translate(-50%, -45%);
+  transform: translate(-50%, -45%);
+  color: #ffd676;
+  font-weight: 600;
+  text-shadow: 2px 1px 1px #653c00;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
 }

@@ -34,8 +34,7 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | React                     | 19.X.X  | Copyright (c) Meta Platforms, Inc. and affiliates.   |
 | Next.js                   | 15.X.X  | Copyright (c) 2024 Vercel, Inc.                      |
 | swr                       | 2.X.X   | Copyright (c) 2023 Vercel, Inc.                      |
-| emotion                   | 11.XX.X | Copyright (c) Emotion team and other contributors    |
-| Material UI               | 6.X.X   | Copyright (c) 2014 Call-Em-All                       |
+| React Icons               | 5.X.X   | Copyright 2018 kamijin_fanta                         |
 | react-virtuoso            | 4.XX.X  | Copyright (c) 2020 Petyo Ivanov                      |
 | better-sqlite3            | 11.X.X  | Copyright (c) 2017 Joshua Wise                       |
 | react-hook-form           | 7.XX.X  | Copyright (c) 2019-present Beier(Bill) Luo           |

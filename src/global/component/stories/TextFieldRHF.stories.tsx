@@ -14,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '[MUI TextField](https://mui.com/material-ui/api/text-field/) / [React Hooks Form](https://react-hook-form.com/docs/useform) を統合したテキストボックス',
+          '[MUI TextField](https://mui.com/material-ui/api/text-field/) とテキストボックスのラッパー',
       },
     },
   },
@@ -61,10 +61,8 @@ export const Example: Story = {
         required
         name="islandName"
         control={control}
-        helperText={' '}
         id="island-name"
-        label="Island Name"
-        variant="outlined"
+        placeholder="Island Name"
       />
     );
   },

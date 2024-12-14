@@ -1,41 +1,30 @@
-import { LinearProgress, Typography } from '@mui/material';
-import Paper, { PaperProps } from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import { CSSProperties, memo } from 'react';
+import { CSSProperties, memo, Ref } from 'react';
 import { TableComponents, TableVirtuoso } from 'react-virtuoso';
+import { Card } from './Card';
 
 const VirtuosoTableComponents: TableComponents<object, ColumnInfo> = {
-  Scroller: function _Scroller(props) {
-    return <TableContainer component={Paper} {...props} />;
-  },
-  Table: (props) => <Table {...props} />,
+  Table: (props) => <table {...props} className="w-full table-fixed break-all border" />,
   TableHead: function _TableHead(props) {
-    return <TableHead {...props} />;
+    return <thead {...props} className="bg-green-200 text-red-600" />;
   },
-  TableRow,
-  TableBody: function _TableBody(props) {
-    return <TableBody {...props} />;
+  TableRow: function _TableRow(props) {
+    return <tr {...props} className="bg-green-50" />;
   },
 };
 
 function headerContent(columnHeader: ColumnInfo) {
   return (
-    <TableRow>
+    <tr>
       {columnHeader.map((column) => (
-        <TableCell
+        <th
+          className="border-2 border-green-400 p-3"
           key={column.key}
-          variant="head"
           style={{ width: column.width, ...column.headStyle }}
         >
           {column.headName}
-        </TableCell>
+        </th>
       ))}
-    </TableRow>
+    </tr>
   );
 }
 
@@ -44,9 +33,13 @@ function rowContent(_index: number, row: object, columnHeader: ColumnInfo) {
     <>
       {columnHeader.map((column) => {
         return (
-          <TableCell key={column.key} style={column.dataStyle}>
+          <td
+            className="border-2 border-green-400/50 px-3 py-4"
+            key={column.key}
+            style={column.dataStyle}
+          >
             {row[column.key as keyof object]}
-          </TableCell>
+          </td>
         );
       })}
     </>
@@ -63,7 +56,8 @@ interface Column {
 
 export type ColumnInfo = Array<Column>;
 
-type VrTableListProps = PaperProps & {
+type VrTableListProps = {
+  ref?: Ref<HTMLDivElement>;
   isLoading?: boolean;
   style?: CSSProperties | undefined;
   columnHeader: ColumnInfo;
@@ -80,18 +74,21 @@ export default memo(function HakoniwaMap(props: VrTableListProps) {
   };
 
   return !isLoading || isLoading === undefined ? (
-    <Paper sx={{ mr: 2 }} ref={ref} style={style} variant="outlined">
+    <Card ref={ref} style={style}>
       <TableVirtuoso
         data={data}
         components={VirtuosoTableComponents}
         fixedHeaderContent={fixedHeaderContent(columnHeader)}
         itemContent={itemContent(columnHeader)}
       />
-    </Paper>
+    </Card>
   ) : (
     <>
-      <Typography style={{ textAlign: 'center' }}>Loading</Typography>
-      <LinearProgress sx={{ mt: 2, mr: 2 }} />
+      <div className="mt-3 flex justify-center pb-3" aria-label="読み込み中">
+        <div className="size-2 animate-ping rounded-full bg-green-600"></div>
+        <div className="mx-4 size-2 animate-ping rounded-full bg-green-600"></div>
+        <div className="size-2 animate-ping rounded-full bg-green-600"></div>
+      </div>
     </>
   );
 });

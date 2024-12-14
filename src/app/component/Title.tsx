@@ -1,19 +1,12 @@
 'use client';
 import META from '@/global/define/metadata';
-import { Typography } from '@mui/material';
 
 export default function Title() {
   return (
     <>
-      <Typography className="title" variant="h2" component="h1">
-        {META.TITLE}
-      </Typography>
-      <Typography className="title" sx={{ ml: 2 }} variant="body1" gutterBottom>
-        {`Version: ${META.VERSION}`}
-      </Typography>
-      <Typography className="sub-title" variant="h4" component="h2" gutterBottom>
-        {'ターン'}
-      </Typography>
+      <h1 className="title text-5xl">{META.TITLE}</h1>
+      <p className="title ml-4">{`Version: ${META.VERSION}`}</p>
+      <h2 className="sub-title text-4xl">{'ターン'}</h2>
     </>
   );
 }

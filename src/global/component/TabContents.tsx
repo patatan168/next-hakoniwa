@@ -1,35 +1,41 @@
-import Box from '@mui/material/Box';
-import Tab, { TabOwnProps } from '@mui/material/Tab';
-import Tabs, { TabsOwnProps } from '@mui/material/Tabs';
 import { CSSProperties, memo } from 'react';
 
-type TabsProp = Omit<TabsOwnProps, 'value' | 'onChange'>;
+export type TabType = {
+  value: unknown;
+  label: string;
+  disabled?: boolean;
+};
 
 type BaseTabsProps = {
   style?: CSSProperties;
-  /** @see [MUI Tabs](https://mui.com/base-ui/react-tabs/components-api/#tabs) */
-  tabsProp?: TabsProp;
-  /** @see [MUI Tab](https://mui.com/base-ui/react-tabs/components-api/#tab) */
-  tabContents: Array<TabOwnProps>;
+  tabContents: Array<TabType>;
   value: unknown;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onChange: (event: React.SyntheticEvent, value: any) => void;
+  onChange: (value: any) => void;
 };
 
-export default memo(function BaseTabs({
-  style,
-  tabsProp,
-  tabContents,
-  value,
-  onChange,
-}: BaseTabsProps) {
+const baseStyle =
+  'inline-block pt-2.5 pb-1 w-40 lg:w-48 border border-gray-200 disabled:text-gray-400 disabled:rounded-t-lg';
+const disabledStyle = 'disabled:cursor-not-allowed disabled:hover:bg-white/30';
+const defStyle = `${baseStyle} ${disabledStyle} text-gray-500 bg-white/30 rounded-t-lg hover:bg-green-300/50 hover:text-gray-600`;
+const selected = `${baseStyle} text-red-600 bg-green-300/25 rounded-t-lg active cursor-default`;
+
+export default memo(function BaseTabs({ style, tabContents, value, onChange }: BaseTabsProps) {
   return (
-    <Box style={style}>
-      <Tabs value={value} onChange={onChange} {...tabsProp}>
-        {tabContents.map((tabContent) => {
-          return <Tab key={tabContent.value} {...tabContent} />;
-        })}
-      </Tabs>
-    </Box>
+    <ul
+      style={style}
+      className="flex flex-wrap border-b border-gray-200 text-center text-lg font-semibold text-gray-500 dark:border-gray-700 dark:text-gray-400"
+    >
+      {tabContents.map(({ value: tabVal, label, disabled }) => {
+        const tabStyle = tabVal === value ? selected : defStyle;
+        return (
+          <li key={`${label}-${tabVal}`}>
+            <button disabled={disabled} onClick={() => onChange(tabVal)} className={tabStyle}>
+              {label}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 });
