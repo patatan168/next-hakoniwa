@@ -34,7 +34,7 @@ const Spacer = ({ mapPixel, rows, cols, num, algin }: SpacerProps) => {
           alt={'海'}
           height={(mapPixel * rows) / 2}
           width={(mapPixel * cols) / 2}
-          loading="lazy"
+          priority
         />
         {num !== undefined && (
           <p
