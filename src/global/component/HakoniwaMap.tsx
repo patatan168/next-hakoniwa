@@ -87,6 +87,17 @@ const MapInfoTips = ({ islandName, mapPixel, mapInfoText, src, alt }: mapInfoTip
   );
 };
 
+const getToolTipPosition = (x: number, y: number) => {
+  const topBottom = y === META.MapSize - 1 ? 'top-' : y === 0 ? 'bottom-' : '';
+  if (x < META.MapSize / 3) {
+    return `${topBottom}right`;
+  } else if (x > (2 * META.MapSize) / 3) {
+    return `${topBottom}left`;
+  } else {
+    return y < META.MapSize / 2 ? 'bottom' : 'top';
+  }
+};
+
 type HakoniwaMapProps = {
   islandName: string;
   data: islandInfoData;
@@ -121,6 +132,7 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
         const alt = getMapName(type, landValue, name);
         const src = getMapImpPath(type, landValue, imgPath);
         const mapInfoText = getMapInfoText(x, y, type, landValue);
+        const tooltipPosition = getToolTipPosition(x, y);
         return (
           <Fragment key={`map-${x}-${y}`}>
             {x === 0 && y % 2 === 0 && (
@@ -129,6 +141,7 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
             {x === 0 && y % 2 === 1 && <Spacer mapPixel={mapPixel} rows={2} cols={1} num={y} />}
             <li style={{ width: mapPixel, height: mapPixel }} className="col-span-2 row-span-2">
               <Tooltip
+                position={tooltipPosition}
                 tooltipComp={
                   <MapInfoTips
                     islandName={islandName}
