@@ -234,11 +234,19 @@ const meta = {
   },
   tags: ['autodocs'],
   args: {
+    isLoading: false,
     islandName: 'hoge',
     data: dummyData,
     mapWidth: undefined,
   },
   argTypes: {
+    isLoading: {
+      description: 'ロード中か',
+      control: 'boolean',
+      table: {
+        type: { summary: 'boolean' },
+      },
+    },
     islandName: {
       description: '島の名前',
       control: 'text',

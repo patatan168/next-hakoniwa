@@ -3,6 +3,7 @@ import { default as META } from '@/global/define/metadata';
 import Image from 'next/image';
 import { Fragment, memo } from 'react';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
+import Loading from './Loading';
 import Tooltip from './Tooltip';
 
 type SpacerProps = {
@@ -99,6 +100,7 @@ const getToolTipPosition = (x: number, y: number) => {
 };
 
 type HakoniwaMapProps = {
+  isLoading: boolean;
   islandName: string;
   data: islandInfoData;
   mapWidth?: number;
@@ -107,7 +109,12 @@ type HakoniwaMapProps = {
 /* Mapのピクセルサイズ */
 const baseMapPixel = 32;
 
-export default memo(function HakoniwaMap({ islandName, data, mapWidth }: HakoniwaMapProps) {
+export default memo(function HakoniwaMap({
+  isLoading,
+  islandName,
+  data,
+  mapWidth,
+}: HakoniwaMapProps) {
   const mapPixel =
     mapWidth !== undefined && mapWidth > 0 ? mapWidth / (META.MapSize + 1) : baseMapPixel;
   /* 座標表示用のデータを用意する[0,..,X] */
@@ -116,7 +123,9 @@ export default memo(function HakoniwaMap({ islandName, data, mapWidth }: Hakoniw
     coordinate.push(i);
   }
 
-  return (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <ul
       style={{
         display: 'grid',
