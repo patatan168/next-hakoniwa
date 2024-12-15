@@ -74,7 +74,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
       // Childrenの一行タグを許可<Example />
       'react/no-children-prop': 'error',
-      // useEffectの依存関係のWariningを無効
+      // useEffectの依存関係のWarningを無効
       'react-hooks/exhaustive-deps': 'off',
       // JSX に直接コールバック関数の記述を警告
       // NOTE: render ごとに毎回新たな関数実体が生成されre-renderを引き起こすため
