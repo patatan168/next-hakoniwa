@@ -7,9 +7,7 @@ export default function IslandList() {
 
   return (
     <>
-      {data !== undefined && (
-        <HakoniwaMap isLoading={isLoading} islandName={data.island_name} data={data.island_info} />
-      )}
+      <HakoniwaMap isLoading={isLoading} islandName={data?.island_name} data={data?.island_info} />
     </>
   );
 }
