@@ -6,7 +6,7 @@ import Loading from './Loading';
 const VirtuosoTableComponents: TableComponents<object, ColumnInfo> = {
   Table: (props) => <table {...props} className="w-full table-fixed break-all border" />,
   TableHead: function _TableHead(props) {
-    return <thead {...props} className="bg-green-200 text-red-600" />;
+    return <thead {...props} className="bg-green-200 text-red-700" />;
   },
   TableRow: function _TableRow(props) {
     return <tr {...props} className="bg-green-50" />;
