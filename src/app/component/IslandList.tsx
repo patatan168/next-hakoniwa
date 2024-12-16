@@ -3,7 +3,7 @@ import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useFetch } from '@/global/function/fetch';
 import { useBoundingClient } from '@/global/function/useBoundingClient';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
@@ -20,7 +20,6 @@ const tabTest: Array<TabType> = [
 
 export default function IslandList() {
   const [tab, setTab] = useState(0);
-  const [user, setUser] = useState([{}]);
   const listRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
   const { y } = useBoundingClient(listRef.current);
@@ -28,12 +27,6 @@ export default function IslandList() {
   const handleChange = (newValue: number) => {
     setTab(newValue);
   };
-
-  useEffect(() => {
-    if (data !== undefined) {
-      setUser(data);
-    }
-  }, [data]);
 
   return (
     <>
@@ -43,7 +36,7 @@ export default function IslandList() {
         ref={listRef}
         style={{ height: `calc(100svh - ${y}px)` }}
         columnHeader={header}
-        data={user}
+        data={data}
       />
     </>
   );
