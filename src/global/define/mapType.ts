@@ -68,6 +68,8 @@ export const getMapDefine = (type: string): mapType => {
       return submarineMissile;
     case 'defense_base':
       return defenseBase;
+    case 'fake_defense_base':
+      return fakeDefenseBase;
     // Monument
     case 'monument':
       return monument;
@@ -309,6 +311,15 @@ export const defenseBase: mapType = {
   fakeType: 'fake_forest',
   baseLand: 'plains',
   name: '防衛基地',
+  imgPath: '/img/military/defense_base.gif',
+  defVal: 0,
+  maxVal: 0,
+};
+export const fakeDefenseBase: mapType = {
+  type: 'fake_defense_base',
+  fakeType: 'fake_forest',
+  baseLand: 'plains',
+  name: 'ハリボテ',
   imgPath: '/img/military/defense_base.gif',
   defVal: 0,
   maxVal: 0,

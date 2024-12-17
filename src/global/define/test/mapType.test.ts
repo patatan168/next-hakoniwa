@@ -64,6 +64,9 @@ describe('getMapDefine', () => {
     test('defense_base', () => {
       expect(MapType.getMapDefine('defense_base')).toBe(MapType.defenseBase);
     });
+    test('fake_defense_base', () => {
+      expect(MapType.getMapDefine('fake_defense_base')).toBe(MapType.fakeDefenseBase);
+    });
   });
   describe('facility', () => {
     test('factory', () => {
