@@ -11,13 +11,7 @@ import {
   wasteland,
 } from '../define/mapType';
 import META_DATA from '../define/metadata';
-import {
-  calcAllTypeNum,
-  countArea,
-  countAround,
-  getIslandInfo,
-  getPublicIslandInfo,
-} from './island';
+import { calcAllTypeNum, countArea, countAround, getIslandInfo } from './island';
 
 /**
  * 島を初期化する
@@ -186,11 +180,9 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
   initDefenseBase(data, center);
 
   const insertSession = client.prepare(
-    `INSERT INTO island(uuid, island_name, prize, money, area, population, farm, factory, mining, island_info, public_island_info) 
-      values(?, ?, json_pretty(?), ?, ?, ?, ?, ?, ?, json_pretty(?), json_pretty(?))`
+    `INSERT INTO island(uuid, island_name, prize, money, area, population, farm, factory, mining, island_info) 
+      values(?, ?, json_pretty(?), ?, ?, ?, ?, ?, ?, json_pretty(?))`
   );
-
-  const publicData = getPublicIslandInfo(data);
 
   insertSession.run(
     uuid,
@@ -202,7 +194,6 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
     calcAllTypeNum(data, 'farm'),
     calcAllTypeNum(data, 'factory'),
     calcAllTypeNum(data, 'mining'),
-    JSON.stringify(data),
-    JSON.stringify(publicData)
+    JSON.stringify(data)
   );
 };

@@ -1,4 +1,5 @@
 import { DbSchema } from '@/global/function/db';
+import { getPublicIslandInfo } from '@/global/function/island';
 
 export const islandSchema: DbSchema = [
   {
@@ -46,10 +47,6 @@ export const islandSchema: DbSchema = [
     name: 'island_info',
     type: 'JSON',
   },
-  {
-    name: 'public_island_info',
-    type: 'JSON',
-  },
 ];
 
 export type islandData = Array<islandSchemaType>;
@@ -75,24 +72,22 @@ export type islandSchemaType = {
   mining: number;
   /** 島情報 */
   island_info: islandInfoData;
-  /** 島情報 (公開:基地などは森に) */
-  public_island_info: islandInfoData;
 };
 
 /**
  * JSON ColumをObjectに変換
  * @param island islandテーブルのデーター
+ * @param isPublic 公開データか
  */
-export const parseJsonIslandData = (island: unknown) => {
+export const parseJsonIslandData = (island: unknown, isPublic = true) => {
   if (typeof island === 'object' && island !== null) {
     if ('prize' in island && typeof island.prize === 'string') {
       island.prize = JSON.parse(island.prize);
     }
     if ('island_info' in island && typeof island.island_info === 'string') {
-      island.island_info = JSON.parse(island.island_info);
-    }
-    if ('public_island_info' in island && typeof island.public_island_info === 'string') {
-      island.public_island_info = JSON.parse(island.public_island_info);
+      island.island_info = isPublic
+        ? getPublicIslandInfo(JSON.parse(island.island_info))
+        : JSON.parse(island.island_info);
     }
   }
 };

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
          island WHERE uuid=?`
       )
       .get(uuid);
-    parseJsonIslandData(islandData);
+    parseJsonIslandData(islandData, false);
     return NextResponse.json(islandData);
   } else {
     accessLogger(request).warn(`Unauthorized Development`);
