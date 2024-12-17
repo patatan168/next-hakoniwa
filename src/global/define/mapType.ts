@@ -46,6 +46,8 @@ export const getMapDefine = (type: string): mapType => {
       return farm;
     case 'mining':
       return mining;
+    case 'oil_field':
+      return oilField;
     // Land
     case 'forest':
       return forest;
@@ -219,6 +221,14 @@ export const mining: mapType = {
   maxVal: 200,
   coefficient: 100,
   unit: facilityUnit,
+};
+export const oilField: mapType = {
+  type: 'oil_field',
+  baseLand: 'sea',
+  name: '海底油田',
+  imgPath: '/img/facility/oil_field.gif',
+  defVal: 0,
+  maxVal: 0,
 };
 
 // Land

@@ -78,6 +78,9 @@ describe('getMapDefine', () => {
     test('mining', () => {
       expect(MapType.getMapDefine('mining')).toBe(MapType.mining);
     });
+    test('oil_field', () => {
+      expect(MapType.getMapDefine('oil_field')).toBe(MapType.oilField);
+    });
   });
   test('monument', () => {
     expect(MapType.getMapDefine('monument')).toBe(MapType.monument);
