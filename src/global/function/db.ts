@@ -22,7 +22,7 @@ type DbColumn = {
   /** 型 */
   type: string;
   /** Null許容 */
-  nullable?: string;
+  nullable?: boolean;
   /** Primary Keyにするか */
   primary?: boolean;
   /** ユニークか */
