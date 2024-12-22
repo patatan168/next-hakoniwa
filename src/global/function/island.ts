@@ -3,14 +3,44 @@ import { getMapDefine, sea } from '../define/mapType';
 import META_DATA from '../define/metadata';
 
 /**
+ * 周囲のマップの座標を取得する
+ * @param baseX 中心座標(X)
+ * @param baseY 中心座標(Y)
+ * @param hex 周囲のマス
+ * @returns 周囲のマスの座標
+ */
+export const getMapAround = (baseX: number, baseY: number, hex: number) => {
+  const result = [];
+  for (let y = baseY - hex; y < baseY + hex + 1; y++) {
+    // 中心座標からの距離
+    const distance = Math.abs(baseY - y);
+    // NOTE: 起点のY座標が奇数・偶数でX座標のオフセットが変わる
+    const offsetX = baseY % 2 === 0 ? Math.ceil(distance / 2) : Math.trunc(distance / 2);
+
+    // カウントを開始するX座標
+    const startX = baseX - hex + offsetX;
+    // カウントを終了するX座標
+    // NOTE: 中心座標からの距離分、マスが減る
+    const endX = startX + 2 * hex - distance;
+
+    for (let x = startX; x < endX + 1; x++) {
+      result.push({ x, y });
+    }
+  }
+
+  return result;
+};
+
+/**
  * 周囲のマップをカウントする
  * @param data マップデーター
  * @param countType カウントしたいマップタイプ
  * @param baseX 中心座標(X)
  * @param baseY 中心座標(Y)
  * @param hex 周囲のマス
+ * @returns カウント数
  */
-export const countAround = (
+export const countMapAround = (
   data: islandInfoData,
   countType: string,
   baseX: number,
@@ -18,12 +48,11 @@ export const countAround = (
   hex: number
 ) => {
   let count = 0;
-  for (let y = baseY - hex; y < baseY + hex + 1; y++) {
-    for (let x = baseX - hex; x < baseX + hex + 1; x++) {
-      const islandInfo = getIslandInfo(data, x, y, true);
-      if (countType === islandInfo.type) count++;
-    }
-  }
+  const around = getMapAround(baseX, baseY, hex);
+  around.forEach(({ x, y }) => {
+    const islandInfo = getIslandInfo(data, x, y, true);
+    if (countType === islandInfo.type) count++;
+  });
 
   return count;
 };
@@ -86,6 +115,16 @@ export const calcAllTypeNum = (data: islandInfoData, type: string) => {
 };
 
 /**
+ * 座標からマップの配列を変換する
+ * @param x 取得したい座標(X)
+ * @param y 取得したい座標(Y)
+ * @return マップの配列番号
+ */
+export const mapArrayConverter = (x: number, y: number) => {
+  return y * META_DATA.MapSize + x;
+};
+
+/**
  * 島情報を取得する
  * @param data マップデーター
  * @param findX 取得したい座標(X)
@@ -94,7 +133,7 @@ export const calcAllTypeNum = (data: islandInfoData, type: string) => {
  */
 export const getIslandInfo = (data: islandInfoData, findX: number, findY: number, deep = false) => {
   if (findX >= 0 && findY > 0) {
-    const arrayNum = findY * META_DATA.MapSize + findX;
+    const arrayNum = mapArrayConverter(findX, findY);
     return deep ? structuredClone(data[arrayNum]) : data[arrayNum];
   } else {
     //外海

@@ -11,7 +11,7 @@ import {
   wasteland,
 } from '../define/mapType';
 import META_DATA from '../define/metadata';
-import { calcAllTypeNum, countArea, countAround, getIslandInfo } from './island';
+import { calcAllTypeNum, countArea, countMapAround, getIslandInfo } from './island';
 
 /**
  * 島を初期化する
@@ -44,8 +44,8 @@ const initBaseLand = (data: islandInfoData, center: number) => {
     const x = Math.trunc(Math.random() * 8) + center - 3;
     const y = Math.trunc(Math.random() * 8) + center - 3;
 
-    const seaCountAround = countAround(data, sea.type, x, y, 1);
-    if (seaCountAround !== 7) {
+    const seaMapAround = countMapAround(data, sea.type, x, y, 1);
+    if (seaMapAround !== 7) {
       const islandInfo = getIslandInfo(data, x, y);
       switch (islandInfo.type) {
         // 荒地は平地にする
