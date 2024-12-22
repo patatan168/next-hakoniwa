@@ -45,7 +45,8 @@ const initBaseLand = (data: islandInfoData, center: number) => {
     const y = Math.trunc(Math.random() * 8) + center - 3;
 
     const seaMapAround = countMapAround(data, sea.type, x, y, 1);
-    if (seaMapAround !== 7) {
+    const shallowsMapAround = countMapAround(data, shallows.type, x, y, 1);
+    if (seaMapAround + shallowsMapAround !== 7) {
       const islandInfo = getIslandInfo(data, x, y);
       switch (islandInfo.type) {
         // 荒地は平地にする
