@@ -32,6 +32,10 @@ export const islandSchema: DbSchema = [
     type: 'INTEGER',
   },
   {
+    name: 'food',
+    type: 'INTEGER',
+  },
+  {
     name: 'farm',
     type: 'INTEGER',
   },
@@ -64,6 +68,8 @@ export type islandSchemaType = {
   area: number;
   /** 人口 */
   population: number;
+  /** 食糧 */
+  food: number;
   /** 農場規模 */
   farm: number;
   /** 工場規模 */

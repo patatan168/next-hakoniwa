@@ -181,15 +181,16 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
   initDefenseBase(data, center);
 
   const insertSession = client.prepare(
-    `INSERT INTO island(uuid, island_name, prize, money, area, population, farm, factory, mining, island_info) 
-      values(?, ?, json_pretty(?), ?, ?, ?, ?, ?, ?, json_pretty(?))`
+    `INSERT INTO island(uuid, island_name, prize, money, food, area, population, farm, factory, mining, island_info) 
+      values(?, ?, jsonb(?), ?, ?, ?, ?, ?, ?, jsonb(?))`
   );
 
   insertSession.run(
     uuid,
     islandName,
     JSON.stringify([]),
-    1000,
+    META_DATA.INIT_MONEY,
+    META_DATA.INIT_FOOD,
     countArea(data),
     calcAllTypeNum(data, 'people'),
     calcAllTypeNum(data, 'farm'),
