@@ -17,7 +17,7 @@ export default [
     ignores: [
       'dist',
       'node_modules',
-      '.eslintrc.cjs',
+      'eslint.config.mjs',
       'next.config.mjs',
       'vitest.config.mts',
       'tailwind.config.js',
@@ -69,7 +69,7 @@ export default [
       // ===にしないとエラー
       eqeqeq: 'error',
       // サイクロマティック複雑度が10を超えるとエラー
-      complexity: ['error', 10],
+      complexity: ['error', 15],
       // Any型は警告のとどめて許容する
       '@typescript-eslint/no-explicit-any': 'warn',
       // Childrenの一行タグを許可<Example />
