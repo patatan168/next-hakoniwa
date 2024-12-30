@@ -134,10 +134,17 @@ export const validAuthCookie = async (
   if (jwtToken !== undefined) {
     try {
       const rawToken = jwt.decode(jwtToken, { json: true });
+
+      // Decode Error
       if (rawToken === null) {
         throw 'JWT Decode Error';
       }
-
+      // Issuer Error
+      const issuer = rawToken.iss;
+      if (issuer !== META.ISSUER) {
+        throw 'JWT Issuer Error';
+      }
+      // Session Error
       const uuid = rawToken.sub;
       const sessionId = rawToken.session_id;
       const selectSession = client.prepare(
@@ -149,7 +156,7 @@ export const validAuthCookie = async (
       }
 
       // Verify
-      jwt.verify(jwtToken, public_key);
+      jwt.verify(jwtToken, public_key, { algorithms: ['ES256'] });
       // Success
       return uuid;
     } catch (error) {
