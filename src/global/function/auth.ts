@@ -82,7 +82,7 @@ export const createJwtToken = (client: sqlite.Database, uuid: string) => {
   const session_id = randomString(32);
   const { privateKey, publicKey } = es256Gen();
   const now = new Date();
-  //NOTE: UNIX TIME似合わせるためにミリ秒は丸める
+  //NOTE: UNIX TIMEに合わせるためにミリ秒は丸める
   const express = Math.trunc(now.setHours(now.getHours() + META.EXPIRES_HOUR) / 1000);
 
   const insertSession = client.prepare(
