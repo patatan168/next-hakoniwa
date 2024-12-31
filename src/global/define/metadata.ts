@@ -7,6 +7,34 @@ const META_DATA = Object.freeze({
   INIT_MONEY: 1000,
   /** 初期食料 (トン) */
   INIT_FOOD: 1000,
+  /** 地震の確率 (%) */
+  EARTHQUAKE_RATE: 0.5,
+  /** 津波の確率 (%) */
+  TSUNAMI_RATE: 1.5,
+  /** 台風の確率 (%) */
+  TYPHOON_RATE: 2,
+  /** 隕石の確率 (%) */
+  METEORITE_RATE: 1.5,
+  /** 巨大隕石の確率 (%) */
+  HUGE_METEORITE_RATE: 0.5,
+  /** 噴火の確率 (%) */
+  ERUPTION_RATE: 1,
+  /** 火災の確率 (%) */
+  FIRE_RATE: 1,
+  /** 地盤沈下の確率 */
+  FALL_DOWN_RATE: 1,
+  /** 地盤沈下のボーダー (万坪) */
+  FALL_DOWN_BORDER: 9000,
+  /** 埋蔵金の確率 (%) */
+  BURIED_TREASURE_RATE: 0.1,
+  /** 海底油田の確率 (%) */
+  OIL_FIELD_RATE: 1,
+  /** 油田の枯渇率 (%) */
+  OIL_EXHAUSTION_RATE: 40,
+  /** 油田の収入 */
+  OIL_EARN: 1000,
+  /** 面積あたりの怪獣出現率 ( % / 100万坪 ) */
+  MONSTER_RATE: 0.03,
   /** トークンの発行者 */
   ISSUER: 'Patatan',
   /** セッション時間(h) */

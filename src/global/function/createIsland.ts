@@ -180,22 +180,30 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
   initMountain(data, center);
   initDefenseBase(data, center);
 
+  // 島情報を初期化
   const insertIsland = client.prepare(
     `INSERT INTO island(uuid, island_name, prize, money, food, area, population, farm, factory, mining, island_info) 
       values(?, ?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
   );
+  // イベント発生率を初期化
+  const insertEventRate = client.prepare(`INSERT INTO event_rate(uuid) values(?)`);
 
-  insertIsland.run(
-    uuid,
-    islandName,
-    JSON.stringify([]),
-    META_DATA.INIT_MONEY,
-    META_DATA.INIT_FOOD,
-    countArea(data),
-    calcAllTypeNum(data, 'people'),
-    calcAllTypeNum(data, 'farm'),
-    calcAllTypeNum(data, 'factory'),
-    calcAllTypeNum(data, 'mining'),
-    JSON.stringify(data)
-  );
+  // Transaction
+  client.transaction(() => {
+    insertIsland.run(
+      uuid,
+      islandName,
+      JSON.stringify([]),
+      META_DATA.INIT_MONEY,
+      META_DATA.INIT_FOOD,
+      countArea(data),
+      calcAllTypeNum(data, 'people'),
+      calcAllTypeNum(data, 'farm'),
+      calcAllTypeNum(data, 'factory'),
+      calcAllTypeNum(data, 'mining'),
+      JSON.stringify(data)
+    );
+
+    insertEventRate.run(uuid);
+  })();
 };
