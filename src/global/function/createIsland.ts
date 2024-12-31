@@ -180,12 +180,12 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
   initMountain(data, center);
   initDefenseBase(data, center);
 
-  const insertSession = client.prepare(
+  const insertIsland = client.prepare(
     `INSERT INTO island(uuid, island_name, prize, money, food, area, population, farm, factory, mining, island_info) 
       values(?, ?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
   );
 
-  insertSession.run(
+  insertIsland.run(
     uuid,
     islandName,
     JSON.stringify([]),
