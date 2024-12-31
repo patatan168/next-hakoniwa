@@ -1,7 +1,7 @@
 /**
  * セキュア乱数
  * @note Math.random()相当の処理だが低速
- * @returns 0~1の乱数
+ * @returns 0 <= x < 1の乱数
  */
 export const secureRandom = () => {
   // NOTE: getRandomValuesの引数が配列のため
@@ -11,5 +11,5 @@ export const secureRandom = () => {
   // Uint32の範囲で乱数生成
   crypto.getRandomValues(randomValues);
 
-  return randomValues[0] / maxUint32;
+  return randomValues[0] / (maxUint32 + 1);
 };
