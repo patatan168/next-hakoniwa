@@ -5,6 +5,7 @@ import { getCookie, setCookie } from 'cookies-next';
 import * as jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto, { generateKeyPairSync } from 'node:crypto';
+import { secureRandom } from './utility';
 
 /**
  * SHA-256のハッシュ値を返す
@@ -40,7 +41,7 @@ const randomString = (length: number) => {
   const str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+_@!?#$%&=-~^*';
   let result: string = '';
   for (let i = 0; i < length; i++) {
-    const random = Math.trunc(Math.random() * str.length);
+    const random = Math.trunc(secureRandom() * str.length);
     result = result + str[random];
   }
   return result;
