@@ -89,13 +89,13 @@ const MapInfoTips = ({ islandName, mapPixel, mapInfoText, src, alt }: mapInfoTip
 };
 
 const getToolTipPosition = (x: number, y: number) => {
-  const topBottom = y === META.MapSize - 1 ? 'top-' : y === 0 ? 'bottom-' : '';
-  if (x < META.MapSize / 3) {
+  const topBottom = y === META.MAP_SIZE - 1 ? 'top-' : y === 0 ? 'bottom-' : '';
+  if (x < META.MAP_SIZE / 3) {
     return `${topBottom}right`;
-  } else if (x > (2 * META.MapSize) / 3) {
+  } else if (x > (2 * META.MAP_SIZE) / 3) {
     return `${topBottom}left`;
   } else {
-    return y < META.MapSize / 2 ? 'bottom' : 'top';
+    return y < META.MAP_SIZE / 2 ? 'bottom' : 'top';
   }
 };
 
@@ -116,10 +116,10 @@ export default memo(function HakoniwaMap({
   mapWidth,
 }: HakoniwaMapProps) {
   const mapPixel =
-    mapWidth !== undefined && mapWidth > 0 ? mapWidth / (META.MapSize + 1) : baseMapPixel;
+    mapWidth !== undefined && mapWidth > 0 ? mapWidth / (META.MAP_SIZE + 1) : baseMapPixel;
   /* 座標表示用のデータを用意する[0,..,X] */
   const coordinate = [];
-  for (let i = 0; i < META.MapSize; i++) {
+  for (let i = 0; i < META.MAP_SIZE; i++) {
     coordinate.push(i);
   }
 
@@ -129,7 +129,7 @@ export default memo(function HakoniwaMap({
     <ul
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${2 * (META.MapSize + 1)}, min-content)`,
+        gridTemplateColumns: `repeat(${2 * (META.MAP_SIZE + 1)}, min-content)`,
       }}
     >
       <Spacer mapPixel={mapPixel} rows={1} cols={2} />
@@ -171,7 +171,7 @@ export default memo(function HakoniwaMap({
                 />
               </Tooltip>
             </li>
-            {x === META.MapSize - 1 && y % 2 === 1 && (
+            {x === META.MAP_SIZE - 1 && y % 2 === 1 && (
               <Spacer mapPixel={mapPixel} rows={2} cols={1} />
             )}
           </Fragment>

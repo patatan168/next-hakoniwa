@@ -64,8 +64,8 @@ export const countMapAround = (
  */
 export const countArea = (data: islandInfoData) => {
   let count = 0;
-  for (let y = 0; y < META_DATA.MapSize; y++) {
-    for (let x = 0; x < META_DATA.MapSize; x++) {
+  for (let y = 0; y < META_DATA.MAP_SIZE; y++) {
+    for (let x = 0; x < META_DATA.MAP_SIZE; x++) {
       const islandInfo = getIslandInfo(data, x, y, true);
       const { baseLand } = getMapDefine(islandInfo.type);
       switch (baseLand) {
@@ -94,8 +94,8 @@ export const countArea = (data: islandInfoData) => {
  */
 export const calcAllTypeNum = (data: islandInfoData, type: string) => {
   let count = 0;
-  for (let y = 0; y < META_DATA.MapSize; y++) {
-    for (let x = 0; x < META_DATA.MapSize; x++) {
+  for (let y = 0; y < META_DATA.MAP_SIZE; y++) {
+    for (let x = 0; x < META_DATA.MAP_SIZE; x++) {
       const islandInfo = getIslandInfo(data, x, y, true);
       const { coefficient } = getMapDefine(islandInfo.type);
       switch (islandInfo.type) {
@@ -121,7 +121,7 @@ export const calcAllTypeNum = (data: islandInfoData, type: string) => {
  * @return マップの配列番号
  */
 export const mapArrayConverter = (x: number, y: number) => {
-  return y * META_DATA.MapSize + x;
+  return y * META_DATA.MAP_SIZE + x;
 };
 
 /**

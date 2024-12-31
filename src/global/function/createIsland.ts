@@ -18,8 +18,8 @@ import { calcAllTypeNum, countArea, countMapAround, getIslandInfo } from './isla
  */
 const initIsland = (): islandInfoData => {
   const initialLand = [];
-  for (let y = 0; y < META_DATA.MapSize; y++) {
-    for (let x = 0; x < META_DATA.MapSize; x++) {
+  for (let y = 0; y < META_DATA.MAP_SIZE; y++) {
+    for (let x = 0; x < META_DATA.MAP_SIZE; x++) {
       initialLand.push({ x: x, y: y, type: 'sea', landValue: 0 });
     }
   }
@@ -171,7 +171,7 @@ const initDefenseBase = (data: islandInfoData, center: number) => {
  * 島を作成する
  */
 export const createIsland = (client: sqlite.Database, uuid: string, islandName: string) => {
-  const center = Math.trunc(META_DATA.MapSize / 2) - 1;
+  const center = Math.trunc(META_DATA.MAP_SIZE / 2) - 1;
   const data: islandInfoData = initIsland();
 
   initBaseLand(data, center);
