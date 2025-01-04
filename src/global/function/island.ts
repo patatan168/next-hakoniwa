@@ -3,6 +3,18 @@ import { getMapDefine, sea } from '../define/mapType';
 import META_DATA from '../define/metadata';
 
 /**
+ * 外海かどうか
+ * @param x X座標
+ * @param y Y座標
+ * @returns 外海かどうか
+ */
+export const isOpenSea = (x: number, y: number) => {
+  const bellowMap = x < 0 || y < 0;
+  const aboveMap = x >= META_DATA.MAP_SIZE || y >= META_DATA.MAP_SIZE;
+  return bellowMap || aboveMap;
+};
+
+/**
  * 周囲のマップの座標を取得する
  * @param baseX 中心座標(X)
  * @param baseY 中心座標(Y)
@@ -132,12 +144,12 @@ export const mapArrayConverter = (x: number, y: number) => {
  * @param deep ディープコピーするか
  */
 export const getIslandInfo = (data: islandInfoData, findX: number, findY: number, deep = false) => {
-  if (findX >= 0 && findY > 0) {
-    const arrayNum = mapArrayConverter(findX, findY);
-    return deep ? structuredClone(data[arrayNum]) : data[arrayNum];
-  } else {
+  if (isOpenSea(findX, findY)) {
     //外海
     return { x: findX, y: findY, type: sea.type, landValue: 0 };
+  } else {
+    const arrayNum = mapArrayConverter(findX, findY);
+    return deep ? structuredClone(data[arrayNum]) : data[arrayNum];
   }
 };
 
