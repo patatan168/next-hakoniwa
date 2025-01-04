@@ -1,11 +1,21 @@
 /* eslint-disable complexity */
+export type landType =
+  | 'sea'
+  | 'plains'
+  | 'mountain'
+  | 'submarine_missile'
+  | 'oil_field'
+  | 'monster'
+  | 'sanjira'
+  | 'kujira';
+
 export type mapType = {
   /** タイプ */
   readonly type: string;
   /** 偽装タイプ */
   readonly fakeType?: string;
   /** 基本地形 */
-  readonly baseLand: 'sea' | 'plains' | 'mountain' | 'monster' | 'sanjira' | 'kujira';
+  readonly baseLand: landType;
   /** 名称 name[lv] */
   readonly name: Array<string> | string;
   /** イメージデータのパス imgPath[lv] */
@@ -224,7 +234,7 @@ export const mining: mapType = {
 };
 export const oilField: mapType = {
   type: 'oil_field',
-  baseLand: 'sea',
+  baseLand: 'oil_field',
   name: '海底油田',
   imgPath: '/img/facility/oil_field.gif',
   defVal: 0,
@@ -307,7 +317,7 @@ export const missile: mapType = {
 export const submarineMissile: mapType = {
   type: 'submarine_missile',
   fakeType: 'sea',
-  baseLand: 'plains',
+  baseLand: 'submarine_missile',
   name: '海底基地',
   imgPath: '/img/military/submarine_missile.gif',
   defVal: 0,
@@ -320,7 +330,7 @@ export const defenseBase: mapType = {
   type: 'defense_base',
   fakeType: 'fake_forest',
   baseLand: 'plains',
-  name: '防衛基地',
+  name: '防衛施設',
   imgPath: '/img/military/defense_base.gif',
   defVal: 0,
   maxVal: 0,
