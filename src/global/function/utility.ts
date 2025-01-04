@@ -13,3 +13,13 @@ export const secureRandom = () => {
 
   return randomValues[0] / (maxUint32 + 1);
 };
+
+/**
+ * 確率から成否を判定
+ * @param probability 確率 (%)
+ * @returns true 成功
+ * @returns false 失敗
+ */
+export const checkProbability = (probability: number) => {
+  return Math.random() >= 1 - probability / 100;
+};
