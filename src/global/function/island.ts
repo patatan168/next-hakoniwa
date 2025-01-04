@@ -1,4 +1,11 @@
-import { islandInfoData } from '@/db/schema/islandTable';
+import { islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
+import { difference } from 'es-toolkit/array';
+import {
+  logDamageWaste,
+  logMonsterSubmersion,
+  logScatterMonster,
+  logSubmersion,
+} from '../define/logType';
 import { getMapDefine, sea } from '../define/mapType';
 import META_DATA from '../define/metadata';
 
@@ -166,4 +173,131 @@ export const getPublicIslandInfo = (data: islandInfoData) => {
       return item;
     }
   });
+};
+
+/**
+ * マップ情報を変更する
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @param mapType 変更するマップタイプ
+ * @param landValue 変更するlandValue
+ * @property landValue.type 変更タイプ (add, div, sub, multi, ins)
+ * @property landValue.value 変更値
+ */
+export const changeMapData = (
+  island: islandSchemaType,
+  x: number,
+  y: number,
+  mapType: string,
+  landValue: {
+    /** 変更タイプ 現在値から(加算, 除算, 減算, 乗算, 挿入) */
+    type: 'add' | 'sub' | 'multi' | 'div' | 'ins';
+    /** 変更値 */
+    value: number;
+  }
+) => {
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  // マップ変更
+  if (mapInfo.type !== mapType) mapInfo.type = mapType;
+  // LandValue変更
+  switch (landValue.type) {
+    case 'add':
+      mapInfo.landValue += landValue.value;
+      break;
+    case 'sub':
+      mapInfo.landValue -= landValue.value;
+      break;
+    case 'multi':
+      mapInfo.landValue *= landValue.value;
+      break;
+    case 'div':
+      mapInfo.landValue /= landValue.value;
+      break;
+    case 'ins':
+      mapInfo.landValue = landValue.value;
+      break;
+  }
+};
+
+/**
+ * 防衛施設の自爆処理
+ * @param toIsland 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const defenseBaseCrash = (
+  toIsland: islandSchemaType,
+  x: number,
+  y: number,
+  turn: number
+) => {
+  const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+  // 周囲1HEXのみ
+  const aroundHex1 = difference(getMapAround(x, y, 1), [{ x, y }]);
+  // 周囲2HEXのみ
+  const aroundHex2 = difference(getMapAround(x, y, 2), [...aroundHex1, { x, y }]);
+
+  // 中心座標は完全に水没
+  const { defVal } = getMapDefine('sea');
+  changeMapData(toIsland, x, y, 'sea', { type: 'ins', value: defVal });
+  const tmpLog = logSubmersion(toIsland, x, y);
+  const log = [{ ...baseLog, secret_log: tmpLog, log: tmpLog }];
+
+  // 周囲1HEXは陸地破壊相当の処理 (NOTE: 山は消し飛ぶ)
+  aroundHex1.forEach(({ x: changeX, y: changeY }) => {
+    if (!isOpenSea(changeX, changeY)) {
+      const mapInfo = toIsland.island_info[mapArrayConverter(changeX, changeY)];
+      // 除外地形
+      const excludeType = ['sea', 'shallows'];
+      // マップの変更
+      if (!excludeType.includes(mapInfo.type)) {
+        const { defVal, baseLand } = getMapDefine('shallows');
+        changeMapData(toIsland, changeX, changeY, 'shallows', { type: 'ins', value: defVal });
+        // ログ出力
+        const monsterType = ['monster', 'sanjira', 'kujira'];
+        if (monsterType.includes(baseLand)) {
+          const tmpLog = logMonsterSubmersion(toIsland, changeX, changeY);
+          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+        } else {
+          const tmpLog = logSubmersion(toIsland, changeX, changeY);
+          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+        }
+      }
+    }
+  });
+
+  // 周囲2HEX
+  aroundHex2.forEach(({ x: changeX, y: changeY }) => {
+    if (!isOpenSea(changeX, changeY)) {
+      const mapInfo = toIsland.island_info[mapArrayConverter(changeX, changeY)];
+      // 除外地形
+      const excludeType = [
+        'sea',
+        'shallows',
+        'wasteland',
+        'mountain',
+        'mining',
+        'submarine_missile',
+        'oil_field',
+      ];
+      // マップの変更
+      if (!excludeType.includes(mapInfo.type)) {
+        const { defVal, baseLand } = getMapDefine('wasteland');
+        changeMapData(toIsland, changeX, changeY, 'wasteland', { type: 'ins', value: defVal });
+        const monsterType = ['monster', 'sanjira', 'kujira'];
+        // ログ出力
+        if (monsterType.includes(baseLand)) {
+          const tmpLog = logScatterMonster(toIsland, changeX, changeY);
+          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+        } else {
+          const tmpLog = logDamageWaste(toIsland, changeX, changeY);
+          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+        }
+      }
+    }
+  });
+
+  return log;
 };

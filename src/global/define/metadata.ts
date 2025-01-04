@@ -3,10 +3,18 @@ const META_DATA = Object.freeze({
   VERSION: '0.1.0',
   /** マップサイズ */
   MAP_SIZE: 12,
+  /** 資金の単位 */
+  UNIT_MONEY: '億円',
+  /** 食料の単位 */
+  UNIT_FOOD: 'トン',
+  /** 面積の単位 */
+  UNIT_AREA: '万坪',
   /** 初期資金 (億円) */
   INIT_MONEY: 1000,
   /** 初期食料 (トン) */
   INIT_FOOD: 1000,
+  /** 木の売値 (X億円/100本) */
+  FOREST_VALUE: 5,
   /** 地震の確率 (%) */
   EARTHQUAKE_RATE: 0.5,
   /** 津波の確率 (%) */
