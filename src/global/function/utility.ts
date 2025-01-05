@@ -11,7 +11,7 @@ export const secureRandom = () => {
   // Uint32の範囲で乱数生成
   crypto.getRandomValues(randomValues);
 
-  return randomValues[0] / (maxUint32 + 1);
+  return randomValues[0] / (maxUint32 + 1 / 100000);
 };
 
 /**
