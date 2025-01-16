@@ -21,7 +21,25 @@ export const planSchema: DbSchema = [
     type: 'INTEGER',
   },
   {
+    name: 'x',
+    type: 'INTEGER',
+  },
+  {
+    name: 'y',
+    type: 'INTEGER',
+  },
+  {
     name: 'plan',
     type: 'Text',
   },
 ];
+
+export type planSchemaType = {
+  from_uuid: string;
+  to_uuid: string;
+  plan_no: number;
+  times: number;
+  x: number;
+  y: number;
+  plan: string;
+};
