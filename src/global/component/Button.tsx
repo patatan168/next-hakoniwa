@@ -10,7 +10,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   style?: CSSProperties;
 };
 
-const focus = 'focus:outline-none focus:ring-4 focus:ring-blue-300';
+const focus = 'focus:outline-hidden focus:ring-4 focus:ring-blue-300';
 const disabled = 'disabled:cursor-not-allowed disabled:bg-blue-300';
 const hover = 'hover:bg-blue-800';
 

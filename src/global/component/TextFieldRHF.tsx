@@ -43,8 +43,8 @@ type TextFieldRHFProps<
   };
 
 const baseStyle = 'rounded-lg border p-2.5 text-sm';
-const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-300`;
-const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-300`;
+const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
+const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
 
 export const TextFieldRHF = <
   TFieldValues extends FieldValues = FieldValues,

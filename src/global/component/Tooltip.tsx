@@ -32,7 +32,7 @@ export const Tooltip = ({
 }) => {
   const positionStyle = getPosition(position);
   return (
-    <div className="group relative flex flex-col items-center [&>span]:hidden hover:[&>span]:block">
+    <div className="group relative flex flex-col items-center [&>span]:hidden [&>span]:hover:block">
       <div className="flex justify-center">{children}</div>
       <span
         className={`absolute ${positionStyle} flex flex-col items-center whitespace-nowrap group-hover:flex`}
