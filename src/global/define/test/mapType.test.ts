@@ -1,92 +1,98 @@
 import { describe, expect, test } from 'vitest';
+import * as mapFacility from '../mapCategory/mapFacility';
+import * as mapFake from '../mapCategory/mapFake';
+import * as mapLand from '../mapCategory/mapLand';
+import * as mapMilitary from '../mapCategory/mapMilitary';
+import * as mapMonster from '../mapCategory/mapMonster';
+import * as mapOther from '../mapCategory/mapOther';
 import * as MapType from '../mapType';
 
 describe('getMapDefine', () => {
   test('undefined => dummy', () => {
-    expect(MapType.getMapDefine('test')).toBe(MapType.dummy);
+    expect(MapType.getMapDefine('test')).toEqual(mapFake.dummy);
   });
   describe('monster', () => {
     test('inora', () => {
-      expect(MapType.getMapDefine('inora')).toBe(MapType.inora);
+      expect(MapType.getMapDefine('inora')).toEqual(mapMonster.inora);
     });
     test('inora_ghost', () => {
-      expect(MapType.getMapDefine('inora_ghost')).toBe(MapType.inoraGhost);
+      expect(MapType.getMapDefine('inora_ghost')).toEqual(mapMonster.inoraGhost);
     });
     test('meka_inora', () => {
-      expect(MapType.getMapDefine('meka_inora')).toBe(MapType.mekaInora);
+      expect(MapType.getMapDefine('meka_inora')).toEqual(mapMonster.mekaInora);
     });
     test('dark_inora', () => {
-      expect(MapType.getMapDefine('dark_inora')).toBe(MapType.darkInora);
+      expect(MapType.getMapDefine('dark_inora')).toEqual(mapMonster.darkInora);
     });
     test('red_inora', () => {
-      expect(MapType.getMapDefine('red_inora')).toBe(MapType.redInora);
+      expect(MapType.getMapDefine('red_inora')).toEqual(mapMonster.redInora);
     });
     test('king_inora', () => {
-      expect(MapType.getMapDefine('king_inora')).toBe(MapType.kingInora);
+      expect(MapType.getMapDefine('king_inora')).toEqual(mapMonster.kingInora);
     });
     test('sanjira', () => {
-      expect(MapType.getMapDefine('sanjira')).toBe(MapType.sanjira);
+      expect(MapType.getMapDefine('sanjira')).toEqual(mapMonster.sanjira);
     });
     test('kujira', () => {
-      expect(MapType.getMapDefine('kujira')).toBe(MapType.kujira);
+      expect(MapType.getMapDefine('kujira')).toEqual(mapMonster.kujira);
     });
   });
   describe('land', () => {
     test('forest', () => {
-      expect(MapType.getMapDefine('forest')).toBe(MapType.forest);
+      expect(MapType.getMapDefine('forest')).toEqual(mapLand.forest);
     });
     test('plains', () => {
-      expect(MapType.getMapDefine('plains')).toBe(MapType.plains);
+      expect(MapType.getMapDefine('plains')).toEqual(mapLand.plains);
     });
     test('ruins', () => {
-      expect(MapType.getMapDefine('ruins')).toBe(MapType.ruins);
+      expect(MapType.getMapDefine('ruins')).toEqual(mapLand.ruins);
     });
     test('sea', () => {
-      expect(MapType.getMapDefine('sea')).toBe(MapType.sea);
+      expect(MapType.getMapDefine('sea')).toEqual(mapLand.sea);
     });
     test('shallows', () => {
-      expect(MapType.getMapDefine('shallows')).toBe(MapType.shallows);
+      expect(MapType.getMapDefine('shallows')).toEqual(mapLand.shallows);
     });
     test('mountain', () => {
-      expect(MapType.getMapDefine('mountain')).toBe(MapType.mountain);
+      expect(MapType.getMapDefine('mountain')).toEqual(mapLand.mountain);
     });
     test('wasteland', () => {
-      expect(MapType.getMapDefine('wasteland')).toBe(MapType.wasteland);
+      expect(MapType.getMapDefine('wasteland')).toEqual(mapLand.wasteland);
     });
   });
   describe('military', () => {
     test('missile', () => {
-      expect(MapType.getMapDefine('missile')).toBe(MapType.missile);
+      expect(MapType.getMapDefine('missile')).toEqual(mapMilitary.missile);
     });
     test('submarine_missile', () => {
-      expect(MapType.getMapDefine('submarine_missile')).toBe(MapType.submarineMissile);
+      expect(MapType.getMapDefine('submarine_missile')).toEqual(mapMilitary.submarineMissile);
     });
     test('defense_base', () => {
-      expect(MapType.getMapDefine('defense_base')).toBe(MapType.defenseBase);
+      expect(MapType.getMapDefine('defense_base')).toEqual(mapMilitary.defenseBase);
     });
     test('fake_defense_base', () => {
-      expect(MapType.getMapDefine('fake_defense_base')).toBe(MapType.fakeDefenseBase);
+      expect(MapType.getMapDefine('fake_defense_base')).toEqual(mapMilitary.fakeDefenseBase);
     });
   });
   describe('facility', () => {
     test('factory', () => {
-      expect(MapType.getMapDefine('factory')).toBe(MapType.factory);
+      expect(MapType.getMapDefine('factory')).toEqual(mapFacility.factory);
     });
     test('farm', () => {
-      expect(MapType.getMapDefine('farm')).toBe(MapType.farm);
+      expect(MapType.getMapDefine('farm')).toEqual(mapFacility.farm);
     });
     test('mining', () => {
-      expect(MapType.getMapDefine('mining')).toBe(MapType.mining);
+      expect(MapType.getMapDefine('mining')).toEqual(mapFacility.mining);
     });
     test('oil_field', () => {
-      expect(MapType.getMapDefine('oil_field')).toBe(MapType.oilField);
+      expect(MapType.getMapDefine('oil_field')).toEqual(mapFacility.oilField);
     });
   });
   test('monument', () => {
-    expect(MapType.getMapDefine('monument')).toBe(MapType.monument);
+    expect(MapType.getMapDefine('monument')).toEqual(mapOther.monument);
   });
   test('people', () => {
-    expect(MapType.getMapDefine('people')).toBe(MapType.people);
+    expect(MapType.getMapDefine('people')).toEqual(mapOther.people);
   });
 });
 

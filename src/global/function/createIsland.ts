@@ -1,15 +1,8 @@
 import { islandInfoData } from '@/db/schema/islandTable';
 import sqlite from 'better-sqlite3';
-import {
-  defenseBase,
-  forest,
-  mountain,
-  people,
-  plains,
-  sea,
-  shallows,
-  wasteland,
-} from '../define/mapType';
+import { forest, mountain, plains, sea, shallows, wasteland } from '../define/mapCategory/mapLand';
+import { defenseBase } from '../define/mapCategory/mapMilitary';
+import { people } from '../define/mapCategory/mapOther';
 import META_DATA from '../define/metadata';
 import { calcAllTypeNum, countArea, countMapAround, getIslandInfo } from './island';
 

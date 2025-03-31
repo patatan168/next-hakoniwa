@@ -6,7 +6,8 @@ import {
   logScatterMonster,
   logSubmersion,
 } from '../define/logType';
-import { getMapDefine, sea } from '../define/mapType';
+import { sea } from '../define/mapCategory/mapLand';
+import { getMapDefine } from '../define/mapType';
 import META_DATA from '../define/metadata';
 
 /**
