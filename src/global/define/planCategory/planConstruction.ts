@@ -1,7 +1,7 @@
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';
-import { hasSufficientCosts, planInfo, planType, validCostAndLandType } from '../planType';
+import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
 export const afforest: planType = {
   type: 'afforest',
@@ -15,7 +15,7 @@ export const afforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -46,7 +46,7 @@ export const immediateAfforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -79,7 +79,7 @@ export const farmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -128,7 +128,7 @@ export const immediateFarmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland, times } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -189,7 +189,7 @@ export const factoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -238,7 +238,7 @@ export const immediateFactoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland, times } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -299,7 +299,7 @@ export const miningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -348,7 +348,7 @@ export const immediateMiningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland, times } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -409,7 +409,7 @@ export const missileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -441,7 +441,7 @@ export const immediateMissileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -474,7 +474,7 @@ export const defenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -518,7 +518,7 @@ export const immediateDefenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -562,7 +562,7 @@ export const submarineMissileDev: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);

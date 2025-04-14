@@ -9,6 +9,9 @@ import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { mapArrayConverter } from '../function/island';
 import { logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
+import * as planConstruction from './planCategory/planConstruction';
+import * as planDevelopment from './planCategory/planDevelopment';
+import * as planManage from './planCategory/planManege';
 
 /** 計画情報 */
 export type planInfo = {
@@ -25,6 +28,19 @@ export type planResult = {
   nextPlan: boolean;
   /** ログ */
   log: Array<turnLogSchemaType>;
+};
+
+export type changeDataArgs = {
+  /** X座標 */
+  x: number;
+  /** Y座標 */
+  y: number;
+  /** ターン数 */
+  turn: number;
+  /** 計画情報 */
+  info: planInfo;
+  /** イベント発生率(目標島のみ) */
+  eventRate: eventRateSchemaType;
 };
 
 export type planType = {
@@ -57,20 +73,28 @@ export type planType = {
   /** 単位 */
   readonly unit?: string;
   /** データの変更
-   * @param x X座標
-   * @param y Y座標
-   * @param turn ターン数
-   * @param info 島情報
-   * @param eventRate イベント発生率(目標島のみ)
    * @returns ログ
    */
-  readonly changeData: (
-    x: number,
-    y: number,
-    turn: number,
-    info: planInfo,
-    eventRate: eventRateSchemaType
-  ) => planResult;
+  readonly changeData: ({ x, y, turn, info, eventRate }: changeDataArgs) => planResult;
+};
+
+/**
+ * 計画情報を取得
+ * @param type 計画タイプ
+ * @returns 計画情報
+ */
+export const getPlanDefine = (type: string): planType => {
+  // NOTE: 定義ファイルが増えたらObjectを追加すること
+  const plan = Object.entries({ ...planConstruction, ...planDevelopment, ...planManage })
+    .map(([_, value]) => ({ ...value }))
+    .find((plan) => plan.type === type);
+
+  if (!plan) {
+    console.error(`Plan type "${type}" not found.`);
+    return planManage.financing;
+  }
+
+  return plan;
 };
 
 /**

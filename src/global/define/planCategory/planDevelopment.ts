@@ -1,13 +1,12 @@
-import { eventRateSchemaType } from '@/db/schema/eventRateTable';
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';
 import { logCommonDev, logLackCosts, logNoLandAround } from '../logType';
 import { getMapDefine } from '../mapType';
 import META_DATA from '../metadata';
-import { hasSufficientCosts, planInfo, planType, validCostAndLandType } from '../planType';
+import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
 export const leveling: planType = {
-  type: 'leaving',
+  type: 'leveling',
   category: '開発',
   name: '整地',
   otherIsland: false,
@@ -28,13 +27,7 @@ export const leveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (
-    x: number,
-    y: number,
-    turn: number,
-    info: planInfo,
-    eventRate: eventRateSchemaType
-  ) {
+  changeData: function ({ x, y, turn, info, eventRate }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -68,7 +61,7 @@ export const leveling: planType = {
   },
 };
 export const immediateLeveling: planType = {
-  type: 'immediate_leaving',
+  type: 'immediate_leveling',
   category: '開発',
   name: '地ならし',
   otherIsland: false,
@@ -89,13 +82,7 @@ export const immediateLeveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function (
-    x: number,
-    y: number,
-    turn: number,
-    info: planInfo,
-    eventRate: eventRateSchemaType
-  ) {
+  changeData: function ({ x, y, turn, info, eventRate }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -125,7 +112,7 @@ export const landfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -177,7 +164,7 @@ export const immediateLandfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -232,13 +219,7 @@ export const drilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function (
-    x: number,
-    y: number,
-    turn: number,
-    info: planInfo,
-    eventRate: eventRateSchemaType
-  ) {
+  changeData: function ({ x, y, turn, info, eventRate }: changeDataArgs) {
     const { times, toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -333,13 +314,7 @@ export const immediateDrilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function (
-    x: number,
-    y: number,
-    turn: number,
-    info: planInfo,
-    eventRate: eventRateSchemaType
-  ) {
+  changeData: function ({ x, y, turn, info, eventRate }: changeDataArgs) {
     const { times, toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -432,7 +407,7 @@ export const logging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
@@ -461,7 +436,7 @@ export const immediateLogging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function (x: number, y: number, turn: number, info: planInfo) {
+  changeData: function ({ x, y, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
