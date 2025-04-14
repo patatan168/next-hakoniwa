@@ -2,8 +2,7 @@
 import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useFetch } from '@/global/function/fetch';
-import { useBoundingClient } from '@/global/function/useBoundingClient';
-import { useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
@@ -20,9 +19,14 @@ const tabTest: Array<TabType> = [
 
 export default function IslandList() {
   const [tab, setTab] = useState(0);
-  const listRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
-  const { y } = useBoundingClient(listRef.current);
+  const [listHeight, setListHeight] = useState('100svh');
+  const listCallback = useCallback((node: HTMLDivElement) => {
+    if (node !== null) {
+      const { y } = node.getBoundingClientRect();
+      setListHeight(`calc(100svh - ${y}px)`);
+    }
+  }, []);
 
   const handleChange = (newValue: number) => {
     setTab(newValue);
@@ -33,8 +37,8 @@ export default function IslandList() {
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
       <VrTableList
         isLoading={isLoading}
-        ref={listRef}
-        style={{ height: `calc(100svh - ${y}px)` }}
+        ref={listCallback}
+        style={{ height: listHeight, backgroundColor: 'transparent' }}
         columnHeader={header}
         data={data}
       />
