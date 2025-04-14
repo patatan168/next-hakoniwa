@@ -1,6 +1,6 @@
 'use client';
-import useSWR from 'swr';
-import useSWRMutation from 'swr/mutation';
+import useSWR, { SWRResponse } from 'swr';
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
 export const fetcher = async (...args: [input: RequestInfo | URL, init?: RequestInit]) => {
   const [url, options] = args;
@@ -13,12 +13,14 @@ export const fetcher = async (...args: [input: RequestInfo | URL, init?: Request
   });
 };
 
-export const useFetch = (...args: [input: RequestInfo | URL, init?: RequestInit]) => {
+export const useFetch = (...args: [input: RequestInfo | URL, init?: RequestInit]): SWRResponse => {
   const [url, options] = args;
   return useSWR([url, options], ([url, options]) => fetcher(url, options));
 };
 
-export const useFetchTrig = (...args: [input: RequestInfo | URL, init?: RequestInit]) => {
+export const useFetchTrig = (
+  ...args: [input: RequestInfo | URL, init?: RequestInit]
+): SWRMutationResponse => {
   const [url, options] = args;
   return useSWRMutation([url, options], ([url, options]) => fetcher(url, options));
 };
