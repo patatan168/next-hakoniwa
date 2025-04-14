@@ -46,23 +46,23 @@ export type mapType = {
   readonly bounty?: number;
 };
 
-/** 全マップ情報 */
-const MapInfo: Array<mapType> = Object.entries({
-  ...mapFacility,
-  ...mapFake,
-  ...mapLand,
-  ...mapMilitary,
-  ...mapMonster,
-  ...mapOther,
-}).map(([key, value]) => ({ ...value }));
-
 /**
  * マップ定義を取得
  * @param type マップのタイプ
  * @returns マップ定義
  */
 export const getMapDefine = (type: string): mapType => {
-  const map = MapInfo.find((map) => map.type === type);
+  // NOTE: 定義ファイルが増えたらObjectを追加すること
+  const map = Object.entries({
+    ...mapFacility,
+    ...mapFake,
+    ...mapLand,
+    ...mapMilitary,
+    ...mapMonster,
+    ...mapOther,
+  })
+    .map(([_, value]) => ({ ...value }))
+    .find((map) => map.type === type);
 
   if (!map) {
     console.error(`${type} undefined`);
