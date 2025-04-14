@@ -15,7 +15,7 @@ type BaseTabsProps = {
 };
 
 const baseStyle =
-  'inline-block pt-2.5 pb-1 w-40 lg:w-48 text-base lg:text-lg border border-gray-200 disabled:text-gray-400 disabled:rounded-t-lg';
+  'inline-block pt-2.5 pb-1 w-40 lg:w-48 text-base lg:text-lg border border-gray-200 cursor-pointer disabled:text-gray-400 disabled:rounded-t-lg';
 const disabledStyle = 'disabled:cursor-not-allowed disabled:hover:bg-white/30';
 const defStyle = `${baseStyle} ${disabledStyle} text-gray-500 bg-white/30 rounded-t-lg hover:bg-green-300/50 hover:text-gray-600`;
 const selected = `${baseStyle} text-red-700 bg-green-300/25 rounded-t-lg active cursor-default`;
