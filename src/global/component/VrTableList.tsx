@@ -4,12 +4,25 @@ import { Card } from './Card';
 import Loading from './Loading';
 
 const VirtuosoTableComponents: TableComponents<object, ColumnInfo> = {
-  Table: (props) => <table {...props} className="w-full table-fixed break-all border" />,
+  Table: (props) => <table {...props} className="w-full table-fixed border break-all" />,
   TableHead: function _TableHead(props) {
-    return <thead {...props} className="bg-green-200 text-red-700" />;
+    return (
+      <thead
+        {...props}
+        className="[&_th]:border-2 [&_th]:border-green-400 [&_th]:bg-green-200 [&_th]:p-3 [&_th]:text-red-700"
+      />
+    );
+  },
+  TableBody: function _TableBody(props) {
+    return (
+      <tbody
+        {...props}
+        className="[&_td]:border-2 [&_td]:border-green-400/50 [&_td]:bg-green-50 [&_td]:px-3 [&_td]:py-4"
+      />
+    );
   },
   TableRow: function _TableRow(props) {
-    return <tr {...props} className="bg-green-50" />;
+    return <tr {...props} />;
   },
 };
 
@@ -17,11 +30,7 @@ function headerContent(columnHeader: ColumnInfo) {
   return (
     <tr>
       {columnHeader.map((column) => (
-        <th
-          className="border-2 border-green-400 p-3"
-          key={column.key}
-          style={{ width: column.width, ...column.headStyle }}
-        >
+        <th key={column.key} style={{ width: column.width, ...column.headStyle }}>
           {column.headName}
         </th>
       ))}
@@ -34,11 +43,7 @@ function rowContent(_index: number, row: object, columnHeader: ColumnInfo) {
     <>
       {columnHeader.map((column) => {
         return (
-          <td
-            className="border-2 border-green-400/50 px-3 py-4"
-            key={column.key}
-            style={column.dataStyle}
-          >
+          <td key={column.key} style={column.dataStyle}>
             {row[column.key as keyof object]}
           </td>
         );
