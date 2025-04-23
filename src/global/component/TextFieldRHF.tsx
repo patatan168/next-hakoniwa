@@ -15,19 +15,6 @@ type HelperTextProps = {
   isBottomSpace?: boolean;
 };
 
-const HelperText = ({ isError, error, helperText, isBottomSpace }: HelperTextProps) => {
-  const showError = isError && error !== undefined;
-  const showHelper = !showError && helperText !== undefined;
-  const isSpace = !showHelper && !showError && (isBottomSpace === undefined || isBottomSpace);
-  return (
-    <>
-      {showError && <li className="text-red-600">{error.message}</li>}
-      {showHelper && helperText !== undefined && <li>{helperText}</li>}
-      {isSpace && <li className="select-none">&thinsp;</li>}
-    </>
-  );
-};
-
 type TextFieldRHFProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -42,9 +29,35 @@ type TextFieldRHFProps<
     isBottomSpace?: boolean;
   };
 
-const baseStyle = 'rounded-lg border p-2.5 text-sm';
-const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
-const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
+const inputStyle = (disabled: boolean | undefined, error: boolean) => {
+  const baseStyle = 'rounded-lg border p-2.5 text-sm';
+  const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
+  const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
+  const disabledStyle = `${baseStyle} border-gray-300 bg-gray-400/50 text-black cursor-not-allowed`;
+
+  if (disabled) {
+    return disabledStyle;
+  } else if (error) {
+    return errorStyle;
+  } else {
+    return defStyle;
+  }
+};
+
+const HelperText = ({ isError, error, helperText, isBottomSpace }: HelperTextProps) => {
+  if (isError && error !== undefined) {
+    // Error Message
+    return <li className="text-red-600">{error.message}</li>;
+  } else if (helperText !== undefined && helperText !== '') {
+    // Helper Message
+    return <li>{helperText}</li>;
+  } else if (isBottomSpace === undefined || isBottomSpace) {
+    // Blank Space
+    return <li className="select-none">&thinsp;</li>;
+  } else {
+    return <></>;
+  }
+};
 
 export const TextFieldRHF = <
   TFieldValues extends FieldValues = FieldValues,
@@ -68,12 +81,12 @@ export const TextFieldRHF = <
       shouldUnregister={props.shouldUnregister}
       disabled={props.disabled}
       render={({ field, fieldState: { isTouched, invalid, error } }) => {
-        const isError = isTouched && invalid;
+        const isError = props.disabled || (isTouched && invalid);
         return (
           <ul style={props.style}>
             <li>
               <input
-                className={isError ? errorStyle : defStyle}
+                className={inputStyle(props.disabled, isError)}
                 {...field}
                 {...textFieldProps}
                 ref={field.ref}

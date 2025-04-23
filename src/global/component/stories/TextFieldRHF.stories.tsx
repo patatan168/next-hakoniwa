@@ -22,6 +22,7 @@ const meta = {
   args: {
     name: '',
     control: undefined,
+    disabled: false,
   },
   argTypes: {
     name: {
@@ -34,6 +35,13 @@ const meta = {
       description: '[React Hooks Form Control](https://react-hook-form.com/docs/useform/control)',
       table: {
         type: { summary: ' Control<TFieldValues> | undefined' },
+      },
+    },
+    disabled: {
+      description: 'テキストボックスを無効化するか',
+      control: 'boolean',
+      table: {
+        type: { summary: 'undefined|boolean' },
       },
     },
   },
@@ -50,7 +58,7 @@ const defaultValues: userInfo = {
 };
 
 export const Example: Story = {
-  render: () => {
+  render: (args) => {
     const { control } = useForm<userInfo>({
       defaultValues,
       resolver: zodResolver(userInfoSchema),
@@ -63,6 +71,10 @@ export const Example: Story = {
         control={control}
         id="island-name"
         placeholder="Island Name"
+        disabled={args.disabled}
+        type={args.type}
+        helperText={args.helperText}
+        isBottomSpace={args.isBottomSpace}
       />
     );
   },
