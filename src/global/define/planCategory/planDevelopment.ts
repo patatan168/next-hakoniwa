@@ -305,7 +305,7 @@ export const immediateDrilling: planType = {
   category: '開発',
   name: '高速掘削',
   otherIsland: false,
-  immediate: false,
+  immediate: true,
   mapType: 'all',
   excludeLandType: ['submarine_missile', 'oil_field', 'monster', 'kujira', 'sanjira'],
   cost: 600,
