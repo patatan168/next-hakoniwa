@@ -1,5 +1,5 @@
 import { omit } from 'es-toolkit';
-import { CSSProperties, InputHTMLAttributes } from 'react';
+import { CSSProperties, InputHTMLAttributes, memo, useCallback, useState } from 'react';
 import {
   Controller,
   FieldError,
@@ -9,6 +9,7 @@ import {
 } from 'react-hook-form';
 
 type HelperTextProps = {
+  style?: CSSProperties;
   isError: boolean;
   error?: FieldError;
   helperText?: string;
@@ -44,27 +45,37 @@ const inputStyle = (disabled: boolean | undefined, error: boolean) => {
   }
 };
 
-const HelperText = ({ isError, error, helperText, isBottomSpace }: HelperTextProps) => {
+const HelperText = memo(({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) => {
   if (isError && error !== undefined) {
     // Error Message
-    return <li className="text-red-600">{error.message}</li>;
+    return (
+      <li style={style} className="truncate text-red-600">
+        {error.message}
+      </li>
+    );
   } else if (helperText !== undefined && helperText !== '') {
     // Helper Message
-    return <li>{helperText}</li>;
+    return (
+      <li style={style} className="truncate">
+        {helperText}
+      </li>
+    );
   } else if (isBottomSpace === undefined || isBottomSpace) {
     // Blank Space
-    return <li className="select-none">&thinsp;</li>;
+    return (
+      <li style={style} className="select-none">
+        &thinsp;
+      </li>
+    );
   } else {
     return <></>;
   }
-};
+});
 
-export const TextFieldRHF = <
+function _TextFieldRHF<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: TextFieldRHFProps<TFieldValues, TName>
-) => {
+>(props: TextFieldRHFProps<TFieldValues, TName>) {
   const textFieldProps = omit(props, [
     'control',
     'rules',
@@ -82,6 +93,14 @@ export const TextFieldRHF = <
       disabled={props.disabled}
       render={({ field, fieldState: { isTouched, invalid, error } }) => {
         const isError = props.disabled || (isTouched && invalid);
+        const [inputWidth, setInputWidth] = useState('0px');
+        const inputCallback = useCallback((node: HTMLInputElement) => {
+          if (node !== null) {
+            const { width } = node.getBoundingClientRect();
+            setInputWidth(`${width}px`);
+          }
+          field.ref(node);
+        }, []);
         return (
           <ul style={props.style}>
             <li>
@@ -89,10 +108,13 @@ export const TextFieldRHF = <
                 className={inputStyle(props.disabled, isError)}
                 {...field}
                 {...textFieldProps}
-                ref={field.ref}
+                ref={inputCallback}
               />
             </li>
             <HelperText
+              style={{
+                maxWidth: inputWidth,
+              }}
               isError={isError}
               error={error}
               helperText={props.helperText}
@@ -103,4 +125,6 @@ export const TextFieldRHF = <
       }}
     />
   );
-};
+}
+
+export const TextFieldRHF = memo(_TextFieldRHF) as typeof _TextFieldRHF;
