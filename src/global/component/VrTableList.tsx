@@ -1,3 +1,4 @@
+import { isEqual } from 'es-toolkit';
 import { CSSProperties, memo, Ref } from 'react';
 import { TableComponents, TableVirtuoso } from 'react-virtuoso';
 import { Card } from './Card';
@@ -70,25 +71,28 @@ type VrTableListProps = {
   data?: Array<object>;
 };
 
-export default memo(function HakoniwaMap(props: VrTableListProps) {
-  const { isLoading, style, columnHeader, data, ref } = props;
-  const fixedHeaderContent = (columnHeader: ColumnInfo) => {
-    return () => headerContent(columnHeader);
-  };
-  const itemContent = (columnHeader: ColumnInfo) => {
-    return (_index: number, row: object) => rowContent(_index, row, columnHeader);
-  };
+export default memo(
+  function VrTableList(props: VrTableListProps) {
+    const { isLoading, style, columnHeader, data, ref } = props;
+    const fixedHeaderContent = (columnHeader: ColumnInfo) => {
+      return () => headerContent(columnHeader);
+    };
+    const itemContent = (columnHeader: ColumnInfo) => {
+      return (_index: number, row: object) => rowContent(_index, row, columnHeader);
+    };
 
-  return !isLoading || isLoading === undefined ? (
-    <Card ref={ref} style={style}>
-      <TableVirtuoso
-        data={data}
-        components={VirtuosoTableComponents}
-        fixedHeaderContent={fixedHeaderContent(columnHeader)}
-        itemContent={itemContent(columnHeader)}
-      />
-    </Card>
-  ) : (
-    <Loading />
-  );
-});
+    return !isLoading || isLoading === undefined ? (
+      <Card ref={ref} style={style}>
+        <TableVirtuoso
+          data={data}
+          components={VirtuosoTableComponents}
+          fixedHeaderContent={fixedHeaderContent(columnHeader)}
+          itemContent={itemContent(columnHeader)}
+        />
+      </Card>
+    ) : (
+      <Loading />
+    );
+  },
+  (oldProps, newProps) => isEqual(oldProps, newProps)
+);

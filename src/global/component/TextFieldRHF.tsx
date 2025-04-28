@@ -1,5 +1,5 @@
-import { omit } from 'es-toolkit';
-import { CSSProperties, InputHTMLAttributes, memo, useCallback, useState } from 'react';
+import { isEqual, omit } from 'es-toolkit';
+import { CSSProperties, InputHTMLAttributes, memo, useCallback, useMemo, useState } from 'react';
 import {
   Controller,
   FieldError,
@@ -30,53 +30,56 @@ type TextFieldRHFProps<
     isBottomSpace?: boolean;
   };
 
-const inputStyle = (disabled: boolean | undefined, error: boolean) => {
-  const baseStyle = 'rounded-lg border p-2.5 text-sm';
-  const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
-  const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
-  const disabledStyle = `${baseStyle} border-gray-300 bg-gray-400/50 text-black cursor-not-allowed`;
+const InputStyle = (error: boolean) =>
+  useMemo(() => {
+    const baseStyle =
+      'rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
+    const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
+    const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
 
-  if (disabled) {
-    return disabledStyle;
-  } else if (error) {
-    return errorStyle;
-  } else {
-    return defStyle;
-  }
-};
+    if (error) {
+      return errorStyle;
+    } else {
+      return defStyle;
+    }
+  }, [error]);
 
-const HelperText = memo(({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) => {
-  if (isError && error !== undefined) {
-    // Error Message
-    return (
-      <li style={style} className="truncate text-red-600">
-        {error.message}
-      </li>
-    );
-  } else if (helperText !== undefined && helperText !== '') {
-    // Helper Message
-    return (
-      <li style={style} className="truncate">
-        {helperText}
-      </li>
-    );
-  } else if (isBottomSpace === undefined || isBottomSpace) {
-    // Blank Space
-    return (
-      <li style={style} className="select-none">
-        &thinsp;
-      </li>
-    );
-  } else {
-    return <></>;
-  }
-});
+const HelperText = memo(
+  function HelperText({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) {
+    if (isError && error !== undefined) {
+      // Error Message
+      return (
+        <li style={style} className="truncate text-red-600">
+          {error.message}
+        </li>
+      );
+    } else if (helperText !== undefined && helperText !== '') {
+      // Helper Message
+      return (
+        <li style={style} className="truncate">
+          {helperText}
+        </li>
+      );
+    } else if (isBottomSpace === undefined || isBottomSpace) {
+      // Blank Space
+      return (
+        <li style={style} className="select-none">
+          &thinsp;
+        </li>
+      );
+    } else {
+      return <></>;
+    }
+  },
+  (oldProps, newProps) => isEqual(oldProps, newProps)
+);
 
 function _TextFieldRHF<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(props: TextFieldRHFProps<TFieldValues, TName>) {
   const textFieldProps = omit(props, [
+    'className',
     'control',
     'rules',
     'style',
@@ -102,10 +105,10 @@ function _TextFieldRHF<
           field.ref(node);
         }, []);
         return (
-          <ul style={props.style}>
+          <ul style={props.style} className={props.className}>
             <li>
               <input
-                className={inputStyle(props.disabled, isError)}
+                className={InputStyle(isError)}
                 {...field}
                 {...textFieldProps}
                 ref={inputCallback}
@@ -127,4 +130,6 @@ function _TextFieldRHF<
   );
 }
 
-export const TextFieldRHF = memo(_TextFieldRHF) as typeof _TextFieldRHF;
+export const TextFieldRHF = memo(_TextFieldRHF, (oldProps, newProps) =>
+  isEqual(oldProps, newProps)
+) as typeof _TextFieldRHF;
