@@ -28,7 +28,6 @@ export default [
   eslintConfigPrettier,
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
-  ...tailwindcss.configs['flat/recommended'],
   ...compat.extends(
     'next/core-web-vitals',
     'next/typescript',
@@ -45,6 +44,7 @@ export default [
       prettier,
       react,
       'react-refresh': reactRefresh,
+      tailwindcss,
     },
     languageOptions: {
       ecmaVersion: 2023,
@@ -72,6 +72,8 @@ export default [
       complexity: ['error', 15],
       // Any型は警告のとどめて許容する
       '@typescript-eslint/no-explicit-any': 'warn',
+      // 未使用変数の警告
+      '@typescript-eslint/no-unused-vars': 'warn',
       // Childrenの一行タグを許可<Example />
       'react/no-children-prop': 'error',
       // useEffectの依存関係のWarningを無効
