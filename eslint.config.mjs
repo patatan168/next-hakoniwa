@@ -72,8 +72,14 @@ export default [
       complexity: ['error', 15],
       // Any型は警告のとどめて許容する
       '@typescript-eslint/no-explicit-any': 'warn',
-      // 未使用変数の警告
-      '@typescript-eslint/no-unused-vars': 'warn',
+      // 未使用変数
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          // アンダースコアで書けば無視
+          argsIgnorePattern: '^_',
+        },
+      ],
       // Childrenの一行タグを許可<Example />
       'react/no-children-prop': 'error',
       // useEffectの依存関係のWarningを無効
