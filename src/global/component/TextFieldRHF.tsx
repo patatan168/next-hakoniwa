@@ -30,10 +30,21 @@ type TextFieldRHFProps<
     isBottomSpace?: boolean;
   };
 
+const UlStyle = (propsStyle: CSSProperties | undefined) =>
+  useMemo(() => {
+    const baseWidth = { width: '200px' };
+    const uiStyle =
+      propsStyle !== undefined && propsStyle.width !== undefined
+        ? propsStyle
+        : { ...propsStyle, ...baseWidth };
+
+    return uiStyle;
+  }, [propsStyle]);
+
 const InputStyle = (error: boolean) =>
   useMemo(() => {
     const baseStyle =
-      'rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
+      'w-full h-full rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
     const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
     const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
 
@@ -94,8 +105,8 @@ function _TextFieldRHF<
       rules={props.rules}
       shouldUnregister={props.shouldUnregister}
       disabled={props.disabled}
-      render={({ field, fieldState: { isTouched, invalid, error } }) => {
-        const isError = props.disabled || (isTouched && invalid);
+      render={({ field, fieldState: { isTouched, isDirty, invalid, error } }) => {
+        const isError = props.disabled || ((isTouched || isDirty) && invalid);
         const [inputWidth, setInputWidth] = useState('0px');
         const inputCallback = useCallback((node: HTMLInputElement) => {
           if (node !== null) {
@@ -105,7 +116,7 @@ function _TextFieldRHF<
           field.ref(node);
         }, []);
         return (
-          <ul style={props.style} className={props.className}>
+          <ul style={UlStyle(props.style)} className={props.className}>
             <li>
               <input
                 className={InputStyle(isError)}
