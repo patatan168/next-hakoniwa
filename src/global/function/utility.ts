@@ -23,3 +23,20 @@ export const secureRandom = () => {
 export const checkProbability = (probability: number) => {
   return Math.random() >= 1 - probability / 100;
 };
+
+/**
+ * DB用にデーターをパースする
+ * @param data データー
+ * @returns DB用のデーター
+ */
+export const parseDbData = (data: unknown) => {
+  switch (typeof data) {
+    case 'string':
+      return `'${data}'`;
+    case 'boolean':
+      // NOTE: SQLITEにはBooleanはない
+      return data ? '1' : '0';
+    default:
+      return `${data}`;
+  }
+};

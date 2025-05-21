@@ -1,7 +1,9 @@
+import { asyncRequestValid } from '@/global/function/api';
 import { createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth';
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
+import { userInfoSchema } from '@/global/valid/userInfo';
 import sqlite from 'better-sqlite3';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
@@ -18,25 +20,29 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const response = new NextResponse();
-  const { id, password, islandName } = await request.json();
-  const uuid = crypto.randomUUID();
-  const hashId = await sha256Gen(id);
-  const hashPass = await sha256Gen(password);
 
-  const postUser = db.client.prepare(
-    `INSERT INTO user(uuid, id, password, island_name) values(?, ?, ?, ?)`
-  );
+  const valid = await asyncRequestValid(request, userInfoSchema);
 
-  postUser.run(uuid, hashId, hashPass, islandName);
+  if (valid.data !== null) {
+    const { id, password, islandName } = valid.data;
+    const uuid = crypto.randomUUID();
+    const hashId = await sha256Gen(id);
+    const hashPass = await sha256Gen(password);
 
-  await setAuthCookie(createJwtToken(db.client, uuid), response, request);
+    const postUser = db.client.prepare(
+      `INSERT INTO user(uuid, id, password, island_name) values(?, ?, ?, ?)`
+    );
 
-  accessLogger(request).info(`Create uuid=${uuid}`);
+    postUser.run(uuid, hashId, hashPass, islandName);
+    const response = new NextResponse('Success');
 
-  createIsland(db.client, uuid, islandName);
+    await setAuthCookie(createJwtToken(db.client, uuid), response, request);
 
-  return response;
+    accessLogger(request).info(`Create uuid=${uuid}`);
+
+    createIsland(db.client, uuid, islandName);
+  }
+  return valid.response;
 }
 
 export async function DELETE(request: NextRequest) {

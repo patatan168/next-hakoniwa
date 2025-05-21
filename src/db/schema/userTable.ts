@@ -8,3 +8,12 @@ export const userSchema: DbSchema = [
   { name: 'island_name', type: 'TEXT', unique: true },
   { name: 'created_at', type: 'DATETIME', defVal: 'CURRENT_TIMESTAMP' },
 ];
+
+export type userSchemaType = {
+  uuid: string;
+  inhabited: 0 | 1;
+  id: string;
+  password: string;
+  island_name: string;
+  created_at: string;
+};

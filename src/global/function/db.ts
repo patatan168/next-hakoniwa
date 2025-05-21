@@ -1,7 +1,10 @@
 /**
  * @file SQLite操作用のシンタックスシュガー
  */
+import 'server-only';
+
 import sqlite from 'better-sqlite3';
+import { parseDbData } from './utility';
 
 type DbForeign = {
   /** テーブル名 */
@@ -100,3 +103,33 @@ export const createDbTable =
 
     db.prepare(`${createTable}(${column})`).run();
   };
+
+/**
+ * 既にDB内のデータが有るか
+ */
+export const existsDbDate = ({
+  dbPath,
+  table,
+  key,
+  data,
+}: {
+  /** DBのFile Path */
+  dbPath: string;
+  /** テーブル名 */
+  table: string;
+  /** DBのKey */
+  key: string;
+  /** データー */
+  data: unknown;
+}) => {
+  using db = dbConn(dbPath);
+  const dbData = parseDbData(data);
+  const countData = db.client
+    .prepare(`SELECT COUNT(*) FROM ${table} WHERE ${key} = ${dbData}`)
+    .get() as { 'COUNT(*)': unknown };
+  if (typeof countData['COUNT(*)'] === 'number') {
+    return countData['COUNT(*)'] > 0;
+  } else {
+    throw new Error('Exception Error.');
+  }
+};
