@@ -1,3 +1,5 @@
+import 'server-only';
+
 import sqlite from 'better-sqlite3';
 /**
  * 島情報を更新する

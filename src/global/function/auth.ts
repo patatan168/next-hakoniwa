@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { sessionSchemaType } from '@/db/schema/sessionTable';
 import { default as META, default as META_DATA } from '@/global/define/metadata';
 import sqlite from 'better-sqlite3';

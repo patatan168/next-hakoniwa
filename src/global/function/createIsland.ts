@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { islandInfoData } from '@/db/schema/islandTable';
 import sqlite from 'better-sqlite3';
 import { forest, mountain, plains, sea, shallows, wasteland } from '../define/mapCategory/mapLand';

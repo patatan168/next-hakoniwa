@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { NextRequest } from 'next/server';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
