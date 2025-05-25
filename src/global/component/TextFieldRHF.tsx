@@ -1,5 +1,5 @@
 import { isEqual, omit } from 'es-toolkit';
-import { CSSProperties, InputHTMLAttributes, memo, useCallback, useMemo, useState } from 'react';
+import { CSSProperties, InputHTMLAttributes, memo, useMemo, useState } from 'react';
 import {
   Controller,
   FieldError,
@@ -45,7 +45,7 @@ const InputStyle = (error: boolean) =>
   useMemo(() => {
     const baseStyle =
       'w-full h-full rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
-    const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
+    const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 dark:bg-white/70 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
     const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
 
     if (error) {
@@ -54,6 +54,11 @@ const InputStyle = (error: boolean) =>
       return defStyle;
     }
   }, [error]);
+
+const HelperTextWidth = (inputWidth: number) =>
+  useMemo(() => {
+    return { maxWidth: `${inputWidth}px` };
+  }, [inputWidth]);
 
 const HelperText = memo(
   function HelperText({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) {
@@ -107,14 +112,15 @@ function _TextFieldRHF<
       disabled={props.disabled}
       render={({ field, fieldState: { isTouched, isDirty, invalid, error } }) => {
         const isError = props.disabled || ((isTouched || isDirty) && invalid);
-        const [inputWidth, setInputWidth] = useState('0px');
-        const inputCallback = useCallback((node: HTMLInputElement) => {
+        const [inputWidth, setInputWidth] = useState(0);
+        const inputCallback = (node: HTMLInputElement) => {
           if (node !== null) {
             const { width } = node.getBoundingClientRect();
-            setInputWidth(`${width}px`);
+            setInputWidth(width);
           }
           field.ref(node);
-        }, []);
+        };
+
         return (
           <ul style={UlStyle(props.style)} className={props.className}>
             <li>
@@ -126,9 +132,7 @@ function _TextFieldRHF<
               />
             </li>
             <HelperText
-              style={{
-                maxWidth: inputWidth,
-              }}
+              style={HelperTextWidth(inputWidth)}
               isError={isError}
               error={error}
               helperText={props.helperText}
@@ -141,6 +145,24 @@ function _TextFieldRHF<
   );
 }
 
+/**
+ * TextFieldRHF is a memoized React component that integrates a text input field with React Hook Form.
+ * It provides controlled input handling, validation, and error display.
+ * It uses `isEqual` from `es-toolkit` to optimize rendering by preventing unnecessary re-renders.
+ * @param {TextFieldRHFProps} props - The properties for the TextFieldRHF component.
+ * @returns {JSX.Element} A controlled text input field with validation and error handling.
+ * @example
+ * <TextFieldRHF
+ *   name="username"
+ *   control={control}
+ *   rules={{ required: 'Username is required' }}
+ *   helperText="Enter your username"
+ * />
+ * @memberof TextFieldRHF
+ * @description
+ * This component is designed to work seamlessly with React Hook Form, providing a consistent and user-friendly input experience.
+ * It supports various input types, validation rules, and customizable styles.
+ */
 export const TextFieldRHF = memo(_TextFieldRHF, (oldProps, newProps) =>
   isEqual(oldProps, newProps)
 ) as typeof _TextFieldRHF;

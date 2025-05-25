@@ -1,12 +1,12 @@
 import IslandList from './component/IslandList';
-import LoginForm from './component/LoginForm';
+import SignUp from './component/SignUp';
 import Title from './component/Title';
 
 export default function Home() {
   return (
     <>
       <Title />
-      <LoginForm />
+      <SignUp />
       <IslandList />
     </>
   );
