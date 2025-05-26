@@ -2,7 +2,7 @@ import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import { z } from 'zod';
 import { fetcher } from '../function/fetch';
 
-export const userInfoSchema = z
+export const baseUserInfoSchema = z
   .object({
     id: z.coerce
       .string()
@@ -10,16 +10,7 @@ export const userInfoSchema = z
       .min(4, { message: '4文字上のIDを入力してください' })
       .regex(/^[a-zA-Z0-9]+$/, {
         message: '英大文字、英小文字、数字で入力してください',
-      })
-      .refine(
-        AwesomeDebouncePromise(async (inputData) => {
-          const data = await fetcher(`/api/public/user/exists?key=id&query=${inputData}`, {
-            method: 'GET',
-          });
-          return !data.result;
-        }, 150),
-        { message: 'そのIDは使用できません。' }
-      ),
+      }),
     password: z
       .string()
       .trim()
@@ -40,20 +31,35 @@ export const userInfoSchema = z
       .max(16, { message: '16文字以内の島名を入力してください' })
       .regex(/[^島]$/, {
         message: '末尾に「島」は登録できません',
-      })
-      .refine(
-        AwesomeDebouncePromise(async (inputData) => {
-          const data = await fetcher(`/api/public/user/exists?key=island_name&query=${inputData}`, {
-            method: 'GET',
-          });
-          return !data.result;
-        }, 150),
-        { message: '同じ島名は登録できません' }
-      ),
+      }),
   })
   .refine(({ password, passwordConfirm }) => password === passwordConfirm, {
     path: ['passwordConfirm'],
     message: 'パスワードが一致していません。',
   });
 
-export type userInfo = z.infer<typeof userInfoSchema>;
+export const userInfoSchema = z.intersection(
+  baseUserInfoSchema,
+  z.object({
+    id: z.coerce.string().refine(
+      AwesomeDebouncePromise(async (inputData) => {
+        const data = await fetcher(`/api/public/user/exists?key=id&query=${inputData}`, {
+          method: 'GET',
+        });
+        return !data.result;
+      }, 150),
+      { message: 'そのIDは使用できません。' }
+    ),
+    islandName: z.string().refine(
+      AwesomeDebouncePromise(async (inputData) => {
+        const data = await fetcher(`/api/public/user/exists?key=island_name&query=${inputData}`, {
+          method: 'GET',
+        });
+        return !data.result;
+      }, 150),
+      { message: '同じ島名は登録できません' }
+    ),
+  })
+);
+
+export type userInfo = z.infer<typeof baseUserInfoSchema>;

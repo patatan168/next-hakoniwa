@@ -3,7 +3,7 @@ import { createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
-import { userInfoSchema } from '@/global/valid/userInfo';
+import { userInfoSchema } from '@/global/valid/server/userInfo';
 import sqlite from 'better-sqlite3';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
