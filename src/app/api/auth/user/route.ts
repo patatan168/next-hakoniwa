@@ -34,9 +34,8 @@ export async function POST(request: NextRequest) {
     );
 
     postUser.run(uuid, hashId, hashPass, islandName);
-    const response = new NextResponse('Success');
 
-    await setAuthCookie(createJwtToken(db.client, uuid), response, request);
+    await setAuthCookie(createJwtToken(db.client, uuid), valid.response, request);
 
     accessLogger(request).info(`Create uuid=${uuid}`);
 
