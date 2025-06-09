@@ -10,12 +10,6 @@ export const islandSchema: DbSchema = [
     foreign: { table: 'user', name: 'uuid' },
   },
   {
-    name: 'island_name',
-    type: 'TEXT',
-    unique: true,
-    foreign: { table: 'user', name: 'island_name' },
-  },
-  {
     name: 'prize',
     type: 'JSON',
   },

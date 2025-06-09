@@ -6,6 +6,7 @@ import META_DATA from '../metadata';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
 export const leveling: planType = {
+  planNo: 0,
   type: 'leveling',
   category: '開発',
   name: '整地',
@@ -61,6 +62,7 @@ export const leveling: planType = {
   },
 };
 export const immediateLeveling: planType = {
+  planNo: 1,
   type: 'immediate_leveling',
   category: '開発',
   name: '地ならし',
@@ -101,6 +103,7 @@ export const immediateLeveling: planType = {
 };
 
 export const landfill: planType = {
+  planNo: 2,
   type: 'landfill',
   category: '開発',
   name: '埋め立て',
@@ -149,10 +152,14 @@ export const landfill: planType = {
     const log = isLandAround
       ? logCommonDev(toIsland, this, x, y)
       : logNoLandAround(toIsland, this, x, y);
-    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+    return {
+      nextPlan: this.immediate || !isLandAround,
+      log: [{ ...baseLog, secret_log: log, log: log }],
+    };
   },
 };
 export const immediateLandfill: planType = {
+  planNo: 3,
   type: 'immediate_landfill',
   category: '開発',
   name: '高速埋め立て',
@@ -201,11 +208,15 @@ export const immediateLandfill: planType = {
     const log = isLandAround
       ? logCommonDev(toIsland, this, x, y)
       : logNoLandAround(toIsland, this, x, y);
-    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+    return {
+      nextPlan: this.immediate || !isLandAround,
+      log: [{ ...baseLog, secret_log: log, log: log }],
+    };
   },
 };
 
 export const drilling: planType = {
+  planNo: 4,
   type: 'drilling',
   category: '開発',
   name: '掘削',
@@ -301,6 +312,7 @@ export const drilling: planType = {
   },
 };
 export const immediateDrilling: planType = {
+  planNo: 5,
   type: 'immediate_drilling',
   category: '開発',
   name: '高速掘削',
@@ -396,6 +408,7 @@ export const immediateDrilling: planType = {
 };
 
 export const logging: planType = {
+  planNo: 6,
   type: 'logging',
   category: '開発',
   name: '伐採',
@@ -425,6 +438,7 @@ export const logging: planType = {
   },
 };
 export const immediateLogging: planType = {
+  planNo: 7,
   type: 'immediate_logging',
   category: '開発',
   name: '高速伐採',

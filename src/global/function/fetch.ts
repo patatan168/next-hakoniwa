@@ -1,21 +1,22 @@
 'use client';
-import useSWR, { SWRResponse } from 'swr';
+import useSWR from 'swr';
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
-export const fetcher = async (...args: [input: RequestInfo | URL, init?: RequestInit]) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const fetcher = async <T = any>(...args: [input: RequestInfo | URL, init?: RequestInit]) => {
   const [url, options] = args;
-  const isGetter = options?.method === 'GET';
   const responseData = async (res: Response) => {
-    return isGetter ? await res.json() : await res.text();
+    return (await res.json()) as T;
   };
   return fetch(url, options).then((res) => {
     return responseData(res);
   });
 };
 
-export const useFetch = (...args: [input: RequestInfo | URL, init?: RequestInit]): SWRResponse => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const useFetch = <T = any>(...args: [input: RequestInfo | URL, init?: RequestInit]) => {
   const [url, options] = args;
-  return useSWR([url, options], ([url, options]) => fetcher(url, options));
+  return useSWR([url, options], ([url, options]) => fetcher<T>(url, options));
 };
 
 export const useFetchTrig = (

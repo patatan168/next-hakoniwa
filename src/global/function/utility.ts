@@ -40,3 +40,21 @@ export const parseDbData = (data: unknown) => {
       return `${data}`;
   }
 };
+
+/**
+ * 任意の長さに重複なしの整数の乱数配列を作る
+ * @param length 配列の長さ
+ * @returns 0からlength-1までの整数がランダムに並んだ配列
+ */
+export const arrayRandomInt = (length: number) => {
+  // 連番を作成する
+  const array = Array.from({ length: length }, (_, i) => i);
+
+  // シャッフルする
+  for (let i = array.length - 1; i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    [array[i], array[r]] = [array[r], array[i]];
+  }
+
+  return array;
+};

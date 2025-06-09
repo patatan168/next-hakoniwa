@@ -4,7 +4,7 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { PlanList } from '@/global/component/PlanList';
 
 const planTest: Array<planSchemaType> = [
-  { from_uuid: 'test', to_uuid: 'test', plan_no: 0, times: 0, x: 0, y: 0, plan: 'test0' },
+  { from_uuid: 'test', to_uuid: 'test', plan_no: 0, times: 0, x: 0, y: 0, plan: 'afforest' },
   { from_uuid: 'test', to_uuid: 'test', plan_no: 1, times: 0, x: 0, y: 0, plan: 'test1' },
   { from_uuid: 'test', to_uuid: 'test', plan_no: 2, times: 0, x: 0, y: 0, plan: 'test2' },
   { from_uuid: 'test', to_uuid: 'test', plan_no: 3, times: 0, x: 10, y: 0, plan: 'test3' },
@@ -19,7 +19,7 @@ const meta = {
     controls: { sort: 'requiredFirst' },
     docs: {
       description: {
-        component: '',
+        component: '`PlanList` は、計画リストを表示するコンポーネントです。',
       },
     },
   },

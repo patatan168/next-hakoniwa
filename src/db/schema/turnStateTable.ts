@@ -15,5 +15,5 @@ export const turnStateSchema: DbSchema = [
 
 export type turnStateSchemaType = {
   turn: number;
-  turn_state: 0 | 1;
+  turn_processing: 0 | 1;
 };

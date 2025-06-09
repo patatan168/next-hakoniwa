@@ -6,9 +6,11 @@
 import { eventRateSchemaType } from '@/db/schema/eventRateTable';
 import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
 import { logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
+import META_DATA from './metadata';
 import * as planConstruction from './planCategory/planConstruction';
 import * as planDevelopment from './planCategory/planDevelopment';
 import * as planManage from './planCategory/planManege';
@@ -18,9 +20,9 @@ export type planInfo = {
   /** 計画回数 */
   times: number;
   /** 目標島 */
-  toIsland: islandSchemaType;
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
   /** 命令島 */
-  fromIsland: islandSchemaType;
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
 };
 
 export type planResult = {
@@ -44,6 +46,8 @@ export type changeDataArgs = {
 };
 
 export type planType = {
+  /** Plan NO. (列挙用の順序) */
+  readonly planNo: number;
   /** タイプ */
   readonly type: string;
   /** カテゴリー */
@@ -79,13 +83,43 @@ export type planType = {
 };
 
 /**
+ * 全ての計画情報を取得
+ * @note 定義ファイルが増えたらObjectを追加すること
+ * @returns 全ての計画情報
+ */
+const getAllPlan = () => {
+  return { ...planConstruction, ...planDevelopment, ...planManage };
+};
+
+/**
+ * SelectBox用の計画情報を取得
+ * @returns SelectBox用の計画情報
+ */
+export const getPlanSelect = () => {
+  return Object.entries(getAllPlan())
+    .map(([_, value]) => ({ ...value }))
+    .sort((a, b) => (a.planNo > b.planNo ? 1 : -1))
+    .map((value) => {
+      const unit = value.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
+      const preUnit = value.cost > 0 ? '' : '+';
+      const cost = value.cost !== 0 ? `${preUnit}${Math.abs(value.cost)}${unit}` : '無料';
+      // 即時コマンドの場合は背景色を変える
+      const optionClassName = value.immediate ? 'bg-sky-100' : undefined;
+      return {
+        value: value.type,
+        label: `${value.name} (${cost})`,
+        className: optionClassName,
+      };
+    });
+};
+
+/**
  * 計画情報を取得
  * @param type 計画タイプ
  * @returns 計画情報
  */
 export const getPlanDefine = (type: string): planType => {
-  // NOTE: 定義ファイルが増えたらObjectを追加すること
-  const plan = Object.entries({ ...planConstruction, ...planDevelopment, ...planManage })
+  const plan = Object.entries(getAllPlan())
     .map(([_, value]) => ({ ...value }))
     .find((plan) => plan.type === type);
 

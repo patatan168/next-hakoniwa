@@ -165,7 +165,7 @@ const initDefenseBase = (data: islandInfoData, center: number) => {
 /**
  * 島を作成する
  */
-export const createIsland = (client: sqlite.Database, uuid: string, islandName: string) => {
+export const createIsland = (client: sqlite.Database, uuid: string) => {
   const center = Math.trunc(META_DATA.MAP_SIZE / 2) - 1;
   const data: islandInfoData = initIsland();
 
@@ -177,8 +177,8 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
 
   // 島情報を初期化
   const insertIsland = client.prepare(
-    `INSERT INTO island(uuid, island_name, prize, money, food, area, population, farm, factory, mining, island_info) 
-      values(?, ?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
+    `INSERT INTO island(uuid, prize, money, food, area, population, farm, factory, mining, island_info) 
+      values(?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
   );
   // イベント発生率を初期化
   const insertEventRate = client.prepare(`INSERT INTO event_rate(uuid) values(?)`);
@@ -187,7 +187,6 @@ export const createIsland = (client: sqlite.Database, uuid: string, islandName: 
   client.transaction(() => {
     insertIsland.run(
       uuid,
-      islandName,
       JSON.stringify([]),
       META_DATA.INIT_MONEY,
       META_DATA.INIT_FOOD,

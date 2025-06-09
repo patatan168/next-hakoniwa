@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest",
+    "turn": "npx tsx ./src/db/turn.ts",
     "lint": "eslint 'src/**/*.{ts,tsx}' && npm run lint:style",
     "lint:style": "stylelint --ignore-path .gitignore 'src/**/*.(css|tsx)'",
     "fmt": "prettier --write **/*.{css,scss,json,md,ts,tsx}",

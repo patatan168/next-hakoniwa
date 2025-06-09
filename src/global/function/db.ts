@@ -1,8 +1,6 @@
 /**
  * @file SQLite操作用のシンタックスシュガー
  */
-import 'server-only';
-
 import sqlite from 'better-sqlite3';
 import { parseDbData } from './utility';
 

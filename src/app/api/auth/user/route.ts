@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     accessLogger(request).info(`Create uuid=${uuid}`);
 
-    createIsland(db.client, uuid, islandName);
+    createIsland(db.client, uuid);
   }
   return valid.response;
 }
