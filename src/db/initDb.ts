@@ -3,6 +3,7 @@ import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { planSchema } from './schema/planTable';
 import { sessionSchema } from './schema/sessionTable';
+import { turnLogSchema } from './schema/turnLogTable';
 import { turnStateSchema } from './schema/turnStateTable';
 import { userSchema } from './schema/userTable';
 
@@ -13,7 +14,7 @@ createTable('user', userSchema);
 // islandテーブル作成
 createTable('island', islandSchema);
 // turn_logテーブル作成
-createTable('turn_log', planSchema);
+createTable('turn_log', turnLogSchema);
 // planテーブル作成
 createTable('plan', planSchema);
 // event_rateテーブル作成
