@@ -4,12 +4,12 @@ export const turnLogSchema: DbSchema = [
   {
     name: 'from_uuid',
     type: 'TEXT',
-    primary: true,
     foreign: { table: 'user', name: 'uuid' },
   },
   {
     name: 'to_uuid',
     type: 'TEXT',
+    foreign: { table: 'user', name: 'uuid' },
   },
   {
     name: 'turn',

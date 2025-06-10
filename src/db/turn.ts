@@ -7,6 +7,7 @@ import {
   getIslandData,
   getTurnInfo,
   getUserPlanInfo,
+  insertLogs,
   updateIslands,
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
@@ -86,6 +87,7 @@ function turnProceed(recursiveCount = 0) {
     }
   }
   updateIslands(db, islandList);
+  insertLogs(db, logArray);
   updateTurnProgressing(db, false);
 }
 const startTime = performance.now(); // 開始時間

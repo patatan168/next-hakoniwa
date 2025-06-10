@@ -1,6 +1,7 @@
 import { eventRateSchemaType } from '@/db/schema/eventRateTable';
 import { islandData, islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
+import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { turnStateSchemaType } from '@/db/schema/turnStateTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import sqlite from 'better-sqlite3';
@@ -144,4 +145,24 @@ export const updateIslands = (
   });
 
   updateManyIslands(islandData);
+};
+
+/**
+ * 島情報の一括更新
+ * @param islandData 全島情報
+ * @param logData ログ情報
+ */
+export const insertLogs = (
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  logData: turnLogSchemaType[]
+) => {
+  const insert = db.client.prepare(
+    'INSERT INTO turn_log (from_uuid, to_uuid, turn, secret_log, log) VALUES (@from_uuid, @to_uuid, @turn, @secret_log, @log)'
+  );
+
+  const insertManyLogs = db.client.transaction((logs) => {
+    for (const log of logs) insert.run(log);
+  });
+
+  insertManyLogs(logData);
 };
