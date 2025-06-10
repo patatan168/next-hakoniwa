@@ -21,6 +21,10 @@ createTable('plan', planSchema);
 createTable('event_rate', eventRateSchema);
 // turn_stateテーブル作成
 createTable('turn_state', turnStateSchema);
-db.client.prepare(`INSERT INTO turn_state`).run();
+// レコードが1つもない場合のみinsert
+const count = db.client.prepare(`SELECT COUNT(*) as cnt FROM turn_state`).get() as { cnt: number };
+if (count.cnt === 0) {
+  db.client.prepare(`INSERT INTO turn_state (turn, turn_progressing) VALUES (0, 0)`).run();
+}
 // sessionテーブル作成
 createTable('session', sessionSchema);
