@@ -4,7 +4,6 @@ export const sessionSchema: DbSchema = [
   {
     name: 'uuid',
     type: 'TEXT',
-    primary: true,
     foreign: { table: 'user', name: 'uuid' },
   },
   { name: 'session_id', type: 'TEXT' },

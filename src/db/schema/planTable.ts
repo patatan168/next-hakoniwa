@@ -4,7 +4,6 @@ export const planSchema: DbSchema = [
   {
     name: 'from_uuid',
     type: 'TEXT',
-    primary: true,
     foreign: { table: 'user', name: 'uuid' },
   },
   {
