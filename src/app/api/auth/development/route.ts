@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     const islandData = db.client
       .prepare(
         `SELECT
-          uuid, island_name, json(prize) as prize,
+          uuid,  json(prize) as prize,
           money, food,
           area, population, farm, factory,
-          island_name,json(island_info) as island_info
+          json(island_info) as island_info
          FROM
           island WHERE uuid=?`
       )
