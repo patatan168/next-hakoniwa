@@ -12,6 +12,9 @@ import {
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
 import { arrayRandomInt } from '@/global/function/utility';
+import sqlite from 'better-sqlite3';
+import { eventRateSchemaType } from './schema/eventRateTable';
+import { islandSchemaType } from './schema/islandTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
 
 /** 再実行上限数 */
@@ -25,6 +28,64 @@ const MAX_RECURSIVE = 3;
  * ```
  */
 const WAIT_TIME = 2000;
+
+/**
+ * 各島の計画フェーズを実行する関数。
+ *
+ * 指定された島（fromIsland）に対して、ユーザーが設定した計画（プラン）を順に実行し、
+ * その結果をログ配列（logArray）に追加します。すべての計画が終了した場合や
+ * 計画が存在しない場合は、資金繰り（financing）を自動で実行します。
+ *
+ * @param db         データベース接続オブジェクト
+ * @param currentTurn 現在のターン数
+ * @param islandList  島データの配列
+ * @param fromIsland  計画を実行する対象の島
+ * @param eventRate   イベント発生率データ
+ * @param logArray    実行結果のログ配列（参照渡しで結果が追加される）
+ */
+function planPhase(
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  currentTurn: number,
+  islandList: islandSchemaType[],
+  fromIsland: islandSchemaType,
+  eventRate: eventRateSchemaType,
+  logArray: turnLogSchemaType[]
+) {
+  const nextTurn = currentTurn + 1;
+  const plans = getUserPlanInfo(db, fromIsland.uuid);
+  let financingFlag = plans.length === 0;
+  for (const [index, plan] of Object.entries(plans)) {
+    const toIsland =
+      plan.to_uuid === fromIsland.uuid ? fromIsland : getIslandData(islandList, plan.from_uuid);
+    const planType = getPlanDefine(plan.plan);
+    // 計画の実行
+    const result = planType.changeData({
+      x: plan.x,
+      y: plan.y,
+      turn: nextTurn,
+      info: { times: plan.times, toIsland: toIsland, fromIsland: fromIsland },
+      eventRate: eventRate,
+    });
+    // ログの格納
+    logArray.push(...result.log);
+
+    if (!result.nextPlan) break;
+    // NOTE: 高速コマンドで計画が終了する場合、資金繰りをする
+    financingFlag = Number(index) + 1 === plans.length;
+  }
+  if (financingFlag) {
+    // 資金繰りの実行
+    const result = financing.changeData({
+      x: 0,
+      y: 0,
+      turn: nextTurn,
+      info: { times: 1, toIsland: fromIsland, fromIsland: fromIsland },
+      eventRate: eventRate,
+    });
+    // ログの格納
+    logArray.push(...result.log);
+  }
+}
 
 function turnProceed(recursiveCount = 0) {
   using db = dbConn('./src/db/data/main.db');
@@ -42,49 +103,15 @@ function turnProceed(recursiveCount = 0) {
   } else {
     updateTurnProgressing(db, true);
   }
-
   const islandList = getInhabitedIslands(db, true);
   const randomArray = arrayRandomInt(islandList.length);
   const logArray: Array<turnLogSchemaType> = [];
 
   for (let i = 0; i < randomArray.length; i++) {
     const island = islandList[randomArray[i]];
-    const plans = getUserPlanInfo(db, island.uuid);
-    const islandData = getIslandData(islandList, island.uuid);
     const eventRate = getEventRate(db, island.uuid);
     // 計画実行フェーズ
-    let financingFlag = plans.length === 0;
-    for (const [index, plan] of Object.entries(plans)) {
-      const toIsland =
-        plan.to_uuid === islandData.uuid ? islandData : getIslandData(islandList, plan.from_uuid);
-      const planType = getPlanDefine(plan.plan);
-      // 計画の実行
-      const result = planType.changeData({
-        x: plan.x,
-        y: plan.y,
-        turn: turnInfo.turn,
-        info: { times: plan.times, toIsland: toIsland, fromIsland: islandData },
-        eventRate: eventRate,
-      });
-      // ログの格納
-      logArray.push(...result.log);
-
-      if (!result.nextPlan) break;
-      // NOTE: 高速コマンドで計画が終了する場合、資金繰りをする
-      financingFlag = Number(index) + 1 === plans.length;
-    }
-    if (financingFlag) {
-      // 資金繰りの実行
-      const result = financing.changeData({
-        x: 0,
-        y: 0,
-        turn: turnInfo.turn,
-        info: { times: 1, toIsland: islandData, fromIsland: islandData },
-        eventRate: eventRate,
-      });
-      // ログの格納
-      logArray.push(...result.log);
-    }
+    planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
   }
   updateIslands(db, islandList);
   insertLogs(db, logArray);
