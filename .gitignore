@@ -32,7 +32,7 @@ yarn-error.log*
 .vercel
 
 # Database
-src/db/data/*
+src/db/data/*.db
 
 # typescript
 *.tsbuildinfo
