@@ -15,6 +15,7 @@
     "fmt-check": "prettier --check **/*.{css,scss,json,md}",
     "ncu:upd": "ncu -u",
     "db:init": "npx tsx ./src/db/initDb.ts",
+    "db:migrate": "npx tsx ./src/db/migrateDb.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

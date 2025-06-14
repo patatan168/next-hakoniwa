@@ -2,10 +2,16 @@
 
 This is a [Next.js](https://nextjs.org) project.
 
-## DetaBase Setup
+## Setup DataBase
 
 ```bash
 npm run db:init
+```
+
+## Migration DataBase
+
+```bash
+npm run db:migrate
 ```
 
 ## Getting Started

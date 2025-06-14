@@ -2,6 +2,7 @@
  * @file SQLite操作用のシンタックスシュガー
  */
 import sqlite from 'better-sqlite3';
+import { isEqual } from 'es-toolkit';
 import { parseDbData } from './utility';
 
 type DbForeign = {
@@ -131,3 +132,52 @@ export const existsDbDate = ({
     throw new Error('Exception Error.');
   }
 };
+
+/**
+ * 指定テーブルをDbSchemaに合わせて移行する関数（全カラム・制約対応）
+ * @param db データベース
+ */
+export const migrateDbTable =
+  (db: sqlite.Database) =>
+  /**
+   * 指定テーブルをDbSchemaに合わせて移行する（全カラム・制約対応）
+   * @param tableName テーブル名
+   * @param schema DbSchema
+   */ (tableName: string, schema: DbSchema) => {
+    // 新しいテーブルを作成
+    const createTable = createDbTable(db);
+    const newTableName = `${tableName}_new_${Date.now()}`;
+    createTable(newTableName, schema);
+
+    // 新旧テーブルで構造に差異がない場合は新テーブルを破棄してスキップ
+    const newTableInfo = db.prepare(`PRAGMA table_info(${newTableName})`).all();
+    const oldTableInfo = db.prepare(`PRAGMA table_info(${tableName})`).all();
+    if (isEqual(newTableInfo, oldTableInfo)) {
+      console.log('テーブルの構造に変更がないため、新テーブルを破棄します。');
+      // 新しいテーブルを削除
+      db.prepare(`DROP TABLE ${newTableName}`).run();
+      return;
+    }
+
+    // 既存カラム名を取得
+    const oldColumns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{
+      name: string;
+    }>;
+    const oldColumnNames = oldColumns.map((col) => col.name);
+
+    // 新旧で共通するカラムのみコピー
+    const copyColumns = schema
+      .map((col) => col.name)
+      .filter((name) => oldColumnNames.includes(name))
+      .join(', ');
+    if (copyColumns.length > 0) {
+      db.prepare(
+        `INSERT INTO ${newTableName} (${copyColumns}) SELECT ${copyColumns} FROM ${tableName}`
+      ).run();
+    }
+
+    // 古いテーブルを削除
+    db.prepare(`DROP TABLE ${tableName}`).run();
+    // 新しいテーブルの名前を元に戻す
+    db.prepare(`ALTER TABLE ${newTableName} RENAME TO ${tableName}`).run();
+  };
