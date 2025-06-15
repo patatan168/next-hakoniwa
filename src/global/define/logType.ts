@@ -175,7 +175,7 @@ export const logScatterMonster = (island: islandSchemaType, x: number, y: number
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は消し飛びました。。`;
+  return `${island.island_name}島${coordinate(x, y)}の${name}は消し飛びました。`;
 };
 
 /**
