@@ -11,7 +11,7 @@ export const financing: planType = {
   cost: -100,
   costType: 'money',
   minTimes: 1,
-  maxTimes: 99,
+  maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
   changeData: function ({ turn, info }: changeDataArgs) {
