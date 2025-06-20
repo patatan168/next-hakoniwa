@@ -222,18 +222,14 @@ export const changeMapData = (
 };
 
 /**
- * 防衛施設の自爆処理
+ * 広域被害
  * @param toIsland 島情報
  * @param x X座標
  * @param y Y座標
+ * @param turn ターン
  * @returns ログ
  */
-export const defenseBaseCrash = (
-  toIsland: islandSchemaType,
-  x: number,
-  y: number,
-  turn: number
-) => {
+export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, turn: number) => {
   const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
   // 周囲1HEXのみ
   const aroundHex1 = difference(getMapAround(x, y, 1), [{ x, y }]);
