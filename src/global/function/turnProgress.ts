@@ -166,3 +166,33 @@ export const insertLogs = (
 
   insertManyLogs(logData);
 };
+
+/**
+ * 計画の挿入と削除
+ * @param db DB接続情報
+ * @param updatePlan 更新する計画情報
+ * @param deleteLength 削除する計画の数
+ * @param uuid ユーザーUUID
+ */
+export const insertDeletePlan = (
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  updatePlan: planSchemaType[],
+  deleteLength: number,
+  uuid: string
+) => {
+  const insertPlan = db.client.prepare(
+    `INSERT INTO plan
+      (from_uuid,to_uuid, plan_no, times, x, y, plan)
+    VALUES
+      (@from_uuid, @to_uuid, @plan_no, @times, @x, @y, @plan)`
+  );
+  const insertManyPlan = db.client.transaction((tmpArray: planSchemaType[]) => {
+    for (const tmp of tmpArray) {
+      insertPlan.run({ ...tmp, plan_no: tmp.plan_no - deleteLength });
+    }
+  });
+  // 計画の削除
+  db.client.prepare('DELETE FROM plan WHERE from_uuid=?').run(uuid);
+  // 計画の挿入
+  insertManyPlan(updatePlan);
+};

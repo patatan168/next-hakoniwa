@@ -7,6 +7,7 @@ import {
   getIslandData,
   getTurnInfo,
   getUserPlanInfo,
+  insertDeletePlan,
   insertLogs,
   updateIslands,
   updateTurnProgressing,
@@ -15,6 +16,7 @@ import { arrayRandomInt } from '@/global/function/utility';
 import sqlite from 'better-sqlite3';
 import { eventRateSchemaType } from './schema/eventRateTable';
 import { islandSchemaType } from './schema/islandTable';
+import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
 
 /** 再実行上限数 */
@@ -53,37 +55,66 @@ function planPhase(
 ) {
   const nextTurn = currentTurn + 1;
   const plans = getUserPlanInfo(db, fromIsland.uuid);
+  const dropPlans: planSchemaType[] = [];
   let financingFlag = plans.length === 0;
-  for (const [index, plan] of Object.entries(plans)) {
+  for (let i = 0; i < plans.length; i++) {
+    // 計画ナンバーとインデックスが一致しない場合はスキップ
+    if (i !== plans[i].plan_no) {
+      financingFlag = true;
+      break;
+    }
+
     const toIsland =
-      plan.to_uuid === fromIsland.uuid ? fromIsland : getIslandData(islandList, plan.from_uuid);
-    const planType = getPlanDefine(plan.plan);
+      plans[i].to_uuid === fromIsland.uuid
+        ? fromIsland
+        : getIslandData(islandList, plans[i].from_uuid);
+    const planType = getPlanDefine(plans[i].plan);
     // 計画の実行
     const result = planType.changeData({
-      x: plan.x,
-      y: plan.y,
+      plan: plans[i],
       turn: nextTurn,
-      info: { times: plan.times, toIsland: toIsland, fromIsland: fromIsland },
+      info: { toIsland: toIsland, fromIsland: fromIsland },
       eventRate: eventRate,
     });
+
     // ログの格納
     logArray.push(...result.log);
-
+    // 回数が1未満なら削除リスト入り
+    if (plans[i].times < 1) {
+      dropPlans.push(plans[i]);
+    }
+    // 次の計画に行けないので終了
     if (!result.nextPlan) break;
     // NOTE: 高速コマンドで計画が終了する場合、資金繰りをする
-    financingFlag = Number(index) + 1 === plans.length;
+    financingFlag = i + 1 === plans.length;
   }
+  // 資金繰りの実行
   if (financingFlag) {
-    // 資金繰りの実行
     const result = financing.changeData({
-      x: 0,
-      y: 0,
+      plan: {
+        from_uuid: 'dummy',
+        to_uuid: 'dummy',
+        plan_no: 0,
+        times: 0,
+        x: 0,
+        y: 0,
+        plan: 'dummy',
+      },
       turn: nextTurn,
-      info: { times: 1, toIsland: fromIsland, fromIsland: fromIsland },
+      info: {
+        toIsland: fromIsland,
+        fromIsland: fromIsland,
+      },
       eventRate: eventRate,
     });
     // ログの格納
     logArray.push(...result.log);
+  }
+  const insertPlans = plans.filter((plan) => !dropPlans.includes(plan));
+  // 計画の更新
+  if (plans.length > 0) {
+    const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
+    insertDeletePlan(db, insertPlans, dropLength, fromIsland.uuid);
   }
 }
 

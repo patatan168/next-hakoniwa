@@ -16,21 +16,26 @@ export const afforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
     const { defVal } = getMapDefine('forest');
-    changeMapData(toIsland, x, y, 'forest', { type: 'ins', value: defVal });
+    changeMapData(toIsland, plan.x, plan.y, 'forest', { type: 'ins', value: defVal });
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
+    // 計画回数のデクリメント
+    plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
   },
@@ -48,21 +53,26 @@ export const immediateAfforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
     const { defVal } = getMapDefine('forest');
-    changeMapData(toIsland, x, y, 'forest', { type: 'ins', value: defVal });
+    changeMapData(toIsland, plan.x, plan.y, 'forest', { type: 'ins', value: defVal });
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
+    // 計画回数の初期化
+    plan.times = 0;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
   },
@@ -82,18 +92,21 @@ export const farmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
       case 'plains': {
         const { defVal } = getMapDefine('farm');
-        changeMapData(toIsland, x, y, 'farm', { type: 'ins', value: defVal });
+        changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         break;
@@ -104,7 +117,7 @@ export const farmDev: planType = {
         const addValue = 2;
         // 最大値以下なら施設を加算する
         if (maxVal >= mapInfo.landValue + addValue) {
-          changeMapData(toIsland, x, y, 'farm', { type: 'add', value: addValue });
+          changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
         }
         // 費用の支払い
         toIsland.money -= this.cost;
@@ -113,7 +126,9 @@ export const farmDev: planType = {
     }
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    // 計画回数のデクリメント
+    plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
@@ -132,22 +147,25 @@ export const immediateFarmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
-    const { toIsland, times } = info;
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
+    const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 開発回数
     let devCount = 0;
-    for (let i = 0; i < times + 1; i++) {
+    for (let i = 0; i < plan.times; i++) {
       switch (mapInfo.type) {
         case 'plains': {
           const { defVal } = getMapDefine('farm');
-          changeMapData(toIsland, x, y, 'farm', { type: 'ins', value: defVal });
+          changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
           // 費用の支払い
           toIsland.money -= this.cost;
           devCount++;
@@ -159,7 +177,7 @@ export const immediateFarmDev: planType = {
           const addValue = 2;
           // 最大値以下なら施設を加算する
           if (maxVal >= mapInfo.landValue + addValue) {
-            changeMapData(toIsland, x, y, 'farm', { type: 'add', value: addValue });
+            changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
           }
           // 費用の支払い
           toIsland.money -= this.cost;
@@ -171,7 +189,9 @@ export const immediateFarmDev: planType = {
       if (!hasSufficientCosts(toIsland, this)) break;
     }
     // ログ出力
-    const log = logAnyTimesDev(toIsland, this, x, y, devCount);
+    const log = logAnyTimesDev(toIsland, this, plan.x, plan.y, devCount);
+    // 計画回数の初期化
+    plan.times = 0;
 
     return {
       nextPlan: this.immediate,
@@ -194,18 +214,21 @@ export const factoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
       case 'plains': {
         const { defVal } = getMapDefine('factory');
-        changeMapData(toIsland, x, y, 'factory', { type: 'ins', value: defVal });
+        changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         break;
@@ -216,7 +239,7 @@ export const factoryDev: planType = {
         const addValue = 1;
         // 最大値以下なら施設を加算する
         if (maxVal >= mapInfo.landValue + addValue) {
-          changeMapData(toIsland, x, y, 'factory', { type: 'add', value: addValue });
+          changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'add', value: addValue });
         }
         // 費用の支払い
         toIsland.money -= this.cost;
@@ -225,7 +248,9 @@ export const factoryDev: planType = {
     }
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    // 計画回数のデクリメント
+    plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
@@ -244,21 +269,24 @@ export const immediateFactoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
-    const { toIsland, times } = info;
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
+    const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 開発回数
     let devCount = 0;
-    for (let i = 0; i < times + 1; i++) {
+    for (let i = 0; i < plan.times; i++) {
       switch (mapInfo.type) {
         case 'plains': {
           const { defVal } = getMapDefine('factory');
-          changeMapData(toIsland, x, y, 'factory', { type: 'ins', value: defVal });
+          changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
           // 費用の支払い
           toIsland.money -= this.cost;
           devCount++;
@@ -270,7 +298,7 @@ export const immediateFactoryDev: planType = {
           const addValue = 1;
           // 最大値以下なら施設を加算する
           if (maxVal >= mapInfo.landValue + addValue) {
-            changeMapData(toIsland, x, y, 'factory', { type: 'add', value: addValue });
+            changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'add', value: addValue });
           }
           // 費用の支払い
           toIsland.money -= this.cost;
@@ -283,7 +311,9 @@ export const immediateFactoryDev: planType = {
     }
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logAnyTimesDev(toIsland, this, x, y, devCount);
+    const log = logAnyTimesDev(toIsland, this, plan.x, plan.y, devCount);
+    // 計画回数の初期化
+    plan.times = 0;
 
     return {
       nextPlan: this.immediate,
@@ -306,18 +336,21 @@ export const miningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
       case 'mountain': {
         const { defVal } = getMapDefine('mining');
-        changeMapData(toIsland, x, y, 'mining', { type: 'ins', value: defVal });
+        changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         break;
@@ -328,7 +361,7 @@ export const miningDev: planType = {
         const addValue = 5;
         // 最大値以下なら施設を加算する
         if (maxVal >= mapInfo.landValue + addValue) {
-          changeMapData(toIsland, x, y, 'mining', { type: 'add', value: addValue });
+          changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'add', value: addValue });
         }
         // 費用の支払い
         toIsland.money -= this.cost;
@@ -337,7 +370,9 @@ export const miningDev: planType = {
     }
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    // 計画回数のデクリメント
+    plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
@@ -356,21 +391,24 @@ export const immediateMiningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
-    const { toIsland, times } = info;
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
+    const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 開発回数
     let devCount = 0;
-    for (let i = 0; i < times + 1; i++) {
+    for (let i = 0; i < plan.times; i++) {
       switch (mapInfo.type) {
         case 'mountain': {
           const { defVal } = getMapDefine('mining');
-          changeMapData(toIsland, x, y, 'mining', { type: 'ins', value: defVal });
+          changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'ins', value: defVal });
           // 費用の支払い
           toIsland.money -= this.cost;
           devCount++;
@@ -382,7 +420,7 @@ export const immediateMiningDev: planType = {
           const addValue = 5;
           // 最大値以下なら施設を加算する
           if (maxVal >= mapInfo.landValue + addValue) {
-            changeMapData(toIsland, x, y, 'mining', { type: 'add', value: addValue });
+            changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'add', value: addValue });
           }
           // 費用の支払い
           toIsland.money -= this.cost;
@@ -395,7 +433,9 @@ export const immediateMiningDev: planType = {
     }
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logAnyTimesDev(toIsland, this, x, y, devCount);
+    const log = logAnyTimesDev(toIsland, this, plan.x, plan.y, devCount);
+    // 計画回数の初期化
+    plan.times = 0;
 
     return {
       nextPlan: this.immediate,
@@ -418,21 +458,26 @@ export const missileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
     const { defVal } = getMapDefine('missile');
-    changeMapData(toIsland, x, y, 'missile', { type: 'ins', value: defVal });
+    changeMapData(toIsland, plan.x, plan.y, 'missile', { type: 'ins', value: defVal });
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
+    // 計画回数のデクリメント
+    plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
   },
@@ -451,21 +496,26 @@ export const immediateMissileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
     const { defVal } = getMapDefine('missile');
-    changeMapData(toIsland, x, y, 'missile', { type: 'ins', value: defVal });
+    changeMapData(toIsland, plan.x, plan.y, 'missile', { type: 'ins', value: defVal });
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
+    // 計画回数の初期化
+    plan.times = 0;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
   },
@@ -485,32 +535,40 @@ export const defenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
       case 'defense_base': {
         // 自爆セット
-        changeMapData(toIsland, x, y, 'defense_base', { type: 'ins', value: -1 });
+        changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: -1 });
         const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-        const log = logSetSelfCrash(toIsland, this, x, y);
+        const log = logSetSelfCrash(toIsland, this, plan.x, plan.y);
+        // 計画回数のデクリメント
+        plan.times--;
         return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
       }
       default: {
         // 防衛施設の設置
         const { defVal } = getMapDefine('defense_base');
-        changeMapData(toIsland, x, y, 'defense_base', { type: 'ins', value: defVal });
+        changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         // ログ出力
         const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-        const log = logCommonDev(toIsland, this, x, y);
+        const log = logCommonDev(toIsland, this, plan.x, plan.y);
         const forest = logForest(toIsland);
+        // 計画回数のデクリメント
+        plan.times--;
+
         return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
       }
     }
@@ -530,32 +588,41 @@ export const immediateDefenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // マップの変更
-    const mapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
       case 'defense_base': {
         // 自爆セット
-        changeMapData(toIsland, x, y, 'defense_base', { type: 'ins', value: -1 });
+        changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: -1 });
         const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-        const log = logSetSelfCrash(toIsland, this, x, y);
+        const log = logSetSelfCrash(toIsland, this, plan.x, plan.y);
+        // 計画回数の初期化
+        plan.times = 0;
+
         return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
       }
       default: {
         // 防衛施設の設置
         const { defVal } = getMapDefine('defense_base');
-        changeMapData(toIsland, x, y, 'defense_base', { type: 'ins', value: defVal });
+        changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         // ログ出力
         const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-        const log = logCommonDev(toIsland, this, x, y);
+        const log = logCommonDev(toIsland, this, plan.x, plan.y);
         const forest = logForest(toIsland);
+        // 計画回数の初期化
+        plan.times = 0;
+
         return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: forest }] };
       }
     }
@@ -575,21 +642,27 @@ export const submarineMissileDev: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ x, y, turn, info }: changeDataArgs) {
+  changeData: function ({ plan, turn, info }: changeDataArgs) {
     const { toIsland } = info;
     // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, x, y, turn);
-    if (validConstAndLand.nextPlan) return validConstAndLand;
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
 
     // 費用の支払い
     toIsland.money -= this.cost;
     // マップの変更
     const { defVal } = getMapDefine('submarine_missile');
-    changeMapData(toIsland, x, y, 'submarine_missile', { type: 'ins', value: defVal });
+    changeMapData(toIsland, plan.x, plan.y, 'submarine_missile', { type: 'ins', value: defVal });
     // ログ出力
     const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
-    const log = logCommonDev(toIsland, this, x, y);
-    const secretLog = logCommonDev(toIsland, this, x, y, true);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    const secretLog = logCommonDev(toIsland, this, plan.x, plan.y, true);
+    // 計画回数のデクリメント
+    plan.times--;
+
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: secretLog, log: log }] };
   },
 };

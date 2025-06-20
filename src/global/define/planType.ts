@@ -5,6 +5,7 @@
  */
 import { eventRateSchemaType } from '@/db/schema/eventRateTable';
 import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
+import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
@@ -17,8 +18,6 @@ import * as planManage from './planCategory/planManege';
 
 /** 計画情報 */
 export type planInfo = {
-  /** 計画回数 */
-  times: number;
   /** 目標島 */
   toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
   /** 命令島 */
@@ -33,10 +32,8 @@ export type planResult = {
 };
 
 export type changeDataArgs = {
-  /** X座標 */
-  x: number;
-  /** Y座標 */
-  y: number;
+  /** 計画情報 */
+  plan: planSchemaType;
   /** ターン数 */
   turn: number;
   /** 計画情報 */
@@ -79,7 +76,7 @@ export type planType = {
   /** データの変更
    * @returns ログ
    */
-  readonly changeData: ({ x, y, turn, info, eventRate }: changeDataArgs) => planResult;
+  readonly changeData: ({ plan, turn, info, eventRate }: changeDataArgs) => planResult;
 };
 
 /**
