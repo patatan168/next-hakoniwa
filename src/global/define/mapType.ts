@@ -1,3 +1,10 @@
+import { eventRateSchemaType } from '@/db/schema/eventRateTable';
+import { islandSchemaType } from '@/db/schema/islandTable';
+import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { userSchemaType } from '@/db/schema/userTable';
+import { changeMapData, countMapAround } from '../function/island';
+import { checkProbability } from '../function/utility';
+import { logFire } from './logType';
 import * as mapFacility from './mapCategory/mapFacility';
 import * as mapFake from './mapCategory/mapFake';
 import * as mapLand from './mapCategory/mapLand';
@@ -44,6 +51,20 @@ export type mapType = {
   readonly exp?: number;
   /** 報奨金 (怪獣用) */
   readonly bounty?: number;
+  /** マップ固有イベント */
+  readonly event?: ({
+    x,
+    y,
+    turn,
+    fromIsland,
+    eventRate,
+  }: {
+    x: number;
+    y: number;
+    turn: number;
+    fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
+    eventRate: eventRateSchemaType;
+  }) => Array<turnLogSchemaType> | void | undefined;
 };
 
 /**
@@ -141,3 +162,38 @@ export const getMapInfoText = (x: number, y: number, type: string, landValue: nu
 
   return `(${x},${y}) ${mapName}`;
 };
+
+/**
+ * 火事
+ * @param x X座標
+ * @param y Y座標
+ * @param turn ターン数
+ * @param fromIsland 実行する島データー
+ * @param eventRate イベント確率
+ * @returns 火事での焼失ログ or 何もなし
+ */
+export function fireDisaster(
+  x: number,
+  y: number,
+  turn: number,
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  eventRate: eventRateSchemaType
+): turnLogSchemaType | undefined {
+  if (checkProbability(eventRate.fire)) {
+    const forestNum = countMapAround(fromIsland.island_info, 'forest', x, y, 1);
+    const monumentNum = countMapAround(fromIsland.island_info, 'monument', x, y, 1);
+    if (forestNum === 0 && monumentNum === 0) {
+      // 火事のログを作成
+      const log = logFire(fromIsland, x, y);
+      // 火災で焼失
+      changeMapData(fromIsland, x, y, 'ruins', { type: 'ins', value: 0 });
+      return {
+        from_uuid: fromIsland.uuid,
+        to_uuid: fromIsland.uuid,
+        turn: turn,
+        log: log,
+        secret_log: log,
+      };
+    }
+  }
+}

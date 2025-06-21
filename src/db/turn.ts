@@ -1,3 +1,4 @@
+import { getMapDefine } from '@/global/define/mapType';
 import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
@@ -118,6 +119,29 @@ function planPhase(
   }
 }
 
+function mapEventPhase(
+  currentTurn: number,
+  fromIsland: islandSchemaType,
+  eventRate: eventRateSchemaType,
+  logArray: turnLogSchemaType[]
+) {
+  const nextTurn = currentTurn + 1;
+  for (const islandData of fromIsland.island_info) {
+    const mapInfo = getMapDefine(islandData.type);
+    const log =
+      mapInfo.event !== undefined
+        ? mapInfo.event({
+            x: islandData.x,
+            y: islandData.y,
+            turn: nextTurn,
+            fromIsland: fromIsland,
+            eventRate: eventRate,
+          })
+        : undefined;
+    if (log !== undefined) logArray.push(...log);
+  }
+}
+
 function turnProceed(recursiveCount = 0) {
   using db = dbConn('./src/db/data/main.db');
   const turnInfo = getTurnInfo(db);
@@ -143,6 +167,8 @@ function turnProceed(recursiveCount = 0) {
     const eventRate = getEventRate(db, island.uuid);
     // 計画実行フェーズ
     planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
+    // マップイベントフェーズ
+    mapEventPhase(turnInfo.turn, island, eventRate, logArray);
   }
   updateIslands(db, islandList);
   insertLogs(db, logArray);

@@ -1,4 +1,9 @@
+import { changeMapData } from '@/global/function/island';
+import { checkProbability } from '@/global/function/utility';
+import { logOilEarned, logOilEnd } from '../logType';
 import { mapType } from '../mapType';
+import META_DATA from '../metadata';
+import { sea } from './mapLand';
 
 const facilityUnit = '人規模';
 export const factory: mapType = {
@@ -38,4 +43,18 @@ export const oilField: mapType = {
   imgPath: '/img/facility/oil_field.gif',
   defVal: 0,
   maxVal: 0,
+  event: function ({ x, y, turn, fromIsland }) {
+    const baseLog = { to_uuid: fromIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
+    const earningLog = logOilEarned(fromIsland, x, y, META_DATA.OIL_EARN);
+    const resultLog = [{ ...baseLog, log: earningLog, secret_log: earningLog }];
+    // 油田収入
+    fromIsland.money += META_DATA.OIL_EARN;
+    // 油田枯渇判定
+    if (checkProbability(META_DATA.OIL_EXHAUSTION_RATE)) {
+      const oilEndLog = logOilEnd(fromIsland, x, y);
+      changeMapData(fromIsland, x, y, 'sea', { type: 'ins', value: sea.defVal });
+      resultLog.push({ ...baseLog, log: oilEndLog, secret_log: oilEndLog });
+    }
+    return resultLog;
+  },
 };

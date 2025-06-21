@@ -25,6 +25,17 @@ export const checkProbability = (probability: number) => {
 };
 
 /**
+ * 指定した最小値以上、最大値以下の整数乱数を返す
+ * @param min 最小値（含む）
+ * @param max 最大値（含む）
+ * @returns min以上max以下のランダムな整数
+ */
+export const randomIntInRange = (min: number, max: number) => {
+  if (min > max) return 0;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+/**
  * DB用にデーターをパースする
  * @param data データー
  * @returns DB用のデーター

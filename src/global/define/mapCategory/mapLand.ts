@@ -1,4 +1,8 @@
+import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
+import { checkProbability } from '@/global/function/utility';
 import { mapType } from '../mapType';
+import META_DATA from '../metadata';
+import { people } from './mapOther';
 
 export const forest: mapType = {
   type: 'forest',
@@ -10,6 +14,13 @@ export const forest: mapType = {
   maxVal: 200,
   coefficient: 100,
   unit: '本',
+  event: function ({ x, y, fromIsland }) {
+    const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
+    // 森林増加
+    if (mapInfo.landValue < this.maxVal) {
+      changeMapData(fromIsland, x, y, this.type, { type: 'add', value: 1 });
+    }
+  },
 };
 export const mountain: mapType = {
   type: 'mountain',
@@ -26,6 +37,16 @@ export const plains: mapType = {
   imgPath: '/img/land/plains.gif',
   defVal: 0,
   maxVal: 0,
+  event: function ({ x, y, fromIsland }) {
+    // 平地に村ができる
+    if (checkProbability(META_DATA.VILLAGE_APPEARANCE_RATE)) {
+      const peopleNum = countMapAround(fromIsland.island_info, 'people', x, y, 1);
+      const farmNum = countMapAround(fromIsland.island_info, 'farm', x, y, 1);
+      if (peopleNum > 0 || farmNum > 0) {
+        changeMapData(fromIsland, x, y, 'people', { type: 'ins', value: people.defVal });
+      }
+    }
+  },
 };
 export const ruins: mapType = {
   type: 'ruins',

@@ -41,8 +41,27 @@ const META_DATA = Object.freeze({
   OIL_EXHAUSTION_RATE: 40,
   /** 油田の収入 */
   OIL_EARN: 1000,
+  /** 平地に村が出現する確率 (%) */
+  VILLAGE_APPEARANCE_RATE: 20,
   /** 面積あたりの怪獣出現率 ( % / 100万坪 ) */
   MONSTER_RATE: 0.03,
+  /** ターンあたりの最大人口増加量 ( 百人 / Turn ) */
+  PEOPLE_GROWTH: {
+    VILLAGE: 10,
+    TOWN: 10,
+    CITY: 0,
+  },
+  /** 誘致活動時のターンあたりの最大人口増加量 ( 百人 / Turn ) */
+  PEOPLE_PROPAGANDA: {
+    VILLAGE: 30,
+    TOWN: 30,
+    CITY: 3,
+  },
+  /** ターンあたりの人口最大減少量 ( 百人 / Turn ) */
+  PEOPLE_LOSS: {
+    /** 飢饉時 */
+    FAMINE: 3,
+  },
   /** トークンの発行者 */
   ISSUER: 'Patatan',
   /** セッション時間(h) */

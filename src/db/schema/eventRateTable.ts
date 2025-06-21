@@ -68,6 +68,11 @@ export const eventRateSchema: DbSchema = [
     type: 'REAL',
     defVal: `${META_DATA.MONSTER_RATE}`,
   },
+  {
+    name: 'propaganda',
+    type: 'INTEGER',
+    defVal: '0',
+  },
 ];
 
 export type eventRateSchemaType = {
@@ -84,4 +89,5 @@ export type eventRateSchemaType = {
   oil_exhaustion: number;
   fall_down: number;
   monster: number;
+  propaganda: 0 | 100;
 };

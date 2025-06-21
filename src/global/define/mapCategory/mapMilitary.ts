@@ -1,3 +1,5 @@
+import { mapArrayConverter, wideDamage } from '@/global/function/island';
+import { logSelfCrash } from '../logType';
 import { mapType } from '../mapType';
 
 export const missile: mapType = {
@@ -31,6 +33,16 @@ export const defenseBase: mapType = {
   imgPath: '/img/military/defense_base.gif',
   defVal: 0,
   maxVal: 0,
+  event: function ({ x, y, turn, fromIsland }) {
+    const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
+    if (mapInfo.landValue < this.maxVal) {
+      const baseLog = { to_uuid: fromIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
+      const selfCrash = logSelfCrash(fromIsland, x, y);
+      const selfCrashLog = { ...baseLog, log: selfCrash, secret_log: selfCrash };
+      const damageLog = wideDamage(fromIsland, x, y, turn);
+      return [selfCrashLog, ...damageLog];
+    }
+  },
 };
 export const fakeDefenseBase: mapType = {
   type: 'fake_defense_base',

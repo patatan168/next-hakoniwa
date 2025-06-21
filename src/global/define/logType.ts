@@ -1,6 +1,7 @@
 import { islandSchemaType } from '@/db/schema/islandTable';
 import { mapArrayConverter } from '../function/island';
 import { getMapDefine, getMapName } from './mapType';
+import META_DATA from './metadata';
 import { planType } from './planType';
 
 /**
@@ -197,4 +198,69 @@ export const logSetSelfCrash = (
   const { name } = getMapDefine(mapInfo.type);
 
   return `${island.island_name}島${coordinate(x, y)}で${name}の自爆装置がセットされました。`;
+};
+
+/**
+ * 自爆のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const logSelfCrash = (island: islandSchemaType, x: number, y: number): string => {
+  // マップ情報の取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${island.island_name}島${coordinate(x, y)}の${name}、自爆装置作動！！`;
+};
+
+/**
+ * 石油採掘のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @param earn 収益
+ * @returns ログ
+ */
+export const logOilEarned = (
+  island: islandSchemaType,
+  x: number,
+  y: number,
+  earn: number
+): string => {
+  // マップ情報の取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${island.island_name}島${coordinate(x, y)}の${name}から、${earn}${META_DATA.UNIT_MONEY}の収益が上がりました。`;
+};
+
+/**
+ * 石油枯渇のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const logOilEnd = (island: islandSchemaType, x: number, y: number): string => {
+  // マップ情報の取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${island.island_name}島${coordinate(x, y)}の${name}は枯渇したようです。`;
+};
+
+/**
+ * 火災のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const logFire = (island: islandSchemaType, x: number, y: number): string => {
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${island.island_name}島${coordinate(x, y)}の${name}が火災により壊滅しました。`;
 };
