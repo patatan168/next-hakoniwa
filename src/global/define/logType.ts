@@ -264,3 +264,55 @@ export const logFire = (island: islandSchemaType, x: number, y: number): string 
 
   return `${island.island_name}島${coordinate(x, y)}の${name}が火災により壊滅しました。`;
 };
+
+/**
+ * 怪獣の移動のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @param moveX 移動先X座標
+ * @param moveY 移動先Y座標
+ * @returns ログ
+ */
+export const logMonsterMove = (
+  island: islandSchemaType,
+  x: number,
+  y: number,
+  moveX: number,
+  moveY: number
+): string => {
+  // 移動元の地形を取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+  // 移動先の地形を取得
+  const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
+  const { name: moveName } = getMapDefine(moveMapInfo.type);
+
+  return `${island.island_name}島${coordinate(moveX, moveY)}の${moveName}が怪獣${name}に踏み荒らされました。`;
+};
+
+/**
+ * 怪獣の自爆のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @param moveX 移動先X座標
+ * @param moveY 移動先Y座標
+ * @returns ログ
+ */
+export const logMonsterSuicideBombing = (
+  island: islandSchemaType,
+  x: number,
+  y: number,
+  moveX: number,
+  moveY: number
+): string => {
+  // 移動元の地形を取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+  // 移動先の地形を取得
+  const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
+  const { name: moveName } = getMapDefine(moveMapInfo.type);
+
+  return `怪獣${name}が${island.island_name}島${coordinate(moveX, moveY)}へ到達、${moveName}の自爆装置が発動！！`;
+};

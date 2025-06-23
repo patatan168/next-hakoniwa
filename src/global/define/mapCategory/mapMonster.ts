@@ -1,4 +1,4 @@
-import { mapType } from '../mapType';
+import { mapType, monsterMove } from '../mapType';
 
 export const inora: mapType = {
   type: 'inora',
@@ -11,6 +11,10 @@ export const inora: mapType = {
   unitType: 'before',
   exp: 5,
   bounty: 400,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const mekaInora: mapType = {
   type: 'meka_inora',
@@ -23,6 +27,10 @@ export const mekaInora: mapType = {
   unitType: 'before',
   exp: 5,
   bounty: 0,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const inoraGhost: mapType = {
   type: 'inora_ghost',
@@ -35,6 +43,10 @@ export const inoraGhost: mapType = {
   unitType: 'before',
   exp: 10,
   bounty: 300,
+  maxMoveDistance: Number.MAX_SAFE_INTEGER,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const redInora: mapType = {
   type: 'red_inora',
@@ -47,6 +59,10 @@ export const redInora: mapType = {
   unitType: 'before',
   exp: 12,
   bounty: 1000,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const darkInora: mapType = {
   type: 'dark_inora',
@@ -59,6 +75,10 @@ export const darkInora: mapType = {
   unitType: 'before',
   exp: 15,
   bounty: 800,
+  maxMoveDistance: 2,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const kingInora: mapType = {
   type: 'king_inora',
@@ -71,6 +91,10 @@ export const kingInora: mapType = {
   unitType: 'before',
   exp: 30,
   bounty: 2000,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const sanjira: mapType = {
   type: 'sanjira',
@@ -83,6 +107,10 @@ export const sanjira: mapType = {
   unitType: 'before',
   exp: 7,
   bounty: 500,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };
 export const kujira: mapType = {
   type: 'kujira',
@@ -95,4 +123,8 @@ export const kujira: mapType = {
   unitType: 'before',
   exp: 20,
   bounty: 1500,
+  maxMoveDistance: 1,
+  event: function ({ x, y, turn, fromIsland }) {
+    return monsterMove(x, y, turn, fromIsland);
+  },
 };

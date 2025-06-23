@@ -58,7 +58,7 @@ export const people: mapType = {
 // Monument
 export const monument: mapType = {
   type: 'monument',
-  baseLand: 'plains',
+  baseLand: 'monument',
   name: 'モノリス',
   imgPath: '/img/monument/monument0.gif',
   defVal: 0,

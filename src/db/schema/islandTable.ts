@@ -99,4 +99,6 @@ export type islandInfo = {
   landValue: number;
   x: number;
   y: number;
+  /** 怪獣の移動距離 */
+  monsterDistance?: number;
 };
