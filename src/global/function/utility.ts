@@ -69,3 +69,16 @@ export const arrayRandomInt = (length: number) => {
 
   return array;
 };
+
+/**
+ * undefinedやnullの場合にNumber.MAX_SAFE_INTEGERまたはNumber.MIN_SAFE_INTEGERを返す関数
+ * @param value 判定する値
+ * @param mode 'max'ならMAX_SAFE_INTEGER, 'min'ならMIN_SAFE_INTEGER
+ * @returns valueがnull/undefinedなら指定した極値を返す
+ */
+export const valueOrSafeLimit = (value: number | null | undefined, mode: 'max' | 'min'): number => {
+  if (value === null || value === undefined) {
+    return mode === 'max' ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+  }
+  return value;
+};

@@ -1,5 +1,5 @@
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
-import { randomIntInRange } from '@/global/function/utility';
+import { randomIntInRange, valueOrSafeLimit } from '@/global/function/utility';
 import { fireDisaster, mapType } from '../mapType';
 import META_DATA from '../metadata';
 
@@ -20,15 +20,15 @@ export const people: mapType = {
     if (mapInfo.landValue < this.maxVal) {
       const growthValue = () => {
         if (fromIsland.food >= 0) {
-          if (mapInfo.landValue > (this.level?.[0] ?? Number.MAX_SAFE_INTEGER)) {
+          if (mapInfo.landValue > valueOrSafeLimit(this.level?.[0], 'max')) {
             return eventRate.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
               : META_DATA.PEOPLE_GROWTH.VILLAGE;
-          } else if (mapInfo.landValue > (this.level?.[1] ?? Number.MAX_SAFE_INTEGER)) {
+          } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[1], 'max')) {
             return eventRate.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.TOWN
               : META_DATA.PEOPLE_GROWTH.TOWN;
-          } else if (mapInfo.landValue > (this.level?.[2] ?? Number.MAX_SAFE_INTEGER)) {
+          } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[2], 'max')) {
             return eventRate.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.CITY
               : META_DATA.PEOPLE_GROWTH.CITY;
