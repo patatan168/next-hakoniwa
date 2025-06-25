@@ -79,16 +79,14 @@ export type islandSchemaType = {
  * @param island islandテーブルのデーター
  * @param isPublic 公開データか
  */
-export const parseJsonIslandData = (island: unknown, isPublic = true) => {
-  if (typeof island === 'object' && island !== null) {
-    if ('prize' in island && typeof island.prize === 'string') {
-      island.prize = JSON.parse(island.prize);
-    }
-    if ('island_info' in island && typeof island.island_info === 'string') {
-      island.island_info = isPublic
-        ? getPublicIslandInfo(JSON.parse(island.island_info))
-        : JSON.parse(island.island_info);
-    }
+export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPublic = true) => {
+  if ('prize' in island && typeof island.prize === 'string') {
+    island.prize = JSON.parse(island.prize);
+  }
+  if ('island_info' in island && typeof island.island_info === 'string') {
+    island.island_info = isPublic
+      ? getPublicIslandInfo(JSON.parse(island.island_info))
+      : JSON.parse(island.island_info);
   }
 };
 
