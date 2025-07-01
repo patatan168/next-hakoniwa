@@ -30,7 +30,7 @@ const META_DATA = Object.freeze({
   /** 火災の確率 (%) */
   FIRE_RATE: 1,
   /** 地盤沈下の確率 */
-  FALL_DOWN_RATE: 1,
+  FALL_DOWN_RATE: 3,
   /** 地盤沈下のボーダー (万坪) */
   FALL_DOWN_BORDER: 9000,
   /** 埋蔵金の確率 (%) */
