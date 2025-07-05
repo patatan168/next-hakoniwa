@@ -1,4 +1,5 @@
-import { parseJsonIslandData } from '@/db/schema/islandTable';
+import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
+import { userSchemaType } from '@/db/schema/userTable';
 import { validAuthCookie } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
         WHERE
           island.uuid=?`
       )
-      .get(uuid);
+      .get(uuid) as islandSchemaType & Pick<userSchemaType, 'island_name'>;
     parseJsonIslandData(islandData, false);
     return NextResponse.json(islandData);
   } else {
