@@ -4,10 +4,9 @@
  * @author patatan
  */
 import { eventRateSchemaType } from '@/db/schema/eventRateTable';
-import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfo, islandInfoTurnProgress, islandSchemaType } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
 import { logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
@@ -19,9 +18,9 @@ import * as planManage from './planCategory/planManege';
 /** 計画情報 */
 export type planInfo = {
   /** 目標島 */
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
+  toIsland: islandInfoTurnProgress;
   /** 命令島 */
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
+  fromIsland: islandInfoTurnProgress;
 };
 
 export type planResult = {

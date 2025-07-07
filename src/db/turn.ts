@@ -1,8 +1,12 @@
 import { getMapDefine } from '@/global/define/mapType';
+import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
+import { calcAllTypeNum, countArea } from '@/global/function/island';
 import {
+  earthquakeExecute,
+  eruptionExecute,
   getEventRate,
   getInhabitedIslands,
   getIslandData,
@@ -10,13 +14,19 @@ import {
   getUserPlanInfo,
   insertDeletePlan,
   insertLogs,
+  lackFoodsExecute,
+  landSubsidenceExecute,
+  meteoriteExecute,
+  monumentAttackExecute,
+  popMonsterExecute,
+  tsunamiExecute,
   updateIslands,
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
-import { arrayRandomInt } from '@/global/function/utility';
+import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import sqlite from 'better-sqlite3';
 import { eventRateSchemaType } from './schema/eventRateTable';
-import { islandSchemaType } from './schema/islandTable';
+import { islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
 
@@ -31,6 +41,23 @@ const MAX_RECURSIVE = 3;
  * ```
  */
 const WAIT_TIME = 2000;
+
+/**
+ * 収入/食料消費フェーズ
+ * @param fromIsland
+ */
+function incomeAndEatenPhase(fromIsland: islandSchemaType) {
+  if (fromIsland.population > fromIsland.farm) {
+    fromIsland.food += fromIsland.farm / 100;
+    fromIsland.money += Math.trunc(
+      Math.min(fromIsland.population - fromIsland.food, fromIsland.factory + fromIsland.mining) / 10
+    );
+  } else {
+    fromIsland.food += fromIsland.population / 100;
+  }
+  // 食料消費
+  fromIsland.food -= Math.trunc(fromIsland.population * META_DATA.EATEN_FOOD_PER_PEOPLE);
+}
 
 /**
  * 各島の計画フェーズを実行する関数。
@@ -49,8 +76,8 @@ const WAIT_TIME = 2000;
 function planPhase(
   db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   currentTurn: number,
-  islandList: islandSchemaType[],
-  fromIsland: islandSchemaType,
+  islandList: islandInfoTurnProgress[],
+  fromIsland: islandInfoTurnProgress,
   eventRate: eventRateSchemaType,
   logArray: turnLogSchemaType[]
 ) {
@@ -142,6 +169,54 @@ function mapEventPhase(
   }
 }
 
+function wideIslandEventPhase(
+  currentTurn: number,
+  fromIsland: islandInfoTurnProgress,
+  eventRate: eventRateSchemaType,
+  logArray: turnLogSchemaType[]
+) {
+  const nextTurn = currentTurn + 1;
+  // 地震
+  const earthquakeLog = earthquakeExecute(fromIsland, eventRate, nextTurn);
+  if (earthquakeLog !== undefined) logArray.push(...earthquakeLog);
+  // 食糧不足
+  const lackFoodsLog = lackFoodsExecute(fromIsland, nextTurn);
+  if (lackFoodsLog !== undefined) logArray.push(...lackFoodsLog);
+  // 津波
+  const tsunamiLog = tsunamiExecute(fromIsland, eventRate, nextTurn);
+  if (tsunamiLog !== undefined) logArray.push(...tsunamiLog);
+  // モンスター出現
+  const popMonsterLog = popMonsterExecute(fromIsland, eventRate, nextTurn);
+  if (popMonsterLog !== undefined) logArray.push(...popMonsterLog);
+  // 地盤沈下
+  const landSubsidenceLog = landSubsidenceExecute(fromIsland, eventRate, nextTurn);
+  if (landSubsidenceLog !== undefined) logArray.push(...landSubsidenceLog);
+  // モノリス落下
+  const monumentAttackLog = monumentAttackExecute(fromIsland, nextTurn);
+  if (monumentAttackLog !== undefined) logArray.push(...monumentAttackLog);
+  // 隕石落下
+  const meteoriteLog = meteoriteExecute(fromIsland, eventRate, nextTurn);
+  if (meteoriteLog !== undefined) logArray.push(...meteoriteLog);
+  // 火山噴火
+  const eruptionLog = eruptionExecute(fromIsland, eventRate, nextTurn);
+  if (eruptionLog !== undefined) logArray.push(...eruptionLog);
+}
+
+function calcPhase(fromIsland: islandSchemaType) {
+  fromIsland.area = countArea(fromIsland.island_info);
+  fromIsland.factory = calcAllTypeNum(fromIsland.island_info, 'factory');
+  fromIsland.mining = calcAllTypeNum(fromIsland.island_info, 'mining');
+  fromIsland.farm = calcAllTypeNum(fromIsland.island_info, 'farm');
+  fromIsland.population = calcAllTypeNum(fromIsland.island_info, 'people');
+
+  // 食料と資金の処理
+  if (fromIsland.food > META_DATA.MAX_FOOD) {
+    fromIsland.money += Math.trunc((fromIsland.food - META_DATA.MAX_FOOD) / 1000);
+    fromIsland.food = Math.min(fromIsland.money, META_DATA.MAX_FOOD);
+  }
+  fromIsland.money = Math.min(fromIsland.money, META_DATA.MAX_MONEY);
+}
+
 function turnProceed(recursiveCount = 0) {
   using db = dbConn('./src/db/data/main.db');
   const turnInfo = getTurnInfo(db);
@@ -165,16 +240,28 @@ function turnProceed(recursiveCount = 0) {
   for (let i = 0; i < randomArray.length; i++) {
     const island = islandList[randomArray[i]];
     const eventRate = getEventRate(db, island.uuid);
+    // 収入/食料消費フェーズ
+    incomeAndEatenPhase(island);
     // 計画実行フェーズ
     planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
     // マップイベントフェーズ
     mapEventPhase(turnInfo.turn, island, eventRate, logArray);
+    // 島全体イベントフェーズ
+    wideIslandEventPhase(turnInfo.turn, island, eventRate, logArray);
+    // 計算フェーズ
+    calcPhase(island);
   }
   updateIslands(db, islandList);
   insertLogs(db, logArray);
   updateTurnProgressing(db, false);
 }
+// メイン処理
+const startUsage = memoryUsage();
 const startTime = performance.now(); // 開始時間
 turnProceed();
 const endTime = performance.now(); // 終了時間
+console.log('=== Execute Time (msec) ===');
 console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
+console.log('=== Memory Usage ===');
+console.log(`start ${startUsage}`);
+console.log(`end   ${memoryUsage()}`);

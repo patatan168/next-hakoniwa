@@ -20,6 +20,7 @@ import * as mapOther from './mapCategory/mapOther';
 
 export type landType =
   | 'sea'
+  | 'shallows'
   | 'plains'
   | 'mountain'
   | 'monument'
@@ -54,6 +55,8 @@ export type mapType = {
   readonly unitType?: 'before' | 'after';
   /** レベル表示 */
   readonly showLevel?: boolean;
+  /** 最小出現人口数 (人) */
+  readonly minPopPopulation?: number;
   /** Exp (怪獣用) */
   readonly exp?: number;
   /** 報奨金 (怪獣用) */
@@ -195,7 +198,7 @@ export function fireDisaster(
       // 火事のログを作成
       const log = logFire(fromIsland, x, y);
       // 火災で焼失
-      changeMapData(fromIsland, x, y, 'ruins', { type: 'ins', value: 0 });
+      changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
       return {
         from_uuid: fromIsland.uuid,
         to_uuid: fromIsland.uuid,
@@ -281,7 +284,7 @@ export function monsterMove(
           value: mapInfo.landValue,
         });
         // 元のマップを荒地に変更
-        changeMapData(fromIsland, x, y, 'ruins', { type: 'ins', value: 0 });
+        changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
         return [
           {
             from_uuid: fromIsland.uuid,

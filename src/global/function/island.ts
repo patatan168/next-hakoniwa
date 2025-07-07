@@ -7,7 +7,7 @@ import {
   logSubmersion,
 } from '../define/logType';
 import { sea } from '../define/mapCategory/mapLand';
-import { getMapDefine } from '../define/mapType';
+import { getMapDefine, landType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 
 /**
@@ -72,6 +72,33 @@ export const countMapAround = (
   around.forEach(({ x, y }) => {
     const islandInfo = getIslandInfo(data, x, y, true);
     if (countType === islandInfo.type) count++;
+  });
+
+  return count;
+};
+
+/**
+ * 周囲の基本地形をカウントする
+ * @param data マップデーター
+ * @param countType カウントしたいマップタイプ
+ * @param baseX 中心座標(X)
+ * @param baseY 中心座標(Y)
+ * @param hex 周囲のマス
+ * @returns カウント数
+ */
+export const countBaseLandAround = (
+  data: islandInfoData,
+  baseLand: landType,
+  baseX: number,
+  baseY: number,
+  hex: number
+) => {
+  let count = 0;
+  const around = getMapAround(baseX, baseY, hex);
+  around.forEach(({ x, y }) => {
+    const islandInfo = getIslandInfo(data, x, y, true);
+    const { baseLand: islandBaseLand } = getMapDefine(islandInfo.type);
+    if (baseLand === islandBaseLand) count++;
   });
 
   return count;

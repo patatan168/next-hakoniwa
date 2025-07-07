@@ -66,7 +66,7 @@ export const sea: mapType = {
 };
 export const shallows: mapType = {
   type: 'shallows',
-  baseLand: 'sea',
+  baseLand: 'shallows',
   name: '浅瀬',
   imgPath: '/img/land/shallows.gif',
   defVal: 0,

@@ -11,18 +11,30 @@ const META_DATA = Object.freeze({
   UNIT_AREA: '万坪',
   /** 初期資金 (億円) */
   INIT_MONEY: 1000,
+  /** 最大資金 (億円) */
+  MAX_MONEY: 9999,
   /** 初期食料 (トン) */
   INIT_FOOD: 1000,
+  /** 最大食料 (トン) */
+  MAX_FOOD: 999_900,
+  /** 食料不足で施設が破壊される確率 (%) */
+  LACK_FOOD_DESTROY_RATE: 25,
+  /** 食料消費量 (トン/人) */
+  EATEN_FOOD_PER_PEOPLE: 0.2,
   /** 木の売値 (X億円/100本) */
   FOREST_VALUE: 5,
   /** 地震の確率 (%) */
   EARTHQUAKE_RATE: 0.5,
+  /** 地震で全壊する確率 (%) */
+  EARTHQUAKE_DESTROY_RATE: 25,
   /** 津波の確率 (%) */
   TSUNAMI_RATE: 1.5,
   /** 台風の確率 (%) */
   TYPHOON_RATE: 2,
   /** 隕石の確率 (%) */
   METEORITE_RATE: 1.5,
+  /** 隕石の連続発生確率 (%) */
+  CONTINUOUS_METEORITE_RATE: 50,
   /** 巨大隕石の確率 (%) */
   HUGE_METEORITE_RATE: 0.5,
   /** 噴火の確率 (%) */

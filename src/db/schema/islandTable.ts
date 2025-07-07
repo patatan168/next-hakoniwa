@@ -1,5 +1,6 @@
 import { DbSchema } from '@/global/function/db';
 import { getPublicIslandInfo } from '@/global/function/island';
+import { userSchemaType } from './userTable';
 
 export const islandSchema: DbSchema = [
   {
@@ -74,6 +75,15 @@ export type islandSchemaType = {
   island_info: islandInfoData;
 };
 
+export interface islandInfoTurnProgress
+  extends islandSchemaType,
+    Pick<userSchemaType, 'island_name'> {
+  /** 人工怪獣出現数 */
+  artificialMonster: number;
+  /** モノリス落下数 */
+  fallMonument: number;
+}
+
 /**
  * JSON ColumをObjectに変換
  * @param island islandテーブルのデーター
@@ -88,6 +98,20 @@ export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPub
       ? getPublicIslandInfo(JSON.parse(island.island_info))
       : JSON.parse(island.island_info);
   }
+};
+
+/**
+ * JSON ColumをObjectに変換 (Turn進行用のkeyを初期化)
+ * @param island islandテーブルのデーター
+ * @param isPublic 公開データか
+ */
+export const parseJsonIslandDataTurnProgress = (
+  island: islandInfoTurnProgress,
+  isPublic = true
+) => {
+  parseJsonIslandData(island, isPublic);
+  island.artificialMonster = 0;
+  island.fallMonument = 0;
 };
 
 export type islandInfoData = Array<islandInfo>;

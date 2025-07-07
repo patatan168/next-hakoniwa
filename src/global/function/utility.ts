@@ -82,3 +82,12 @@ export const valueOrSafeLimit = (value: number | null | undefined, mode: 'max' |
   }
   return value;
 };
+
+export const memoryUsage = () => {
+  const used = process.memoryUsage();
+  const messages = [];
+  for (const [key, value] of Object.entries(used)) {
+    messages.push(`${key}: ${Math.round((value / 1024 / 1024) * 100) / 100} MB`);
+  }
+  return messages.join(', ');
+};
