@@ -83,6 +83,10 @@ export const valueOrSafeLimit = (value: number | null | undefined, mode: 'max' |
   return value;
 };
 
+/**
+ * メモリー使用量の取得
+ * @returns メモリー使用量の文字列(process.memoryUsage)
+ */
 export const memoryUsage = () => {
   const used = process.memoryUsage();
   const messages = [];
