@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import TabContents, { TabType } from '@/global/component/TabContents';
-import { fn } from '@storybook/test';
+import { fn } from 'storybook/test';
 import { omit } from 'es-toolkit';
 import { useState } from 'react';
 

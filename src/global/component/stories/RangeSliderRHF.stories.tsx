@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import { RangeSliderRHF } from '@/global/component/RangeSliderRHF';
 import { useForm } from 'react-hook-form';

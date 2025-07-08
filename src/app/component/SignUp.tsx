@@ -31,7 +31,7 @@ function SignUpForm() {
     formState: { isValid },
   } = useForm<userInfo>({
     defaultValues,
-    resolver: zodResolver(userInfoSchema, { async: true }, { mode: 'async' }),
+    resolver: zodResolver(userInfoSchema),
   });
   const body = JSON.stringify(watch());
   const { trigger } = useFetchTrig('/api/auth/user', {

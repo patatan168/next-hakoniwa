@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';

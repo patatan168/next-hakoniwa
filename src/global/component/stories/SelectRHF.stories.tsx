@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import { SelectRHF } from '@/global/component/SelectRHF';
 import { getPlanSelect } from '@/global/define/planType';
