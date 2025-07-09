@@ -51,3 +51,4 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | winston                   | 3.XX.X  | Copyright (c) 2010 Charlie Robbins                   |
 | winston-daily-rotate-file | 5.X.X   | Copyright (c) 2015-2024 winstonjs                    |
 | awesome-debounce-promise  | 2.1.0   | Copyright (c) Sébastien Lorber (slorber)             |
+| argon2                    | 0.43.0  | Copyright (c) 2015 Ranieri Althoff                   |

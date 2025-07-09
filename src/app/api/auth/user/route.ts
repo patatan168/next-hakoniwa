@@ -1,5 +1,11 @@
 import { asyncRequestValid } from '@/global/function/api';
-import { createJwtToken, createUuid25, setAuthCookie, sha256Gen } from '@/global/function/auth';
+import {
+  argon2Gen,
+  createJwtToken,
+  createUuid25,
+  setAuthCookie,
+  sha256Gen,
+} from '@/global/function/auth';
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
@@ -26,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { id, password, islandName } = valid.data;
     const uuid = createUuid25();
     const hashId = await sha256Gen(id);
-    const hashPass = await sha256Gen(password);
+    const hashPass = await argon2Gen(password);
 
     const postUser = db.client.prepare(
       `INSERT INTO user(uuid, id, password, island_name) values(?, ?, ?, ?)`
@@ -47,7 +53,7 @@ export async function DELETE(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   const { id, password } = await request.json();
   const hashId = await sha256Gen(id);
-  const hashPass = await sha256Gen(password);
+  const hashPass = await argon2Gen(password);
 
   const deleteUser = db.client.prepare(`DELETE FROM user WHERE id=? AND password=?`);
   deleteUser.run(hashId, hashPass);

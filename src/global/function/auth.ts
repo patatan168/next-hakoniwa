@@ -2,6 +2,7 @@ import 'server-only';
 
 import { sessionSchemaType } from '@/db/schema/sessionTable';
 import { default as META, default as META_DATA } from '@/global/define/metadata';
+import * as argon2 from 'argon2';
 import sqlite from 'better-sqlite3';
 import { getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
@@ -20,6 +21,15 @@ export const createUuid25 = () => {
   const uuid25 = Uuid25.fromBytes(uuidv7obj().bytes);
   return uuid25.value;
 };
+
+/**
+ * Argon2のハッシュ値を返す
+ * @param text ハッシュ化するテキスト
+ * @returns ハッシュ化されたテキスト
+ */
+export async function argon2Gen(text: string) {
+  return await argon2.hash(text);
+}
 
 /**
  * SHA-256のハッシュ値を返す

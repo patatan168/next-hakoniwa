@@ -26,6 +26,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.1.1",
     "@swc/helpers": "^0.5.17",
+    "argon2": "^0.43.0",
     "awesome-debounce-promise": "^2.1.0",
     "better-sqlite3": "^12.2.0",
     "cookies-next": "^6.0.0",
