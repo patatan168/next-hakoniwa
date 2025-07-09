@@ -1,12 +1,11 @@
 import { asyncRequestValid } from '@/global/function/api';
-import { createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth';
+import { createJwtToken, createUuid25, setAuthCookie, sha256Gen } from '@/global/function/auth';
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import { userInfoSchema } from '@/global/valid/server/userInfo';
 import sqlite from 'better-sqlite3';
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'node:crypto';
 
 export async function OPTIONS() {
   return NextResponse.json({});
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   if (valid.data !== null) {
     const { id, password, islandName } = valid.data;
-    const uuid = crypto.randomUUID();
+    const uuid = createUuid25();
     const hashId = await sha256Gen(id);
     const hashPass = await sha256Gen(password);
 

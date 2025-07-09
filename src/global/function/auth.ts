@@ -7,7 +7,19 @@ import { getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto, { generateKeyPairSync } from 'node:crypto';
+import { Uuid25 } from 'uuid25';
+import { uuidv7obj } from 'uuidv7';
 import { secureRandom } from './utility';
+
+/**
+ * UUIDを作成
+ * @description UUIDv7からBase36に可逆エンコードしたUUID
+ * @returns
+ */
+export const createUuid25 = () => {
+  const uuid25 = Uuid25.fromBytes(uuidv7obj().bytes);
+  return uuid25.value;
+};
 
 /**
  * SHA-256のハッシュ値を返す
