@@ -2,10 +2,10 @@ import 'server-only';
 
 import { existsDbDate } from '@/global/function/db';
 import { z } from 'zod';
-import { baseUserInfoSchema } from '../userInfo';
+import { baseSignUpUserInfoSchema } from '../userInfo';
 
 export const userInfoSchema = z.intersection(
-  baseUserInfoSchema,
+  baseSignUpUserInfoSchema,
   z.object({
     id: z.coerce.string().refine(
       (inputData) => {
