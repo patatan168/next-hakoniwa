@@ -32,7 +32,17 @@ const Spacer = memo(
           style={{ width: (mapWidth * cols) / 2, height: (mapHeight * rows) / 2 }}
           className={`col-span-${cols} row-span-${rows} relative`}
         >
-          <Image src={'/img/land/sea.gif'} alt={'海'} layout="fill" objectFit="cover" priority />
+          <Image
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+            src={'/img/land/sea.gif'}
+            alt={'海'}
+            sizes={`${mapWidth}px`}
+            fill
+            priority
+          />
           {num !== undefined && (
             <p
               className="map-overlay"
@@ -189,7 +199,7 @@ export default memo(
                   padding: 0,
                   boxSizing: 'border-box',
                 }}
-                className="col-span-2 row-span-2"
+                className="relative col-span-2 row-span-2"
               >
                 <Tooltip
                   position={tooltipPosition}
@@ -203,13 +213,13 @@ export default memo(
                     />
                   }
                 >
-                  <div style={{ width: mapWidth, height: mapHeight }}>
+                  <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
                     <Image
                       className="hover:brightness-150 hover:contrast-115"
                       src={src}
                       alt={alt}
-                      layout="fill"
-                      objectFit="fill"
+                      sizes={`${mapWidth}px`}
+                      fill
                       loading="lazy"
                     />
                   </div>
