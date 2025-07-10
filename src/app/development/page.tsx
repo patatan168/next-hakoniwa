@@ -19,9 +19,9 @@ export default function IslandList() {
         <Card
           style={{
             display: 'flex',
-            flexDirection: 'column', // 子要素を縦並びに
-            justifyContent: 'center', // 縦方向に中央寄せ
-            alignItems: 'center', // 横方向にも中央寄せ（必要に応じて）
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
             width: 'fit-content',
           }}
         >
