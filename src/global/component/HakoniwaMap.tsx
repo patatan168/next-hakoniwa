@@ -136,9 +136,11 @@ export default memo(
     const ulCallback = (node: HTMLUListElement) => {
       if (node !== null) {
         const { width, height } = node.getBoundingClientRect();
-        setMapWidth(Math.ceil(width / (META.MAP_SIZE + 1)));
-        setMapHeight(Math.ceil(height / (META.MAP_SIZE + 1)));
-        console.warn(mapHeight);
+        const rect = Math.min(
+          (Math.ceil(width / (META.MAP_SIZE + 1)), Math.ceil(height / (META.MAP_SIZE + 1)))
+        );
+        setMapWidth(rect);
+        setMapHeight(rect);
       }
     };
 
