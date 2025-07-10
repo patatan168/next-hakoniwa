@@ -117,10 +117,7 @@ const ulStyle = (propsStyle: CSSProperties | undefined) => {
     gridTemplateRows: `repeat(${2 * (META.MAP_SIZE + 1)}, min-content)`,
     gap: 0,
   };
-  const uiStyle =
-    propsStyle !== undefined && propsStyle.width !== undefined
-      ? propsStyle
-      : { ...propsStyle, ...baseStyle };
+  const uiStyle = { ...propsStyle, ...baseStyle };
 
   return uiStyle;
 };
@@ -199,7 +196,7 @@ export default memo(
                   padding: 0,
                   boxSizing: 'border-box',
                 }}
-                className="relative col-span-2 row-span-2"
+                className="col-span-2 row-span-2"
               >
                 <Tooltip
                   position={tooltipPosition}
