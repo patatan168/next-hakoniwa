@@ -1,3 +1,4 @@
+import META_DATA from '@/global/define/metadata';
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import HakoniwaMap from '../HakoniwaMap';
 
@@ -234,12 +235,26 @@ const meta = {
   },
   tags: ['autodocs'],
   args: {
+    style: { height: `${32 * (META_DATA.MAP_SIZE + 1)}px` },
     isLoading: false,
     islandName: 'hoge',
     data: dummyData,
-    mapWidth: undefined,
   },
   argTypes: {
+    style: {
+      description: 'スタイル',
+      control: 'object',
+      table: {
+        type: { summary: 'CSSProperties' },
+      },
+    },
+    className: {
+      description: 'className',
+      control: 'text',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
     isLoading: {
       description: 'ロード中か',
       control: 'boolean',
@@ -261,13 +276,6 @@ const meta = {
       type: { name: 'other', value: '', required: true },
       table: {
         type: { summary: 'undefined|Array<object>' },
-      },
-    },
-    mapWidth: {
-      description: 'マップの横幅',
-      control: 'number',
-      table: {
-        type: { summary: 'undefined|number' },
       },
     },
   },
