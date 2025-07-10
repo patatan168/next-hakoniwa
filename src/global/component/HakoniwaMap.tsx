@@ -148,7 +148,7 @@ export default memo(
       if (node !== null && !measured) {
         const { width, height } = node.getBoundingClientRect();
         setMapWidth(Math.ceil(width / (META.MAP_SIZE + 1)));
-        setMapHeight(Math.ceil(height / (META.MAP_SIZE + 1)));
+        setMapHeight(Math.ceil(height / (META.MAP_SIZE + 0.5)));
         // NOTE: 再計算を防ぐ
         setMeasured(true);
       }
