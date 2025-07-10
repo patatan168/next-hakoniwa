@@ -235,7 +235,7 @@ const meta = {
   },
   tags: ['autodocs'],
   args: {
-    style: { height: `${32 * (META_DATA.MAP_SIZE + 1)}px` },
+    style: { height: `${32 * (META_DATA.MAP_SIZE + 0.5)}px` },
     isLoading: false,
     islandName: 'hoge',
     data: dummyData,
