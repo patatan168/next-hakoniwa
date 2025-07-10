@@ -140,17 +140,17 @@ export default memo(
   function HakoniwaMap({ style, className, isLoading, islandName, data }: HakoniwaMapProps) {
     /* 座標表示用のデータを用意する[0,..,X] */
     const coordinate = Array.from({ length: META.MAP_SIZE }, (_, i) => i);
+    const [measured, setMeasured] = useState(false);
     const [mapWidth, setMapWidth] = useState<number>(baseMapPixel);
     const [mapHeight, setMapHeight] = useState<number>(baseMapPixel);
 
     const ulCallback = (node: HTMLUListElement) => {
-      if (node !== null) {
+      if (node !== null && !measured) {
         const { width, height } = node.getBoundingClientRect();
-        const rect = Math.min(
-          (Math.ceil(width / (META.MAP_SIZE + 1)), Math.ceil(height / (META.MAP_SIZE + 1)))
-        );
-        setMapWidth(rect);
-        setMapHeight(rect);
+        setMapWidth(Math.ceil(width / (META.MAP_SIZE + 1)));
+        setMapHeight(Math.ceil(height / (META.MAP_SIZE + 1)));
+        // NOTE: 再計算を防ぐ
+        setMeasured(true);
       }
     };
 
