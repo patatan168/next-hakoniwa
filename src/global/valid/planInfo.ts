@@ -2,8 +2,8 @@ import { z } from 'zod';
 import META_DATA from '../define/metadata';
 
 export const planInfoZodValid = z.object({
-  fromUuid: z.string().uuid({ message: '不正なUUIDです' }),
-  toUuid: z.string().uuid({ message: '不正なUUIDです' }),
+  fromUuid: z.string(),
+  toUuid: z.string(),
   planNo: z.coerce.number(),
   times: z.coerce
     .number()
