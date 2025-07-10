@@ -1,8 +1,10 @@
 'use client';
 import { islandSchemaType } from '@/db/schema/islandTable';
 import Button from '@/global/component/Button';
+import { Card } from '@/global/component/Card';
 import { RangeSliderRHF } from '@/global/component/RangeSliderRHF';
 import { SelectRHF } from '@/global/component/SelectRHF';
+import META_DATA from '@/global/define/metadata';
 import { getPlanSelect } from '@/global/define/planType';
 import { useFetch, useFetchTrig } from '@/global/function/fetch';
 import { planInfoZod, planInfoZodValid } from '@/global/valid/planInfo';
@@ -23,7 +25,7 @@ const defaultValues = {
   toUuid: '',
   x: 0,
   y: 0,
-  times: 0,
+  times: 1,
 };
 
 /**
@@ -84,28 +86,41 @@ export default function SelectPlan() {
 
   return (
     <>
-      <ul>
-        <li>
-          <SelectRHF name="plan" control={control} id="plan" options={getPlanSelect()} />
-        </li>
-        <li>
-          <SelectRHF
-            key={defaultValues.toUuid}
-            name="toUuid"
-            control={control}
-            id="toUuid"
-            options={islandList}
-          />
-        </li>
-        <li>
-          <RangeSliderRHF id="times" name="times" max={99} control={control} />
-        </li>
-        <li>
-          <Button type="submit" onClick={() => trigger()}>
-            計画送信
-          </Button>
-        </li>
-      </ul>
+      <Card>
+        <ul className="p-3">
+          <li>
+            <label htmlFor="plan">計画</label>
+            <SelectRHF name="plan" control={control} id="plan" options={getPlanSelect()} />
+          </li>
+          <li>
+            <label htmlFor="x">X座標</label>
+            <RangeSliderRHF id="x" name="x" max={META_DATA.MAP_SIZE - 1} control={control} />
+          </li>
+          <li>
+            <label htmlFor="y">Y座標</label>
+            <RangeSliderRHF id="y" name="y" max={META_DATA.MAP_SIZE - 1} control={control} />
+          </li>
+          <li>
+            <label htmlFor="toUuid">目標島</label>
+            <SelectRHF
+              key={defaultValues.toUuid}
+              name="toUuid"
+              control={control}
+              id="toUuid"
+              options={islandList}
+            />
+          </li>
+          <li>
+            <label htmlFor="times">計画数</label>
+            <RangeSliderRHF id="times" name="times" min={1} max={99} control={control} />
+          </li>
+          <li>
+            <Button type="submit" onClick={() => trigger()}>
+              計画送信
+            </Button>
+          </li>
+        </ul>
+      </Card>
     </>
   );
 }
