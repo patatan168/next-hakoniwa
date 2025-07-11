@@ -5,7 +5,7 @@ import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useFetch, useFetchTrig } from '@/global/function/fetch';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -32,6 +32,7 @@ function SignInForm() {
     defaultValues,
     resolver: zodResolver(signInUserInfoSchema),
   });
+  const router = useRouter();
   const body = JSON.stringify(watch());
   const { trigger, data } = useFetchTrig('/api/auth/user/sign-in', {
     ...POST_HEADER,
@@ -50,7 +51,7 @@ function SignInForm() {
   useEffect(() => {
     if (data !== undefined) {
       if (typeof data.redirectUrl === 'string') {
-        redirect(data.redirectUrl);
+        router.push(data.redirectUrl);
       }
     }
   }, [data]);
@@ -92,8 +93,9 @@ function SignInForm() {
 export default function SignIn() {
   const [open, setOpen] = useState(false);
   const { data } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
+  const router = useRouter();
   const openToggle = (value: boolean) => {
-    if (data?.result) redirect('/development');
+    if (data?.result) router.push('/development');
     setOpen(value);
   };
   return (
