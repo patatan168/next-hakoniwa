@@ -2,7 +2,7 @@
 import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
-import { useFetchTrig } from '@/global/function/fetch';
+import { useFetch, useFetchTrig } from '@/global/function/fetch';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { redirect } from 'next/navigation';
@@ -91,7 +91,9 @@ function SignInForm() {
 
 export default function SignIn() {
   const [open, setOpen] = useState(false);
+  const { data } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
   const openToggle = (value: boolean) => {
+    if (data?.result) redirect('/development');
     setOpen(value);
   };
   return (
