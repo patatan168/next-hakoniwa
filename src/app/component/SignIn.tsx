@@ -49,11 +49,7 @@ function SignInForm() {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    if (data !== undefined) {
-      if (typeof data.redirectUrl === 'string') {
-        router.push(data.redirectUrl);
-      }
-    }
+    if (data?.result) router.push('/development');
   }, [data]);
 
   return (

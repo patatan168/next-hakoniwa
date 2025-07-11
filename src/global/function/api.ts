@@ -36,12 +36,3 @@ export const asyncRequestValid = async <T extends z.ZodTypeAny>(
     }
   }
 };
-
-/**
- * リダイレクト先を示すレスポンス
- * @param path URLのパス
- * @returns レスポンス
- */
-export const redirectPathResponse = (path: string) => {
-  return NextResponse.json({ redirectUrl: path });
-};

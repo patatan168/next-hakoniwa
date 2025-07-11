@@ -1,5 +1,5 @@
 import { userSchemaType } from '@/db/schema/userTable';
-import { asyncRequestValid, redirectPathResponse } from '@/global/function/api';
+import { asyncRequestValid } from '@/global/function/api';
 import { argon2Verify, createJwtToken, setAuthCookie, sha256Gen } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
@@ -27,17 +27,18 @@ export async function POST(request: NextRequest) {
       const verify = await argon2Verify(user.password, password);
 
       if (verify) {
-        await setAuthCookie(createJwtToken(db.client, user.uuid), valid.response, request);
+        const responseOK = NextResponse.json({ result: true });
+        await setAuthCookie(createJwtToken(db.client, user.uuid), responseOK, request);
         accessLogger(request).info(`Sign In uuid=${user.uuid}`);
 
-        return redirectPathResponse('/development');
+        return responseOK;
       } else {
         accessLogger(request).warn(`Unauthorized Sign In`);
-        return new Response('認証エラー', { status: 401 });
+        return NextResponse.json({ result: false, error: 'Unauthorized' }, { status: 401 });
       }
     } else {
       accessLogger(request).warn(`Unauthorized Sign In`);
-      return new Response('認証エラー', { status: 401 });
+      return NextResponse.json({ result: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
   return valid.response;
