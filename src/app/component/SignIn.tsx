@@ -91,7 +91,7 @@ export default function SignIn() {
   const { data } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    if (data?.result) router.push('/development');
+    if (data?.result) return router.push('/development');
     setOpen(value);
   };
   return (
