@@ -2,7 +2,12 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  const res = await fetch(`${request.nextUrl.origin}/api/auth/session`, { method: 'GET' });
+  const cookie = request.headers.get('cookie') ?? '';
+  const res = await fetch(`${request.nextUrl.origin}/api/auth/session`, {
+    headers: { cookie },
+    method: 'GET',
+  });
+
   if (res.ok) {
     return NextResponse.next();
   } else {
