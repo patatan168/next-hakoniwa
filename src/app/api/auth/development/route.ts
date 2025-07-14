@@ -36,6 +36,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(islandData);
   } else {
     accessLogger(request).warn(`Unauthorized Development`);
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json(
+      { error: '島の取得に失敗しました。再度お試しください。' },
+      { status: 401 }
+    );
   }
 }

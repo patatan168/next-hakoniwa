@@ -34,7 +34,7 @@ function SignInForm() {
   });
   const router = useRouter();
   const body = JSON.stringify(watch());
-  const { trigger, data } = useFetchTrig('/api/auth/user/sign-in', {
+  const { trigger, data, error } = useFetchTrig('/api/auth/user/sign-in', {
     ...POST_HEADER,
     body: body,
   });
@@ -49,8 +49,8 @@ function SignInForm() {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    if (data?.result) router.push('/development');
-  }, [data]);
+    if (data && !error) router.push('/development');
+  }, [data, error]);
 
   return (
     <>
@@ -88,10 +88,10 @@ function SignInForm() {
 
 export default function SignIn() {
   const [open, setOpen] = useState(false);
-  const { data } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
+  const { data, error } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    if (data?.result) return router.push('/development');
+    if (data && !error) return router.push('/development');
     setOpen(value);
   };
   return (

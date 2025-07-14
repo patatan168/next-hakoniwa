@@ -34,11 +34,17 @@ export async function POST(request: NextRequest) {
         return responseOK;
       } else {
         accessLogger(request).warn(`Unauthorized Sign In`);
-        return NextResponse.json({ result: false, error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json(
+          { error: 'ログインに失敗しました。IDとパスワードに誤りが無いか確認してください。' },
+          { status: 401 }
+        );
       }
     } else {
       accessLogger(request).warn(`Unauthorized Sign In`);
-      return NextResponse.json({ result: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'ログインに失敗しました。IDとパスワードに誤りが無いか確認してください。' },
+        { status: 401 }
+      );
     }
   }
   return valid.response;

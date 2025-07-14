@@ -17,21 +17,27 @@ export const asyncRequestValid = async <T extends z.ZodTypeAny>(
   try {
     const requestBody = await request.json();
     const data = await zodSchema.parseAsync(requestBody);
-    const response = new NextResponse('Success');
+    const response = NextResponse.json({ message: 'OK' });
     return { response, data };
   } catch (e) {
     if (e instanceof z.ZodError) {
       const errors = e.errors.map((error) => error.message).join(', ');
       accessLogger(request).error(`Valid Error: [${errors}]`);
-      const response = new NextResponse('Error', {
-        status: 400,
-      });
+      const response = NextResponse.json(
+        { error: 'Invalid Input' },
+        {
+          status: 400,
+        }
+      );
       return { response, data: null };
     } else {
       accessLogger(request).error(`Unknown Error: ${e}`);
-      const response = new NextResponse('Unknown Error', {
-        status: 500,
-      });
+      const response = NextResponse.json(
+        { error: 'Internal Error' },
+        {
+          status: 500,
+        }
+      );
       return { response, data: null };
     }
   }

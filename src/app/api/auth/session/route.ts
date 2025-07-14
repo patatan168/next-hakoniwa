@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
   const response = new NextResponse();
   const uuid = await validAuthCookie(db.client, response, request);
   if (uuid !== undefined) {
-    return NextResponse.json({ result: true });
+    return NextResponse.json({ message: 'OK' });
   } else {
-    return NextResponse.json({ result: false }, { status: 401 });
+    return NextResponse.json({ error: 'セッションが切断されました。' }, { status: 401 });
   }
 }

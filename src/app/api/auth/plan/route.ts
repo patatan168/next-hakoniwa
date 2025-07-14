@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
     return response;
   } else {
     accessLogger(request).warn('Unauthorized Plan');
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json(
+      { error: '計画の送信が失敗しました。再度お試しください。' },
+      { status: 401 }
+    );
   }
 }
