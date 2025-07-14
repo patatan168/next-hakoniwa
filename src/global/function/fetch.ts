@@ -34,12 +34,13 @@ export const fetcher = async <T = any>(...args: [input: RequestInfo | URL, init?
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useFetch = <T = any>(...args: [input: RequestInfo | URL, init?: RequestInit]) => {
   const [url, options] = args;
-  return useSWR([url, options], ([url, options]) => fetcher<T>(url, options));
+  return useSWR<T, ApiError>([url, options], () => fetcher<T>(url, options));
 };
 
-export const useFetchTrig = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const useFetchTrig = <T = any>(
   ...args: [input: RequestInfo | URL, init?: RequestInit]
 ): SWRMutationResponse => {
   const [url, options] = args;
-  return useSWRMutation([url, options], ([url, options]) => fetcher(url, options));
+  return useSWRMutation<T, ApiError>([url, options], () => fetcher<T>(url, options));
 };
