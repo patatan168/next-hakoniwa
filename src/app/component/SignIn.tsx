@@ -27,6 +27,7 @@ function SignInForm() {
     reset,
     control,
     trigger: formTrig,
+    handleSubmit,
     formState: { isValid },
   } = useForm<signInUserInfo>({
     defaultValues,
@@ -38,7 +39,7 @@ function SignInForm() {
     ...POST_HEADER,
     body: body,
   });
-  const submit = () => {
+  const onSubmit = () => {
     trigger();
     reset();
   };
@@ -53,11 +54,11 @@ function SignInForm() {
   }, [data, error]);
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <ul style={{ width: '600px', listStyleType: 'none' }}>
         <li>
-          <Button disabled={!isValid} type="submit" onClick={submit}>
-            Sign In
+          <Button className="mb-4" disabled={!isValid} type="submit">
+            島を開発する
           </Button>
         </li>
         <li>
@@ -82,7 +83,7 @@ function SignInForm() {
           />
         </li>
       </ul>
-    </>
+    </form>
   );
 }
 

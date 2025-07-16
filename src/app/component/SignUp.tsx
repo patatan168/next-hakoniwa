@@ -28,6 +28,7 @@ function SignUpForm() {
     reset,
     control,
     trigger: formTrig,
+    handleSubmit,
     formState: { isValid },
   } = useForm<userInfo>({
     defaultValues,
@@ -38,7 +39,7 @@ function SignUpForm() {
     ...POST_HEADER,
     body: body,
   });
-  const submit = () => {
+  const onSubmit = () => {
     trigger();
     reset();
   };
@@ -48,11 +49,11 @@ function SignUpForm() {
   }, [body]);
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <ul style={{ width: '600px', listStyleType: 'none' }}>
         <li>
-          <Button disabled={!isValid} type="submit" onClick={submit}>
-            Post
+          <Button className="mb-4" disabled={!isValid} type="submit">
+            新規登録
           </Button>
         </li>
         <li>
@@ -98,7 +99,7 @@ function SignUpForm() {
           />
         </li>
       </ul>
-    </>
+    </form>
   );
 }
 
