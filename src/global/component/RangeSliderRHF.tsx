@@ -9,6 +9,7 @@ import {
   FieldValues,
   UseControllerProps,
 } from 'react-hook-form';
+import { FaMinus, FaPlus } from 'react-icons/fa6';
 
 type RangeSliderRHFProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -182,6 +183,9 @@ function _RangeSliderRHF<
         formState: { defaultValues },
       }) => {
         const isError = props.disabled || (isTouched && invalid);
+        const step = props.step ? Number(props.step) : 1;
+        const plusMinusButtonStyle =
+          'inline-flex items-center justify-center rounded-full hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300';
         const [rangeWidth, setRangeWidth] = useState(0);
         const rangeCallback = (node: HTMLDivElement) => {
           if (node !== null) {
@@ -207,12 +211,21 @@ function _RangeSliderRHF<
           <ul style={UlStyle(props.style)} className={`${props.className}`}>
             <li>
               <div
-                className="grid place-items-center"
+                className="grid place-items-center gap-1"
                 style={{
-                  gridTemplateColumns: '1fr auto',
+                  gridTemplateColumns: 'auto 1fr auto auto',
                 }}
                 ref={rangeCallback}
               >
+                <button
+                  type="button"
+                  className={plusMinusButtonStyle}
+                  aria-label="Plus"
+                  disabled={Number(field.value) <= Number(min)}
+                  onClick={() => field.onChange(Math.max(Number(min), Number(field.value) - step))}
+                >
+                  <FaMinus className="text-2xl" />
+                </button>
                 <input
                   type="range"
                   className={RangeStyle(isError)}
@@ -222,9 +235,20 @@ function _RangeSliderRHF<
                   {...textFieldProps}
                   ref={field.ref}
                 />
+                <button
+                  type="button"
+                  className={plusMinusButtonStyle}
+                  aria-label="Plus"
+                  disabled={Number(field.value) >= Number(max)}
+                  onClick={() => field.onChange(Math.min(Number(max), Number(field.value) + step))}
+                >
+                  <FaPlus className="text-2xl" />
+                </button>
                 <input
                   type="number"
-                  style={{ maxWidth: InputWidth(min, max, digits) }}
+                  style={{
+                    maxWidth: InputWidth(min, max, digits),
+                  }}
                   className={InputStyle(isError)}
                   min={min}
                   max={max}

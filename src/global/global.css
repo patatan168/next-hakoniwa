@@ -83,12 +83,11 @@ body {
   appearance: none;
   cursor: pointer;
   background-color: #8dffce;
-  height: 16px;
+  height: 12px;
   width: 100%;
   border-radius: 10px;
   border: solid 2px #0fe645;
   outline: 0;
-  margin-right: 5px;
   &:focus {
     box-shadow: 0 0 3px rgb(0, 255, 8);
   }
@@ -131,12 +130,11 @@ body {
   appearance: none;
   cursor: pointer;
   background-color: #ffafaf;
-  height: 16px;
+  height: 12px;
   width: 100%;
   border-radius: 10px;
   border: solid 2px #ff2a2a;
   outline: 0;
-  margin-right: 5px;
   &:disabled {
     background-color: #cacaca;
     cursor: not-allowed;
