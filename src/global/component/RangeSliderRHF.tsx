@@ -211,7 +211,7 @@ function _RangeSliderRHF<
           <ul style={UlStyle(props.style)} className={`${props.className}`}>
             <li>
               <div
-                className="grid place-items-center gap-1"
+                className="grid place-items-center gap-1.5"
                 style={{
                   gridTemplateColumns: 'auto 1fr auto auto',
                 }}
@@ -224,7 +224,7 @@ function _RangeSliderRHF<
                   disabled={Number(field.value) <= Number(min)}
                   onClick={() => field.onChange(Math.max(Number(min), Number(field.value) - step))}
                 >
-                  <FaMinus className="text-2xl" />
+                  <FaMinus className="text-xl" />
                 </button>
                 <input
                   type="range"
@@ -242,7 +242,7 @@ function _RangeSliderRHF<
                   disabled={Number(field.value) >= Number(max)}
                   onClick={() => field.onChange(Math.min(Number(max), Number(field.value) + step))}
                 >
-                  <FaPlus className="text-2xl" />
+                  <FaPlus className="text-xl" />
                 </button>
                 <input
                   type="number"
