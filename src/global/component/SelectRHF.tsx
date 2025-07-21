@@ -183,6 +183,7 @@ function _SelectRHF<
     'style',
     'shouldUnregister',
     'helperText',
+    'isBottomSpace',
   ]);
   return (
     <Controller

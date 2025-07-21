@@ -101,6 +101,7 @@ function _TextFieldRHF<
     'style',
     'shouldUnregister',
     'helperText',
+    'isBottomSpace',
   ]);
   return (
     <Controller

@@ -161,6 +161,7 @@ const getTextFieldProps = <
     'style',
     'shouldUnregister',
     'helperText',
+    'isBottomSpace',
   ]);
 
 function _RangeSliderRHF<
