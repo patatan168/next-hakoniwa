@@ -23,7 +23,7 @@ const defaultValues: signInUserInfo = {
 
 function SignInForm() {
   const {
-    watch,
+    subscribe,
     reset,
     control,
     trigger: formTrig,
@@ -34,7 +34,7 @@ function SignInForm() {
     resolver: zodResolver(signInUserInfoSchema),
   });
   const router = useRouter();
-  const body = JSON.stringify(watch());
+  const [body, setBody] = useState(JSON.stringify(defaultValues));
   const { trigger, data, error } = useFetchTrig('/api/auth/user/sign-in', {
     ...POST_HEADER,
     body: body,
@@ -43,6 +43,17 @@ function SignInForm() {
     trigger();
     reset();
   };
+
+  useEffect(() => {
+    const unsubscribe = subscribe({
+      formState: { values: true },
+      callback: ({ values }) => {
+        setBody(JSON.stringify(values));
+      },
+    });
+
+    return () => unsubscribe();
+  }, [subscribe]);
 
   useEffect(() => {
     formTrig();
