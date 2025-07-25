@@ -178,6 +178,7 @@ function _SelectRHF<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(props: SelectRHFProps<TFieldValues, TName>) {
   const selectFieldProps = omit(props, [
+    'className',
     'control',
     'rules',
     'style',
