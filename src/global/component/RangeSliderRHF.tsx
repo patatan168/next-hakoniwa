@@ -1,5 +1,14 @@
 import { isEqual, omit, pick } from 'es-toolkit';
-import { CSSProperties, InputHTMLAttributes, memo, useCallback, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  InputHTMLAttributes,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Controller,
   ControllerRenderProps,
@@ -58,12 +67,38 @@ const UseNormalizeValue = <
       field.onChange(Number(max));
     } else {
       // If the value is within the range, ensure it has the correct number of decimal places
-      const decimalLength = field.value.includes('.') ? field.value.split('.')[1].length : 0;
+      const decimalLength = String(field.value).includes('.')
+        ? String(field.value).split('.')[1].length
+        : 0;
       if (decimalLength > Number(digits)) {
         field.onChange(Number(field.value).toFixed(Number(digits)));
       }
     }
   }, [field, min, max, digits, name, defaultValues]);
+
+const UseEffectNormalizeType = (
+  value: string | number,
+  onChange: (val: string | number) => void,
+  defaultValue?: string | number
+) => {
+  const prevNormalizedRef = useRef<string | number>(null);
+
+  useEffect(() => {
+    const fallback = defaultValue ?? 0;
+    const rawValue = value ?? '';
+    const num = !isNaN(Number(rawValue)) ? Number(rawValue) : Number(fallback);
+    let normalized: string | number = num;
+    // NOTE: 初期値が文字列型なら変更する
+    if (typeof fallback === 'string') {
+      normalized = String(normalized);
+    }
+
+    if (prevNormalizedRef.current !== normalized) {
+      prevNormalizedRef.current = normalized;
+      onChange(normalized);
+    }
+  }, [value, defaultValue, onChange]);
+};
 
 const InputStyle = (error: boolean) =>
   useMemo(() => {
@@ -194,6 +229,8 @@ function _RangeSliderRHF<
             setRangeWidth(width);
           }
         };
+        UseEffectNormalizeType(field.value, field.onChange, props.defaultValue);
+
         const normalizeValue = UseNormalizeValue<TFieldValues, TName>(
           props.name,
           pick(field, ['value', 'onChange']),
