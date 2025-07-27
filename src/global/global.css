@@ -80,6 +80,7 @@ body {
 
 .range-slider {
   -webkit-appearance: none;
+  transition: all 200ms ease;
   appearance: none;
   cursor: pointer;
   background-color: #8dffce;
@@ -127,6 +128,7 @@ body {
 
 .range-slider-error {
   -webkit-appearance: none;
+  transition: all 200ms ease;
   appearance: none;
   cursor: pointer;
   background-color: #ffafaf;
