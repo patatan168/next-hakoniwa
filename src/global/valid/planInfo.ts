@@ -2,9 +2,9 @@ import { z } from 'zod';
 import META_DATA from '../define/metadata';
 
 export const planInfoZodValid = z.object({
-  fromUuid: z.string(),
-  toUuid: z.string(),
-  planNo: z.coerce.number(),
+  from_uuid: z.string(),
+  to_uuid: z.string(),
+  plan_no: z.coerce.number(),
   times: z.coerce
     .number()
     .int({ message: '小数回は不正です' })

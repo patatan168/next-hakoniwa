@@ -46,6 +46,8 @@ export type planType = {
   readonly planNo: number;
   /** タイプ */
   readonly type: string;
+  /** 座標に関係するコマンドか */
+  readonly coordinate: boolean;
   /** カテゴリー */
   readonly category: '開発' | '建設' | '攻撃' | '運営';
   /** 名称 */

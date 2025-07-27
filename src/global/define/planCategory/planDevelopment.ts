@@ -8,6 +8,7 @@ import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } fr
 export const leveling: planType = {
   planNo: 0,
   type: 'leveling',
+  coordinate: true,
   category: '開発',
   name: '整地',
   otherIsland: false,
@@ -73,6 +74,7 @@ export const leveling: planType = {
 export const immediateLeveling: planType = {
   planNo: 1,
   type: 'immediate_leveling',
+  coordinate: true,
   category: '開発',
   name: '地ならし',
   otherIsland: false,
@@ -120,6 +122,7 @@ export const immediateLeveling: planType = {
 export const landfill: planType = {
   planNo: 2,
   type: 'landfill',
+  coordinate: true,
   category: '開発',
   name: '埋め立て',
   otherIsland: false,
@@ -188,6 +191,7 @@ export const landfill: planType = {
 export const immediateLandfill: planType = {
   planNo: 3,
   type: 'immediate_landfill',
+  coordinate: true,
   category: '開発',
   name: '高速埋め立て',
   otherIsland: false,
@@ -252,6 +256,7 @@ export const immediateLandfill: planType = {
 export const drilling: planType = {
   planNo: 4,
   type: 'drilling',
+  coordinate: true,
   category: '開発',
   name: '掘削',
   otherIsland: false,
@@ -353,6 +358,7 @@ export const drilling: planType = {
 export const immediateDrilling: planType = {
   planNo: 5,
   type: 'immediate_drilling',
+  coordinate: true,
   category: '開発',
   name: '高速掘削',
   otherIsland: false,
@@ -454,6 +460,7 @@ export const immediateDrilling: planType = {
 export const logging: planType = {
   planNo: 6,
   type: 'logging',
+  coordinate: true,
   category: '開発',
   name: '伐採',
   otherIsland: false,
@@ -490,6 +497,7 @@ export const logging: planType = {
 export const immediateLogging: planType = {
   planNo: 7,
   type: 'immediate_logging',
+  coordinate: true,
   category: '開発',
   name: '高速伐採',
   otherIsland: false,

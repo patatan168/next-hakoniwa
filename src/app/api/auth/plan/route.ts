@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const uuid = await validAuthCookie(db.client, response, request);
   if (uuid !== undefined) {
     accessLogger(request).info(`Request Plan uuid=${uuid}`);
-    const planData = db.client.prepare('SELECT * FROM plan WHERE uuid=?').get(uuid);
+    const planData = db.client.prepare('SELECT * FROM plan WHERE from_uuid=?').all(uuid);
     return NextResponse.json(planData);
   } else {
     accessLogger(request).warn('Unauthorized Plan');
@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
     const { response, data } = await asyncRequestValid(
       request,
       planInfoZodValid.omit({
-        fromUuid: true,
+        from_uuid: true,
       })
     );
     if (data !== null) {
       const postPlan = db.client.prepare(
         `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
       );
-      postPlan.run(uuid, data.toUuid, data.planNo, data.times, data.x, data.y, data.plan);
+      postPlan.run(uuid, data.to_uuid, data.plan_no, data.times, data.x, data.y, data.plan);
     }
     return response;
   } else {

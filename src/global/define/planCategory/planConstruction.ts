@@ -6,6 +6,7 @@ import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } fr
 export const afforest: planType = {
   planNo: 100,
   type: 'afforest',
+  coordinate: true,
   category: '建設',
   name: '植林',
   otherIsland: false,
@@ -43,6 +44,7 @@ export const afforest: planType = {
 export const immediateAfforest: planType = {
   planNo: 101,
   type: 'immediate_afforest',
+  coordinate: true,
   category: '建設',
   name: '高速植林',
   otherIsland: false,
@@ -81,6 +83,7 @@ export const immediateAfforest: planType = {
 export const farmDev: planType = {
   planNo: 102,
   type: 'farm_dev',
+  coordinate: true,
   category: '建設',
   name: '農場整備',
   otherIsland: false,
@@ -136,6 +139,7 @@ export const farmDev: planType = {
 export const immediateFarmDev: planType = {
   planNo: 103,
   type: 'immediate_farm_dev',
+  coordinate: true,
   category: '建設',
   name: '高速農場整備',
   otherIsland: false,
@@ -203,6 +207,7 @@ export const immediateFarmDev: planType = {
 export const factoryDev: planType = {
   planNo: 104,
   type: 'factory_dev',
+  coordinate: true,
   category: '建設',
   name: '工場建設',
   otherIsland: false,
@@ -258,6 +263,7 @@ export const factoryDev: planType = {
 export const immediateFactoryDev: planType = {
   planNo: 105,
   type: 'immediate_factory_dev',
+  coordinate: true,
   category: '建設',
   name: '高速工場建設',
   otherIsland: false,
@@ -325,6 +331,7 @@ export const immediateFactoryDev: planType = {
 export const miningDev: planType = {
   planNo: 106,
   type: 'mining_dev',
+  coordinate: true,
   category: '建設',
   name: '採掘場整備',
   otherIsland: false,
@@ -380,6 +387,7 @@ export const miningDev: planType = {
 export const immediateMiningDev: planType = {
   planNo: 107,
   type: 'immediate_mining_dev',
+  coordinate: true,
   category: '建設',
   name: '高速採掘場整備',
   otherIsland: false,
@@ -447,6 +455,7 @@ export const immediateMiningDev: planType = {
 export const missileDev: planType = {
   planNo: 109,
   type: 'missile_dev',
+  coordinate: true,
   category: '建設',
   name: 'ミサイル基地建設',
   otherIsland: false,
@@ -485,6 +494,7 @@ export const missileDev: planType = {
 export const immediateMissileDev: planType = {
   planNo: 110,
   type: 'immediate_missile_dev',
+  coordinate: true,
   category: '建設',
   name: '高速ミサイル基地建設',
   otherIsland: false,
@@ -524,6 +534,7 @@ export const immediateMissileDev: planType = {
 export const defenseBaseDev: planType = {
   planNo: 111,
   type: 'defense_base_dev',
+  coordinate: true,
   category: '建設',
   name: '防衛施設建設',
   otherIsland: false,
@@ -577,6 +588,7 @@ export const defenseBaseDev: planType = {
 export const immediateDefenseBaseDev: planType = {
   planNo: 112,
   type: 'immediate_defense_base_dev',
+  coordinate: true,
   category: '建設',
   name: '高速防衛施設建設',
   otherIsland: false,
@@ -632,6 +644,7 @@ export const immediateDefenseBaseDev: planType = {
 export const submarineMissileDev: planType = {
   planNo: 113,
   type: 'submarine_missile_dev',
+  coordinate: true,
   category: '建設',
   name: '海底基地建設',
   otherIsland: false,

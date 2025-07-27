@@ -3,6 +3,7 @@ import { changeDataArgs, planType } from '../planType';
 export const financing: planType = {
   planNo: 998,
   type: 'financing',
+  coordinate: false,
   category: '運営',
   name: '資金繰り',
   otherIsland: false,

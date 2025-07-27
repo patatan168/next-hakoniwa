@@ -66,11 +66,11 @@ export default function SelectPlan() {
     control,
     trigger: formTrig,
     setValue,
-  } = useForm<Omit<planInfoZod, 'fromUuid'>>({
+  } = useForm<Omit<planInfoZod, 'from_uuid'>>({
     defaultValues: defaultValues,
     resolver: zodResolver(
       planInfoZodValid.omit({
-        fromUuid: true,
+        from_uuid: true,
       })
     ),
   });
@@ -81,7 +81,7 @@ export default function SelectPlan() {
   }, [watch()]);
 
   useEffect(() => {
-    setValue('toUuid', islandData?.uuid ?? '');
+    setValue('to_uuid', islandData?.uuid ?? '');
   }, [islandData]);
 
   return (
@@ -101,10 +101,10 @@ export default function SelectPlan() {
             <RangeSliderRHF id="y" name="y" max={META_DATA.MAP_SIZE - 1} control={control} />
           </li>
           <li>
-            <label htmlFor="toUuid">目標島</label>
+            <label htmlFor="to_uuid">目標島</label>
             <SelectRHF
               key={defaultValues.toUuid}
-              name="toUuid"
+              name="to_uuid"
               control={control}
               id="toUuid"
               options={islandList}
