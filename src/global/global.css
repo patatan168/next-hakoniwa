@@ -64,6 +64,12 @@ body {
   color: var(--sub-title);
 }
 
+.card-border {
+  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #e5e7eb; /* border & border-gray-200 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
+}
+
 .map-overlay {
   position: absolute;
   top: 50%;

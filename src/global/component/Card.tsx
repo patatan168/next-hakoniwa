@@ -1,23 +1,17 @@
 import { isEqual } from 'es-toolkit';
-import { CSSProperties, memo, ReactNode, Ref } from 'react';
+import { memo, ReactNode, Ref } from 'react';
+
+const defaultClassName = 'card-border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800';
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  ref?: Ref<HTMLDivElement>;
+}
 
 export const Card = memo(
-  function card({
-    children,
-    ref,
-    style,
-  }: {
-    children?: ReactNode;
-    ref?: Ref<HTMLDivElement>;
-    style?: CSSProperties;
-  }) {
+  function card(props: CardProps) {
     return (
-      <div
-        ref={ref}
-        style={style}
-        className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
-      >
-        {children}
+      <div {...props} className={`${props.className ?? ''} ${defaultClassName}`}>
+        {props.children}
       </div>
     );
   },
