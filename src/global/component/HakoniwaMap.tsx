@@ -45,7 +45,7 @@ const Spacer = memo(
           />
           {num !== undefined && (
             <p
-              className="map-overlay"
+              className="map-overlay font-mono"
               style={{ left: `${left}%`, fontSize: (13 * mapWidth) / baseMapPixel }}
             >
               {num}
@@ -126,8 +126,8 @@ type HakoniwaMapProps = {
   style?: CSSProperties;
   className?: string;
   isLoading: boolean;
-  islandName: string;
-  data: islandInfoData;
+  islandName?: string;
+  data?: islandInfoData;
 };
 
 /* Mapのピクセルサイズ */
@@ -151,7 +151,7 @@ export default memo(
       }
     };
 
-    if (isLoading) {
+    if (isLoading || !islandName || !data) {
       return <Loading />;
     }
 
