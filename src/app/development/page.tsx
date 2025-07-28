@@ -1,11 +1,12 @@
 'use client';
-import { islandSchemaType } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { userSchemaType } from '@/db/schema/userTable';
 import { Card } from '@/global/component/Card';
 import { PlanList } from '@/global/component/PlanList';
-import { useFetch } from '@/global/function/fetch';
+import { useFetchDevelopment } from '@/global/store/api/auth/development';
+import { useFetchPlan } from '@/global/store/api/auth/plan';
+import { useFetchSession } from '@/global/store/api/auth/session';
+import { useFetchIslandList } from '@/global/store/api/public/islandList';
+import { useFetchTurn } from '@/global/store/api/public/turn';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -16,22 +17,11 @@ const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), {
 const SelectPlan = dynamic(() => import('@/app/development/SelectPlan'));
 
 export default function IslandList() {
-  const { data: developData, isLoading } = useFetch<
-    islandSchemaType & Pick<userSchemaType, 'island_name'>
-  >('/api/auth/development', { method: 'GET' });
-  const { data: turnData } = useFetch<turnLogSchemaType>('/api/public/turn', { method: 'GET' });
-  const { data: fetchPlanData } = useFetch<Array<planSchemaType>>('/api/auth/plan', {
-    method: 'GET',
-  });
-  const { data: uuidData } = useFetch<{ uuid: string }>('/api/auth/session', {
-    method: 'GET',
-  });
-  const { data: islandList } = useFetch<{ uuid: string; island_name: string }[]>(
-    '/api/public/islandList',
-    {
-      method: 'GET',
-    }
-  );
+  const { data: developData, fetchIfNeeded: fetchDev, isLoading } = useFetchDevelopment();
+  const { data: turnData, fetchIfNeeded: fetchTurn } = useFetchTurn();
+  const { data: fetchPlanData, fetchIfNeeded: fetchPlan } = useFetchPlan();
+  const { data: uuidData, fetchIfNeeded: fetchSession } = useFetchSession();
+  const { data: islandList, fetchIfNeeded: fetchIslandList } = useFetchIslandList();
   const [planData, setPlanData] = useState<Array<planSchemaType>>([]);
   const [listHeight, setListHeight] = useState('100svh');
   const listCallback = useCallback((node: HTMLDivElement) => {
@@ -42,8 +32,16 @@ export default function IslandList() {
   }, []);
 
   useEffect(() => {
-    if (fetchPlanData) setPlanData(fetchPlanData);
-  }, [fetchPlanData]);
+    if (fetchPlanData.get) setPlanData(fetchPlanData.get);
+  }, [fetchPlanData.get]);
+
+  useEffect(() => {
+    fetchDev({ method: 'GET' });
+    fetchTurn({ method: 'GET' });
+    fetchPlan({ method: 'GET' });
+    fetchSession({ method: 'GET' });
+    fetchIslandList({ method: 'GET' });
+  });
 
   return (
     <>
@@ -59,18 +57,18 @@ export default function IslandList() {
           }}
         >
           <HakoniwaMap
-            isLoading={isLoading}
-            islandName={developData?.island_name}
-            data={developData?.island_info}
+            isLoading={isLoading.get}
+            islandName={developData.get?.island_name}
+            data={developData.get?.island_info}
           />
         </Card>
         <PlanList
           style={{ height: listHeight }}
-          islandList={islandList}
-          turn={turnData?.turn}
+          islandList={islandList.get}
+          turn={turnData.get?.turn}
           planData={planData}
           setPlanData={setPlanData}
-          uuid={uuidData?.uuid}
+          uuid={uuidData.get?.uuid}
         />
       </div>
     </>

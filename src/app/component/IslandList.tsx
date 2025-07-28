@@ -1,8 +1,8 @@
 'use client';
 import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
-import { useFetch } from '@/global/function/fetch';
-import { useCallback, useState } from 'react';
+import { useFetchUser } from '@/global/store/api/auth/user';
+import { useCallback, useEffect, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
@@ -19,7 +19,7 @@ const tabTest: Array<TabType> = [
 
 export default function IslandList() {
   const [tab, setTab] = useState(0);
-  const { data, isLoading } = useFetch('/api/auth/user', { method: 'GET' });
+  const { data, isLoading, fetch } = useFetchUser();
   const [listHeight, setListHeight] = useState('100svh');
   const listCallback = useCallback((node: HTMLDivElement) => {
     if (node !== null) {
@@ -32,15 +32,19 @@ export default function IslandList() {
     setTab(newValue);
   };
 
+  useEffect(() => {
+    fetch({ method: 'GET' });
+  }, []);
+
   return (
     <>
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
       <VrTableList
-        isLoading={isLoading}
+        isLoading={isLoading.get}
         ref={listCallback}
         style={{ height: listHeight, backgroundColor: 'transparent' }}
         columnHeader={header}
-        data={data}
+        data={data.get}
       />
     </>
   );

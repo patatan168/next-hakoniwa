@@ -2,7 +2,8 @@
 import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
-import { useFetch, useFetchTrig } from '@/global/function/fetch';
+import { useFetchSession } from '@/global/store/api/auth/session';
+import { useFetchUserSignIn } from '@/global/store/api/auth/user/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -35,12 +36,10 @@ function SignInForm() {
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { trigger, data, error } = useFetchTrig('/api/auth/user/sign-in', {
-    ...POST_HEADER,
-    body: body,
-  });
+  const { fetch, data, error } = useFetchUserSignIn();
+
   const onSubmit = () => {
-    trigger();
+    fetch({ ...POST_HEADER, body: body });
     reset();
   };
 
@@ -100,12 +99,15 @@ function SignInForm() {
 
 export default function SignIn() {
   const [open, setOpen] = useState(false);
-  const { data, error } = useFetch<{ result: boolean }>('/api/auth/session', { method: 'GET' });
+  const { data, error, fetchIfNeeded } = useFetchSession();
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    if (data && !error) return router.push('/development');
+    if (data.get && !error.get) return router.push('/development');
     setOpen(value);
   };
+  useEffect(() => {
+    fetchIfNeeded({});
+  }, []);
   return (
     <>
       <Button

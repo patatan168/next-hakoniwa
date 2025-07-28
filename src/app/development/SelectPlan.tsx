@@ -1,12 +1,13 @@
 'use client';
-import { islandSchemaType } from '@/db/schema/islandTable';
 import Button from '@/global/component/Button';
 import { Card } from '@/global/component/Card';
 import { RangeSliderRHF } from '@/global/component/RangeSliderRHF';
 import { SelectRHF } from '@/global/component/SelectRHF';
 import META_DATA from '@/global/define/metadata';
 import { getPlanSelect } from '@/global/define/planType';
-import { useFetch, useFetchTrig } from '@/global/function/fetch';
+import { useFetchDevelopment } from '@/global/store/api/auth/development';
+import { useFetchPlan } from '@/global/store/api/auth/plan';
+import { useFetchIslandList } from '@/global/store/api/public/islandList';
 import { planInfoZod, planInfoZodValid } from '@/global/valid/planInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
@@ -47,20 +48,16 @@ const GetIslandList = (
 
 export default function SelectPlan() {
   // GET
-  const { data: islandData } = useFetch<islandSchemaType>('/api/auth/development', {
-    method: 'GET',
-  });
-  const { data } = useFetch<{ uuid: string; island_name: string }[]>('/api/public/islandList', {
-    method: 'GET',
-  });
+  const { data: islandData, fetch: fetchDev } = useFetchDevelopment();
+  const { data: islandListData, fetch: fetchIslandList } = useFetchIslandList();
+  useEffect(() => {
+    fetchDev({ method: 'GET' });
+    fetchIslandList({ method: 'GET' });
+  }, []);
   // POST
   const [body, setBody] = useState('null');
-  const { trigger } = useFetchTrig('/api/auth/plan', {
-    ...POST_HEADER,
-    body: body,
-  });
-
-  const islandList = GetIslandList(data);
+  const { fetch: trigger } = useFetchPlan();
+  const islandList = GetIslandList(islandListData.get);
   const {
     watch,
     control,
@@ -81,7 +78,7 @@ export default function SelectPlan() {
   }, [watch()]);
 
   useEffect(() => {
-    setValue('to_uuid', islandData?.uuid ?? '');
+    setValue('to_uuid', islandData.get?.uuid ?? '');
   }, [islandData]);
 
   return (
@@ -115,7 +112,7 @@ export default function SelectPlan() {
             <RangeSliderRHF id="times" name="times" min={1} max={99} control={control} />
           </li>
           <li>
-            <Button type="submit" onClick={() => trigger()}>
+            <Button type="submit" onClick={() => trigger({ ...POST_HEADER, body: body })}>
               計画送信
             </Button>
           </li>

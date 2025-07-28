@@ -2,7 +2,7 @@
 import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
-import { useFetchTrig } from '@/global/function/fetch';
+import { useFetchUser } from '@/global/store/api/auth/user';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -35,12 +35,10 @@ function SignUpForm() {
     resolver: zodResolver(userInfoSchema),
   });
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { trigger } = useFetchTrig('/api/auth/user', {
-    ...POST_HEADER,
-    body: body,
-  });
+  const { fetch } = useFetchUser();
+
   const onSubmit = () => {
-    trigger();
+    fetch({ ...POST_HEADER, body: body });
     reset();
   };
 
