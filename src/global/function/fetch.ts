@@ -35,7 +35,7 @@ type FetchState<T, U> = {
   error: ApiMethodType<ApiError | undefined>;
   isLoading: ApiMethodType<boolean>;
   fetchedAt: ApiMethodType<number>;
-  fetch: (options: RequestInit, addOptions?: DataOptions) => Promise<void>;
+  fetch: (options: RequestInit, addOptions?: DataOptions, waitTime?: number) => Promise<void>;
   fetchIfNeeded: (options: RequestInit, addOptions?: DataOptions) => Promise<void>;
 };
 
@@ -84,7 +84,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
     isLoading: createDefaultApiMethod(false),
     fetchedAt: createDefaultApiMethod(0),
     fetch: async (options: RequestInit, dataOptions?: DataOptions) => {
-      const { isLoading, error, data, fetchedAt, fetch } = get();
+      const { isLoading, error, data, fetchedAt } = get();
       const { method } = options;
       const { mergeData, refreshGet } = this.customOptions || {};
       const { query, refresh = false } = dataOptions || {};
@@ -92,7 +92,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       const now = Date.now();
 
       if (isLoading[lowerMethod]) return; // 既にロード中の場合は何もしない
-      if (now - fetchedAt[lowerMethod] < 200 || refresh) return;
+      if (now - fetchedAt[lowerMethod] < 200) return;
 
       set({
         isLoading: { ...isLoading, [lowerMethod]: true },
@@ -105,13 +105,31 @@ export class FetchStore<T extends object, U = { result: boolean }> {
           lowerMethod !== 'get' ? await fetcher<T>(url, options) : await fetcher<U>(url, options);
         const isMergeData = mergeData?.[lowerMethod] ?? false;
         const setData = getStoreData(data[lowerMethod], fetchData, refresh, isMergeData);
-
+        // データセット
         set({
           data: { ...data, [lowerMethod]: setData },
           isLoading: { ...isLoading, [lowerMethod]: false },
         });
+        // リフレッシュ処理
         if (refreshGet && lowerMethod !== 'get') {
-          await fetch({ method: 'GET' }, { refresh: true });
+          const refreshNow = Date.now();
+          try {
+            set({
+              isLoading: { ...isLoading, get: true },
+              error: { ...error, get: undefined },
+              fetchedAt: { ...fetchedAt, get: refreshNow },
+            });
+            const refreshData = await fetcher<T>(url, { method: 'GET' });
+            set({
+              data: { ...data, get: refreshData },
+              isLoading: { ...isLoading, get: false },
+            });
+          } catch (err) {
+            set({
+              error: { ...error, get: err as ApiError },
+              isLoading: { ...isLoading, get: false },
+            });
+          }
         }
       } catch (err) {
         set({
