@@ -45,8 +45,11 @@ type FetchState<T, U> = {
   error: ApiMethodType<ApiError | undefined>;
   isLoading: ApiMethodType<boolean>;
   fetchedAt: ApiMethodType<number>;
+  pollingIntervalId: NodeJS.Timeout | null;
   fetch: (options: RequestInit, addOptions?: DataOptions, waitTime?: number) => Promise<void>;
   fetchIfNeeded: (options: RequestInit, addOptions?: DataOptions) => Promise<void>;
+  startPolling: (interval?: number, query?: string) => void;
+  stopPolling: () => void;
 };
 
 /**
@@ -66,11 +69,12 @@ type FetchState<T, U> = {
  * また、データのマージや再取得のオプションを提供します
  */
 export class FetchStore<T extends object, U = { result: boolean }> {
-  private store = create<FetchState<T, U>>((set, get) => ({
+  public store = create<FetchState<T, U>>((set, get) => ({
     data: createApiMethodDefaults(undefined),
     error: createApiMethodDefaults(undefined),
     isLoading: createApiMethodDefaults(false),
     fetchedAt: createApiMethodDefaults(0),
+    pollingIntervalId: null,
     fetch: async (options, dataOptions) => {
       const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
       const now = Date.now();
@@ -114,6 +118,28 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       const { data, fetch } = get();
       if (data[method] === undefined) {
         await fetch(options, dataOptions);
+      }
+    },
+    startPolling: (interval = 5000, query?: string) => {
+      const state = get();
+      if (state.pollingIntervalId) return;
+      let isRunning = false;
+
+      const intervalId = setInterval(() => {
+        if (isRunning) return;
+        isRunning = true;
+
+        state.fetch({ method: 'GET' }, { query, refresh: true }).finally(() => {
+          isRunning = false;
+        });
+      }, interval);
+      set({ pollingIntervalId: intervalId });
+    },
+    stopPolling: () => {
+      const { pollingIntervalId } = get();
+      if (pollingIntervalId) {
+        clearInterval(pollingIntervalId);
+        set({ pollingIntervalId: null });
       }
     },
   }));
