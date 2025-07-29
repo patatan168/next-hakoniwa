@@ -1,15 +1,8 @@
 'use client';
 import { create } from 'zustand';
 
-type ApiMethodType<T, U = T> = {
-  get: T;
-  post: U;
-  put: U;
-  delete: U;
-  patch: U;
-  head: U;
-  options: U;
-};
+type ApiMethodType<T, U = T> = Record<'get', T> &
+  Record<'post' | 'put' | 'delete' | 'patch' | 'head' | 'options', U>;
 
 /**
  * @brief FetchStoreのカスタムオプション
@@ -30,6 +23,23 @@ type DataOptions = {
   refresh?: boolean;
 };
 
+function createApiMethodDefaults<T>(value: T): ApiMethodType<T> {
+  return {
+    get: value,
+    post: value,
+    put: value,
+    delete: value,
+    patch: value,
+    head: value,
+    options: value,
+  };
+}
+
+function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge: boolean): T {
+  if (refresh) return next;
+  return shouldMerge ? { ...current, ...next } : next;
+}
+
 type FetchState<T, U> = {
   data: ApiMethodType<T | undefined, U | undefined>;
   error: ApiMethodType<ApiError | undefined>;
@@ -38,28 +48,6 @@ type FetchState<T, U> = {
   fetch: (options: RequestInit, addOptions?: DataOptions, waitTime?: number) => Promise<void>;
   fetchIfNeeded: (options: RequestInit, addOptions?: DataOptions) => Promise<void>;
 };
-
-function getStoreData<T>(storeData: T, fetchData: T, refresh: boolean, isMergeData: boolean) {
-  if (refresh) {
-    return fetchData;
-  } else if (isMergeData) {
-    return { ...storeData, ...fetchData };
-  } else {
-    return fetchData;
-  }
-}
-
-function createDefaultApiMethod<T>(defaultValue: T): ApiMethodType<T> {
-  return {
-    get: defaultValue,
-    post: defaultValue,
-    put: defaultValue,
-    delete: defaultValue,
-    patch: defaultValue,
-    head: defaultValue,
-    options: defaultValue,
-  };
-}
 
 /**
  * @brief このストアは、APIからのデータ取得、エラーハンドリング、ローディング状態の管理を行う
@@ -79,70 +67,52 @@ function createDefaultApiMethod<T>(defaultValue: T): ApiMethodType<T> {
  */
 export class FetchStore<T extends object, U = { result: boolean }> {
   private store = create<FetchState<T, U>>((set, get) => ({
-    data: createDefaultApiMethod(undefined),
-    error: createDefaultApiMethod(undefined),
-    isLoading: createDefaultApiMethod(false),
-    fetchedAt: createDefaultApiMethod(0),
-    fetch: async (options: RequestInit, dataOptions?: DataOptions) => {
-      const { isLoading, error, data, fetchedAt } = get();
-      const { method } = options;
-      const { mergeData, refreshGet } = this.customOptions || {};
-      const { query, refresh = false } = dataOptions || {};
-      const lowerMethod = method ? (method.toLowerCase() as keyof ApiMethodType<T>) : 'get';
+    data: createApiMethodDefaults(undefined),
+    error: createApiMethodDefaults(undefined),
+    isLoading: createApiMethodDefaults(false),
+    fetchedAt: createApiMethodDefaults(0),
+    fetch: async (options, dataOptions) => {
+      const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
       const now = Date.now();
+      const state = get();
+      if (state.isLoading[method]) return;
+      if (now - state.fetchedAt[method] < 200) return;
 
-      if (isLoading[lowerMethod]) return; // 既にロード中の場合は何もしない
-      if (now - fetchedAt[lowerMethod] < 200) return;
+      const { query, refresh = false } = dataOptions || {};
+      const { mergeData, refreshGet } = this.customOptions || {};
+      const url = query ? `${this.url}?${query}` : this.url;
+      const isMerge = mergeData?.[method] ?? false;
 
       set({
-        isLoading: { ...isLoading, [lowerMethod]: true },
-        error: { ...error, [lowerMethod]: undefined },
-        fetchedAt: { ...fetchedAt, [lowerMethod]: now },
+        isLoading: { ...state.isLoading, [method]: true },
+        error: { ...state.error, [method]: undefined },
+        fetchedAt: { ...state.fetchedAt, [method]: now },
       });
+
       try {
-        const url = query ? `${this.url}?${query}` : this.url;
-        const fetchData =
-          lowerMethod !== 'get' ? await fetcher<T>(url, options) : await fetcher<U>(url, options);
-        const isMergeData = mergeData?.[lowerMethod] ?? false;
-        const setData = getStoreData(data[lowerMethod], fetchData, refresh, isMergeData);
-        // データセット
+        const fetched =
+          method !== 'get' ? await fetcher<T>(url, options) : await fetcher<U>(url, options);
+        const merged = resolveStoreData(state.data[method], fetched, refresh, isMerge);
+        // データー反映
         set({
-          data: { ...data, [lowerMethod]: setData },
-          isLoading: { ...isLoading, [lowerMethod]: false },
+          data: { ...state.data, [method]: merged },
+          isLoading: { ...state.isLoading, [method]: false },
         });
         // リフレッシュ処理
-        if (refreshGet && lowerMethod !== 'get') {
-          const refreshNow = Date.now();
-          try {
-            set({
-              isLoading: { ...isLoading, get: true },
-              error: { ...error, get: undefined },
-              fetchedAt: { ...fetchedAt, get: refreshNow },
-            });
-            const refreshData = await fetcher<T>(url, { method: 'GET' });
-            set({
-              data: { ...data, get: refreshData },
-              isLoading: { ...isLoading, get: false },
-            });
-          } catch (err) {
-            set({
-              error: { ...error, get: err as ApiError },
-              isLoading: { ...isLoading, get: false },
-            });
-          }
+        if (refreshGet && method !== 'get') {
+          await this.refreshGet(set, get, url);
         }
       } catch (err) {
         set({
-          error: { ...error, [lowerMethod]: err },
-          isLoading: { ...isLoading, [lowerMethod]: false },
+          error: { ...state.error, [method]: err },
+          isLoading: { ...state.isLoading, [method]: false },
         });
       }
     },
-    fetchIfNeeded: async (options: RequestInit, dataOptions?: DataOptions) => {
+    fetchIfNeeded: async (options, dataOptions) => {
+      const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
       const { data, fetch } = get();
-      const { method } = options;
-      const lowerMethod = method ? (method.toLowerCase() as keyof ApiMethodType<T>) : 'get';
-      if (data[lowerMethod] === undefined) {
+      if (data[method] === undefined) {
         await fetch(options, dataOptions);
       }
     },
@@ -155,6 +125,33 @@ export class FetchStore<T extends object, U = { result: boolean }> {
 
   use() {
     return this.store();
+  }
+
+  private async refreshGet(
+    set: (fn: Partial<FetchState<T, U>>) => void,
+    get: () => FetchState<T, U>,
+    url: string
+  ) {
+    const now = Date.now();
+    const { error, isLoading, data } = get();
+    try {
+      set({
+        isLoading: { ...isLoading, get: true },
+        error: { ...error, get: undefined },
+        fetchedAt: { ...get().fetchedAt, get: now },
+      });
+
+      const refreshed = await fetcher<T>(url, { method: 'GET' });
+      set({
+        data: { ...data, get: refreshed },
+        isLoading: { ...get().isLoading, get: false },
+      });
+    } catch (err) {
+      set({
+        error: { ...get().error, get: err as ApiError },
+        isLoading: { ...get().isLoading, get: false },
+      });
+    }
   }
 }
 
