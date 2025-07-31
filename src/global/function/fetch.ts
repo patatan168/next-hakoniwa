@@ -94,8 +94,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       }));
 
       try {
-        const fetched =
-          method !== 'get' ? await fetcher<T>(url, options) : await fetcher<U>(url, options);
+        const fetched = await fetcher<T | U>(url, options);
         const merged = resolveStoreData(state.data[method], fetched, refresh, isMerge);
         // データー反映
         set((prev) => ({
