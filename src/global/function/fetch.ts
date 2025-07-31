@@ -1,5 +1,5 @@
 'use client';
-import { create } from 'zustand';
+import { create, StoreApi } from 'zustand';
 
 type ApiMethodType<T, U = T> = Record<'get', T> &
   Record<'post' | 'put' | 'delete' | 'patch' | 'head' | 'options', U>;
@@ -87,30 +87,30 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       const url = query ? `${this.url}?${query}` : this.url;
       const isMerge = mergeData?.[method] ?? false;
 
-      set({
-        isLoading: { ...state.isLoading, [method]: true },
-        error: { ...state.error, [method]: undefined },
-        fetchedAt: { ...state.fetchedAt, [method]: now },
-      });
+      set((prev) => ({
+        isLoading: { ...prev.isLoading, [method]: true },
+        error: { ...prev.error, [method]: undefined },
+        fetchedAt: { ...prev.fetchedAt, [method]: now },
+      }));
 
       try {
         const fetched =
           method !== 'get' ? await fetcher<T>(url, options) : await fetcher<U>(url, options);
         const merged = resolveStoreData(state.data[method], fetched, refresh, isMerge);
         // データー反映
-        set({
-          data: { ...state.data, [method]: merged },
-          isLoading: { ...state.isLoading, [method]: false },
-        });
+        set((prev) => ({
+          data: { ...prev.data, [method]: merged },
+          isLoading: { ...prev.isLoading, [method]: false },
+        }));
         // リフレッシュ処理
         if (refreshGet && method !== 'get') {
-          await this.refreshGet(set, get, url);
+          await this.refreshGet(set, url);
         }
       } catch (err) {
-        set({
-          error: { ...state.error, [method]: err },
-          isLoading: { ...state.isLoading, [method]: false },
-        });
+        set((prev) => ({
+          error: { ...prev.error, [method]: err },
+          isLoading: { ...prev.isLoading, [method]: false },
+        }));
       }
     },
     fetchIfNeeded: async (options, dataOptions) => {
@@ -153,30 +153,25 @@ export class FetchStore<T extends object, U = { result: boolean }> {
     return this.store();
   }
 
-  private async refreshGet(
-    set: (fn: Partial<FetchState<T, U>>) => void,
-    get: () => FetchState<T, U>,
-    url: string
-  ) {
+  private async refreshGet(set: StoreApi<FetchState<T, U>>['setState'], url: string) {
     const now = Date.now();
-    const { error, isLoading, data } = get();
     try {
-      set({
-        isLoading: { ...isLoading, get: true },
-        error: { ...error, get: undefined },
-        fetchedAt: { ...get().fetchedAt, get: now },
-      });
+      set((prev) => ({
+        isLoading: { ...prev.isLoading, get: true },
+        error: { ...prev.error, get: undefined },
+        fetchedAt: { ...prev.fetchedAt, get: now },
+      }));
 
       const refreshed = await fetcher<T>(url, { method: 'GET' });
-      set({
-        data: { ...data, get: refreshed },
-        isLoading: { ...get().isLoading, get: false },
-      });
+      set((prev) => ({
+        data: { ...prev.data, get: refreshed },
+        isLoading: { ...prev.isLoading, get: false },
+      }));
     } catch (err) {
-      set({
-        error: { ...get().error, get: err as ApiError },
-        isLoading: { ...get().isLoading, get: false },
-      });
+      set((prev) => ({
+        error: { ...prev.error, get: err as ApiError },
+        isLoading: { ...prev.isLoading, get: false },
+      }));
     }
   }
 }
