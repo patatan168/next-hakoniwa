@@ -14,6 +14,8 @@ type CustomOptions = {
   mergeData?: ApiMethodType<boolean>;
   /** GET以外のメソッドをfetchした際に、GETを再取得するか */
   refreshGet?: boolean;
+  /** APIの連続呼び出しを防ぐための待機時間 (ms) */
+  waitTime?: number;
 };
 
 type DataOptions = {
@@ -69,6 +71,22 @@ type FetchState<T, U> = {
  * また、データのマージや再取得のオプションを提供します
  */
 export class FetchStore<T extends object, U = { result: boolean }> {
+  constructor(
+    public url: string,
+    public customOptions?: CustomOptions
+  ) {
+    this.mergeData = customOptions?.mergeData ?? createApiMethodDefaults(false);
+    this.refreshGet = customOptions?.refreshGet ?? false;
+    this.waitTime = customOptions?.waitTime ?? 200;
+  }
+
+  public use() {
+    return this.store();
+  }
+
+  private mergeData: ApiMethodType<boolean, boolean>;
+  private refreshGet: boolean;
+  private waitTime: number;
   private store = create<FetchState<T, U>>((set, get) => ({
     data: createApiMethodDefaults(undefined),
     error: createApiMethodDefaults(undefined),
@@ -80,12 +98,10 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       const now = Date.now();
       const state = get();
       if (state.isLoading[method]) return;
-      if (now - state.fetchedAt[method] < 200) return;
+      if (now - state.fetchedAt[method] < this.waitTime) return;
 
       const { query, refresh = false } = dataOptions || {};
-      const { mergeData, refreshGet } = this.customOptions || {};
       const url = query ? `${this.url}?${query}` : this.url;
-      const isMerge = mergeData?.[method] ?? false;
 
       set((prev) => ({
         isLoading: { ...prev.isLoading, [method]: true },
@@ -95,15 +111,20 @@ export class FetchStore<T extends object, U = { result: boolean }> {
 
       try {
         const fetched = await fetcher<T | U>(url, options);
-        const merged = resolveStoreData(state.data[method], fetched, refresh, isMerge);
+        const merged = resolveStoreData(
+          state.data[method],
+          fetched,
+          refresh,
+          this.mergeData[method]
+        );
         // データー反映
         set((prev) => ({
           data: { ...prev.data, [method]: merged },
           isLoading: { ...prev.isLoading, [method]: false },
         }));
         // リフレッシュ処理
-        if (refreshGet && method !== 'get') {
-          await this.refreshGet(set, url);
+        if (this.refreshGet && method !== 'get') {
+          await this.refreshFetch(set, url);
         }
       } catch (err) {
         set((prev) => ({
@@ -143,16 +164,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
     },
   }));
 
-  constructor(
-    public url: string,
-    public customOptions?: CustomOptions
-  ) {}
-
-  public use() {
-    return this.store();
-  }
-
-  private async refreshGet(set: StoreApi<FetchState<T, U>>['setState'], url: string) {
+  private async refreshFetch(set: StoreApi<FetchState<T, U>>['setState'], url: string) {
     const now = Date.now();
     try {
       set((prev) => ({
