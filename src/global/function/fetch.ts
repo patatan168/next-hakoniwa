@@ -69,7 +69,7 @@ type FetchState<T, U> = {
  * また、データのマージや再取得のオプションを提供します
  */
 export class FetchStore<T extends object, U = { result: boolean }> {
-  public store = create<FetchState<T, U>>((set, get) => ({
+  private store = create<FetchState<T, U>>((set, get) => ({
     data: createApiMethodDefaults(undefined),
     error: createApiMethodDefaults(undefined),
     isLoading: createApiMethodDefaults(false),
@@ -148,7 +148,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
     public customOptions?: CustomOptions
   ) {}
 
-  use() {
+  public use() {
     return this.store();
   }
 
