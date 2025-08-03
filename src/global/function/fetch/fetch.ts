@@ -1,5 +1,4 @@
-'use client';
-import { create, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand/vanilla';
 
 type ApiMethodType<T, U = T> = Record<'get', T> &
   Record<'post' | 'put' | 'delete' | 'patch' | 'head' | 'options', U>;
@@ -19,6 +18,8 @@ type CustomOptions = {
 };
 
 type DataOptions = {
+  /** URLスキーム&ホスト */
+  urlOrigin?: string;
   /** クエリパラメータ */
   query?: string;
   /** データを再取得するか */
@@ -42,7 +43,7 @@ function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge:
   return shouldMerge ? { ...current, ...next } : next;
 }
 
-type FetchState<T, U> = {
+export type FetchState<T, U> = {
   data: ApiMethodType<T | undefined, U | undefined>;
   error: ApiMethodType<ApiError | undefined>;
   isLoading: ApiMethodType<boolean>;
@@ -71,100 +72,88 @@ type FetchState<T, U> = {
  * また、データのマージや再取得のオプションを提供します
  */
 export class FetchStore<T extends object, U = { result: boolean }> {
+  public readonly store: StoreApi<FetchState<T, U>>;
+
   constructor(
-    public url: string,
-    public customOptions?: CustomOptions
+    public readonly url: string,
+    public readonly customOptions?: CustomOptions
   ) {
-    this.mergeData = customOptions?.mergeData ?? createApiMethodDefaults(false);
-    this.refreshGet = customOptions?.refreshGet ?? false;
-    this.waitTime = customOptions?.waitTime ?? 200;
-  }
+    const mergeData = customOptions?.mergeData ?? createApiMethodDefaults(false);
+    const refreshGet = customOptions?.refreshGet ?? false;
+    const waitTime = customOptions?.waitTime ?? 200;
 
-  public use() {
-    return this.store();
-  }
+    this.store = createStore<FetchState<T, U>>((set, get) => ({
+      data: createApiMethodDefaults(undefined),
+      error: createApiMethodDefaults(undefined),
+      isLoading: createApiMethodDefaults(false),
+      fetchedAt: createApiMethodDefaults(0),
+      pollingIntervalId: null,
+      fetch: async (options, dataOptions) => {
+        const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
+        const now = Date.now();
+        const state = get();
+        if (state.isLoading[method]) return;
+        if (now - state.fetchedAt[method] < waitTime) return;
 
-  private mergeData: ApiMethodType<boolean, boolean>;
-  private refreshGet: boolean;
-  private waitTime: number;
-  private store = create<FetchState<T, U>>((set, get) => ({
-    data: createApiMethodDefaults(undefined),
-    error: createApiMethodDefaults(undefined),
-    isLoading: createApiMethodDefaults(false),
-    fetchedAt: createApiMethodDefaults(0),
-    pollingIntervalId: null,
-    fetch: async (options, dataOptions) => {
-      const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
-      const now = Date.now();
-      const state = get();
-      if (state.isLoading[method]) return;
-      if (now - state.fetchedAt[method] < this.waitTime) return;
+        const { urlOrigin = '', query, refresh = false } = dataOptions || {};
+        const urlWithQuery = query ? `${urlOrigin}${url}?${query}` : `${urlOrigin}${url}`;
 
-      const { query, refresh = false } = dataOptions || {};
-      const url = query ? `${this.url}?${query}` : this.url;
-
-      set((prev) => ({
-        isLoading: { ...prev.isLoading, [method]: true },
-        error: { ...prev.error, [method]: undefined },
-        fetchedAt: { ...prev.fetchedAt, [method]: now },
-      }));
-
-      try {
-        const fetched = await fetcher<T | U>(url, options);
-        const merged = resolveStoreData(
-          state.data[method],
-          fetched,
-          refresh,
-          this.mergeData[method]
-        );
-        // データー反映
         set((prev) => ({
-          data: { ...prev.data, [method]: merged },
-          isLoading: { ...prev.isLoading, [method]: false },
+          isLoading: { ...prev.isLoading, [method]: true },
+          error: { ...prev.error, [method]: undefined },
+          fetchedAt: { ...prev.fetchedAt, [method]: now },
         }));
-        // リフレッシュ処理
-        if (this.refreshGet && method !== 'get') {
-          await this.refreshFetch(set, url);
+
+        try {
+          const fetched = await fetcher<T | U>(urlWithQuery, options);
+          const merged = resolveStoreData(state.data[method], fetched, refresh, mergeData[method]);
+          set((prev) => ({
+            data: { ...prev.data, [method]: merged },
+            isLoading: { ...prev.isLoading, [method]: false },
+          }));
+          if (refreshGet && method !== 'get') {
+            await this.refreshFetch(urlWithQuery);
+          }
+        } catch (err) {
+          set((prev) => ({
+            error: { ...prev.error, [method]: err },
+            isLoading: { ...prev.isLoading, [method]: false },
+          }));
         }
-      } catch (err) {
-        set((prev) => ({
-          error: { ...prev.error, [method]: err },
-          isLoading: { ...prev.isLoading, [method]: false },
-        }));
-      }
-    },
-    fetchIfNeeded: async (options, dataOptions) => {
-      const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
-      const { data, fetch } = get();
-      if (data[method] === undefined) {
-        await fetch(options, dataOptions);
-      }
-    },
-    startPolling: (interval = 5000, query?: string) => {
-      const state = get();
-      if (state.pollingIntervalId) return;
-      let isRunning = false;
+      },
+      fetchIfNeeded: async (options, dataOptions) => {
+        const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
+        const { data, fetch } = get();
+        if (data[method] === undefined) {
+          await fetch(options, dataOptions);
+        }
+      },
+      startPolling: (interval = 5000, query?: string) => {
+        const state = get();
+        if (state.pollingIntervalId) return;
+        let isRunning = false;
 
-      const intervalId = setInterval(() => {
-        if (isRunning) return;
-        isRunning = true;
+        const intervalId = setInterval(() => {
+          if (isRunning) return;
+          isRunning = true;
+          state.fetch({ method: 'GET' }, { query, refresh: true }).finally(() => {
+            isRunning = false;
+          });
+        }, interval);
+        set({ pollingIntervalId: intervalId });
+      },
+      stopPolling: () => {
+        const { pollingIntervalId } = get();
+        if (pollingIntervalId) {
+          clearInterval(pollingIntervalId);
+          set({ pollingIntervalId: null });
+        }
+      },
+    }));
+  }
 
-        state.fetch({ method: 'GET' }, { query, refresh: true }).finally(() => {
-          isRunning = false;
-        });
-      }, interval);
-      set({ pollingIntervalId: intervalId });
-    },
-    stopPolling: () => {
-      const { pollingIntervalId } = get();
-      if (pollingIntervalId) {
-        clearInterval(pollingIntervalId);
-        set({ pollingIntervalId: null });
-      }
-    },
-  }));
-
-  private async refreshFetch(set: StoreApi<FetchState<T, U>>['setState'], url: string) {
+  private async refreshFetch(url: string) {
+    const set = this.store.setState;
     const now = Date.now();
     try {
       set((prev) => ({
@@ -232,6 +221,7 @@ export const fetcher = async <T = any>(input: RequestInfo | URL, init?: RequestI
         const delay = Math.pow(2, attempt) * 400;
         await new Promise((r) => setTimeout(r, delay));
       } else {
+        console.error(error);
         throw error;
       }
     }

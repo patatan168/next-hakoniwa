@@ -1,6 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import { z } from 'zod';
-import { fetcher } from '../function/fetch';
+import { fetcher } from '../function/fetch/fetch';
 
 export const baseUserInfoSchema = z.object({
   id: z.coerce

@@ -2,8 +2,9 @@
 import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
-import { useFetchSession } from '@/global/store/api/auth/session';
-import { useFetchUserSignIn } from '@/global/store/api/auth/user/sign-in';
+import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { sessionStore } from '@/global/store/api/auth/session';
+import { userSignInStore } from '@/global/store/api/auth/user/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -36,7 +37,7 @@ function SignInForm() {
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch, data, error } = useFetchUserSignIn();
+  const { fetch, data } = useClientFetch(userSignInStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });
@@ -60,8 +61,9 @@ function SignInForm() {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    if (data && !error) router.push('/development');
-  }, [data, error]);
+    console.log(data.post);
+    if (data.post?.result) router.push('/development');
+  }, [data.post]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -99,7 +101,7 @@ function SignInForm() {
 
 export default function SignIn() {
   const [open, setOpen] = useState(false);
-  const { data, error, fetchIfNeeded } = useFetchSession();
+  const { data, error, fetchIfNeeded } = useClientFetch(sessionStore);
   const router = useRouter();
   const openToggle = (value: boolean) => {
     if (data.get && !error.get) return router.push('/development');

@@ -1,7 +1,8 @@
 'use client';
 import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
-import { useFetchUser } from '@/global/store/api/auth/user';
+import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { userStore } from '@/global/store/api/auth/user';
 import { useCallback, useEffect, useState } from 'react';
 
 const header: ColumnInfo = [
@@ -19,7 +20,7 @@ const tabTest: Array<TabType> = [
 
 export default function IslandList() {
   const [tab, setTab] = useState(0);
-  const { data, isLoading, fetch } = useFetchUser();
+  const { data, isLoading, fetch } = useClientFetch(userStore);
   const [listHeight, setListHeight] = useState('100svh');
   const listCallback = useCallback((node: HTMLDivElement) => {
     if (node !== null) {

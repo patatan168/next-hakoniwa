@@ -1,6 +1,6 @@
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { FetchStore } from '@/global/function/fetch';
+import { FetchStore } from '@/global/function/fetch/fetch';
 
 const store = new FetchStore<turnLogSchemaType>('/api/public/turn');
 
-export const useFetchTurn = () => store.use();
+export const turnStore = store.store;

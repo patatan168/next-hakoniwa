@@ -1,6 +1,6 @@
 import { userSchemaType } from '@/db/schema/userTable';
-import { FetchStore } from '@/global/function/fetch';
+import { FetchStore } from '@/global/function/fetch/fetch';
 
 const store = new FetchStore<Array<userSchemaType>>('/api/auth/user', { refreshGet: true });
 
-export const useFetchUser = () => store.use();
+export const userStore = store.store;

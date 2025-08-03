@@ -1,6 +1,6 @@
 import { islandSchemaType } from '@/db/schema/islandTable';
-import { FetchStore } from '@/global/function/fetch';
+import { FetchStore } from '@/global/function/fetch/fetch';
 
 const store = new FetchStore<islandSchemaType>('/api/auth/development');
 
-export const useFetchDevelopment = () => store.use();
+export const developmentStore = store.store;

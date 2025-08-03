@@ -5,9 +5,10 @@ import { RangeSliderRHF } from '@/global/component/RangeSliderRHF';
 import { SelectRHF } from '@/global/component/SelectRHF';
 import META_DATA from '@/global/define/metadata';
 import { getPlanSelect } from '@/global/define/planType';
-import { useFetchDevelopment } from '@/global/store/api/auth/development';
-import { useFetchPlan } from '@/global/store/api/auth/plan';
-import { useFetchIslandList } from '@/global/store/api/public/islandList';
+import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { developmentStore } from '@/global/store/api/auth/development';
+import { planStore } from '@/global/store/api/auth/plan';
+import { islandListStore } from '@/global/store/api/public/islandList';
 import { planInfoZod, planInfoZodValid } from '@/global/valid/planInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
@@ -48,15 +49,15 @@ const GetIslandList = (
 
 export default function SelectPlan() {
   // GET
-  const { data: islandData, fetch: fetchDev } = useFetchDevelopment();
-  const { data: islandListData, fetch: fetchIslandList } = useFetchIslandList();
+  const { data: islandData, fetch: fetchDev } = useClientFetch(developmentStore);
+  const { data: islandListData, fetch: fetchIslandList } = useClientFetch(islandListStore);
   useEffect(() => {
     fetchDev({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, []);
   // POST
   const [body, setBody] = useState('null');
-  const { fetch: trigger } = useFetchPlan();
+  const { fetch: trigger } = useClientFetch(planStore);
   const islandList = GetIslandList(islandListData.get);
   const {
     watch,
