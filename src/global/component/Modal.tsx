@@ -1,5 +1,6 @@
 import { isEqual } from 'es-toolkit';
-import { memo, ReactNode, useMemo } from 'react';
+import { memo, ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { RxCross1 } from 'react-icons/rx';
 import { Card } from './Card';
 import Overlay from './Overlay';
@@ -58,14 +59,13 @@ const FooterModal = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-const HiddenStyle = ({ open, hidden }: { open: boolean; hidden: boolean }) =>
-  useMemo(() => {
-    if (open || !hidden) return undefined;
+const HiddenStyle = ({ open, hidden }: { open: boolean; hidden: boolean }) => {
+  if (open || !hidden) return undefined;
 
-    return {
-      display: 'none',
-    };
-  }, [open, hidden]);
+  return {
+    display: 'none',
+  };
+};
 
 export const Modal = memo(
   function Modal({
@@ -83,31 +83,51 @@ export const Modal = memo(
     open: boolean;
     openToggle: ((value: boolean) => void) | (() => void);
   }) {
-    if (!open && !hidden) {
-      return <></>;
-    }
-
+    const hiddenStyle = HiddenStyle({ open, hidden });
+    const [mounted, setMounted] = useState(false);
     const enterFunction = (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.code === 'Enter') {
         openToggle(false);
       }
     };
 
-    return (
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          openToggle(false);
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [openToggle]);
+
+    if (!mounted || typeof document === 'undefined') return null;
+
+    if (!open && !hidden) {
+      return <></>;
+    }
+
+    return createPortal(
       <>
         <Overlay
-          style={HiddenStyle({ open, hidden })}
+          style={hiddenStyle}
           onClick={() => openToggle(false)}
           onKeyDown={enterFunction}
           role="button"
           tabIndex={0}
         />
         <div
-          style={HiddenStyle({ open, hidden })}
+          style={hiddenStyle}
           aria-modal="true"
           role="dialog"
           tabIndex={-1}
-          className="fixed top-1/2 left-1/2 z-51 -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-700"
+          className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-700"
         >
           <Card>
             <HeaderModal header={header} openToggle={openToggle} />
@@ -115,7 +135,8 @@ export const Modal = memo(
             <FooterModal footer={footer} />
           </Card>
         </div>
-      </>
+      </>,
+      document.body
     );
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)
