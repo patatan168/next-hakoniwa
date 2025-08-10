@@ -3,15 +3,16 @@ import 'server-only';
 import { NextRequest } from 'next/server';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { getIpAddress } from './ip';
+import { extractClientIp } from './ip';
 
 const logFormat = (request?: NextRequest) =>
   format.printf(({ level, message, timestamp }) => {
     if (request !== undefined) {
-      const ip = getIpAddress(request);
-      return `${level}: [${timestamp}] [${ip}] [${request.nextUrl.host}] ${message}`;
+      const ip = extractClientIp(request);
+      const logLevel = ip ? level : 'warn';
+      return `${logLevel}:\t[${timestamp}]\t[${ip}]\t[${request.nextUrl.host}]\t${message}`;
     } else {
-      return `${level}: [${timestamp}] ${message}`;
+      return `${level}:\t[${timestamp}]\t${message}`;
     }
   });
 
