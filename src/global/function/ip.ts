@@ -59,7 +59,8 @@ export const extractClientIp = (request: NextRequest) => {
   const publicIps = ips.filter((ip) => {
     // NOTE: デバッグ用に開発環境はローカルホストを許可
     const isLocalHost =
-      process.env.NODE_ENV === 'development' && (ip === '127.0.0.1' || ip === '::1');
+      process.env.NODE_ENV === 'development' &&
+      (/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip) || ip === '::1');
     return isPublicIp || isLocalHost;
   });
   return publicIps[0] ?? null;
