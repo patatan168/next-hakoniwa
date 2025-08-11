@@ -51,9 +51,10 @@ async function sessionCheck(request: NextRequest) {
     .getState()
     .fetch({ headers: { cookie }, method: 'GET' }, { urlOrigin: request.nextUrl.origin });
 
-  if (!sessionStore.getState().error.get) {
+  const errorSession = sessionStore.getState().error.get;
+  if (!errorSession) {
     return NextResponse.next();
   } else {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
+    return NextResponse.redirect(new URL(`/error/${errorSession.status}`, request.url));
   }
 }
