@@ -61,7 +61,7 @@ export const extractClientIp = (request: NextRequest) => {
     const isLocalHost =
       process.env.NODE_ENV === 'development' &&
       (/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip) || ip === '::1');
-    return isPublicIp || isLocalHost;
+    return isPublicIp(ip) || isLocalHost;
   });
   return publicIps[0] ?? null;
 };
