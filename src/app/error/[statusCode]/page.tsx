@@ -4,11 +4,11 @@ export default async function ErrorPage({
   params,
   searchParams,
 }: {
-  params: { statusCode: string };
-  searchParams: { message?: string };
+  params: Promise<{ statusCode: string }>;
+  searchParams?: Promise<{ message?: string }>;
 }) {
   const { statusCode } = await params;
-  const { message } = await searchParams;
+  const { message } = (await searchParams) ?? {};
   return (
     <div className="p-6 text-center">
       <h1 className="text-blue text-2xl font-bold text-blue-900">Status Code : {statusCode}</h1>
