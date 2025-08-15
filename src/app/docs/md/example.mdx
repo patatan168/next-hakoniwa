@@ -1,0 +1,62 @@
+# ユーザー登録機能 (例)
+
+## 📝概要
+
+- ユーザーがメールアドレスとパスワードを入力してアカウントを作成できる機能
+
+## 😎想定ユーザー
+
+- 一般ユーザー（未ログイン状態）
+  - クレジットカードなどの特別な情報は扱わない
+
+## 🕑使用タイミング
+
+- サービス初回利用時、または再登録時
+
+## 🏢設計箇所
+
+- Webアプリの `/signup` ページ
+
+## 🤔必要性
+
+- サービス利用者の識別と個別データ管理のため
+
+## 🎨詳細設計
+
+### シーケンス
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE
+    participant API
+    participant DB
+
+    User->>FE: 「新規登録」ボタンを１クリック
+    FE->>User: User登録フォームを表示
+
+    User->>FE: 名前・メール・パスワードを入力して送信
+    FE->>API: POST /register {id, password}
+
+    API->>API: 入力値をバリデーション
+    API->>API: IDをハッシュ化(UUIDv7)し、25文字の英数字に変換
+    API->>API: パスワードを暗号化 (Argon2)
+
+    API->>DB: INSERT INTO users (...)
+    DB-->>API: 登録成功
+
+    API->>FE: 201 Created + UserID
+    FE->>FE: 「登録が完了しました！」
+
+    Note over User, FE: ユーザーはログイン画面へ遷移
+```
+
+### 詳細
+
+#### ID
+
+ハッシュ化はUUIDv7を使用。URLなどに用いるため、25文字の英数字に可逆圧縮した。
+
+#### パスワード
+
+パスワードは堅牢なArgon2を使用。実行回数は一般的な3回にした。

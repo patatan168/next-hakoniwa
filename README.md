@@ -24,6 +24,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Document
+
+Only run the development server.
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see documents.
+
 ## Custom Component Document & Test
 
 ```bash

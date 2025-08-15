@@ -21,7 +21,7 @@ export default [
       'next.config.mjs',
       'vitest.config.mts',
       'tailwind.config.js',
-      'postcss.config.js',
+      'postcss.config.cjs',
     ],
   },
   jsESLint.configs.recommended,

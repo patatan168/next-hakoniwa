@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -200,4 +201,8 @@ body {
   &:active::-webkit-slider-thumb {
     box-shadow: 0px 5px 10px -2px rgba(0, 0, 0, 0.3);
   }
+}
+
+.mermaid {
+  @apply overflow-x-auto text-sm leading-snug;
 }
