@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Only run the development server.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see documents.
+Open [http://localhost:3000/docs/](http://localhost:3000/docs/) with your browser to see documents.
 
 ## Custom Component Document & Test
 
