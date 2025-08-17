@@ -26,7 +26,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
 
-  const valid = await asyncRequestValid(request, userInfoSchema);
+  const valid = await asyncRequestValid(request, userInfoSchema, 201);
 
   if (valid.data !== null) {
     const { id, password, islandName } = valid.data;
