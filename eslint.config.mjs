@@ -4,6 +4,7 @@ import typeScriptESLint from '@typescript-eslint/eslint-plugin';
 import typeScriptESLintParser from '@typescript-eslint/parser';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import requireAsyncContext from 'eslint-plugin-next-router-async';
 import prettier from 'eslint-plugin-prettier';
 import react from 'eslint-plugin-react';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -45,6 +46,7 @@ export default [
       react,
       'react-refresh': reactRefresh,
       tailwindcss,
+      'next-router-async': requireAsyncContext,
     },
     languageOptions: {
       ecmaVersion: 2023,
@@ -97,6 +99,8 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       // TailwindのカスタムCSSを許可
       'tailwindcss/no-custom-classname': 'off',
+      // next15以降のパラメーター非同期を警告
+      'next-router-async/enforce-async-params': 'warn',
     },
     settings: {
       react: {
