@@ -188,8 +188,31 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * リトライが必要なステータスかどうかを判定する
+ * @param status ステータスコード
+ * @return リトライが必要な場合は true、それ以外は false
+ */
+const isRetryStatus = (status: number) => {
+  switch (status) {
+    case 408: // リクエストタイムアウト
+    case 429: // リクエスト過多
+    case 500: // サーバーエラー
+    case 502: // バッドゲートウェイ
+    case 503: // サービス利用不可
+    case 504: // ゲートウェイタイムアウト
+      return true;
+    default:
+      return false;
+  }
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const fetcher = async <T = any>(input: RequestInfo | URL, init?: RequestInit) => {
+export const fetcher = async <T = any>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  timeOut: number = 5000
+) => {
   const url = input;
   const options = init;
   const responseData = async (res: Response) => {
@@ -203,26 +226,34 @@ export const fetcher = async <T = any>(input: RequestInfo | URL, init?: RequestI
   };
   const tmpMethod = options?.method ?? 'get';
   const retries = tmpMethod.toLowerCase() === 'get' ? 3 : 0;
+
   for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt === retries) {
+      throw new Error('Max retries reached'); // 最大リトライ回数に達した場合のエラー
+    }
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      const res = await fetch(url, options);
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), timeOut);
+      const res = await fetch(url, { ...options, signal: controller.signal });
       return responseData(res);
     } catch (err) {
       const error = err as ApiError;
-      const isRetryStatus =
-        error.status === 408 ||
-        error.status === 429 ||
-        error.status === 500 ||
-        error.status === 502 ||
-        error.status === 503 ||
-        error.status === 504;
-      if (isRetryStatus && attempt < retries) {
-        if (attempt === retries) throw err;
-        const delay = Math.pow(2, attempt) * 400;
+      const isRetry = isRetryStatus(error.status) || error.name === 'AbortError';
+      if (isRetry) {
+        const baseDelay = Math.pow(2, attempt) * 400;
+        // NOTE: 一斉にリトライが走らないようにJitterを加える
+        const jitter = Math.random() * 100;
+        const delay = baseDelay + jitter;
         await new Promise((r) => setTimeout(r, delay));
       } else {
         console.error(error);
         throw error;
+      }
+    } finally {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
       }
     }
   }
