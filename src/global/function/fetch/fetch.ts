@@ -227,35 +227,35 @@ export const fetcher = async <T = any>(
   const tmpMethod = options?.method ?? 'get';
   const retries = tmpMethod.toLowerCase() === 'get' ? 3 : 0;
 
+  let lastError: unknown = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
-    if (attempt === retries) {
-      throw new Error('Max retries reached'); // 最大リトライ回数に達した場合のエラー
-    }
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     try {
       const controller = new AbortController();
       timeoutId = setTimeout(() => controller.abort(), timeOut);
       const res = await fetch(url, { ...options, signal: controller.signal });
-      return responseData(res);
+      const data = await responseData(res);
+      return data;
     } catch (err) {
-      const error = err as ApiError;
-      const isRetry = isRetryStatus(error.status) || error.name === 'AbortError';
-      if (isRetry) {
-        const baseDelay = Math.pow(2, attempt) * 400;
-        // NOTE: 一斉にリトライが走らないようにJitterを加える
-        const jitter = Math.random() * 100;
-        const delay = baseDelay + jitter;
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        console.error(error);
+      lastError = err;
+      const error = err as Error;
+      const isApiError = error instanceof ApiError;
+      const isRetry = (isApiError && isRetryStatus(error.status)) || error.name === 'AbortError';
+      if (attempt === retries || !isRetry) {
         throw error;
       }
+      const baseDelay = Math.pow(2, attempt) * 400;
+      // NOTE: 一斉にリトライが走らないようにJitterを加える
+      const jitter = Math.random() * 100;
+      const delay = baseDelay + jitter;
+      await new Promise((r) => setTimeout(r, delay));
     } finally {
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId);
       }
     }
   }
-  throw new Error('Unreachable');
+  // リトライ上限に達した場合は最後のエラーを投げる
+  throw lastError ?? new Error('API fetch failed after retries');
 };
