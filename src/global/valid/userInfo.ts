@@ -6,30 +6,30 @@ export const baseUserInfoSchema = z.object({
   id: z.coerce
     .string()
     .trim()
-    .min(4, { message: '4文字上のIDを入力してください' })
+    .min(4, { error: '4文字上のIDを入力してください' })
     .regex(/^[a-zA-Z0-9]+$/, {
-      message: '英大文字、英小文字、数字で入力してください',
+      error: '英大文字、英小文字、数字で入力してください',
     }),
   password: z
     .string()
     .trim()
     .min(8, {
-      message: '8文字以上のパスワードを英大文字、英小文字、数字を含めて入力してください',
+      error: '8文字以上のパスワードを英大文字、英小文字、数字を含めて入力してください',
     })
     .max(24, {
-      message: '24文字以下のパスワードを英大文字、英小文字、数字を含めて入力してください',
+      error: '24文字以下のパスワードを英大文字、英小文字、数字を含めて入力してください',
     })
     .regex(/(?=.*?[a-zA-Z])(?=.*?\d)[!-~]+/, {
-      message: '英大文字、英小文字、数字を含めて入力してください',
+      error: '英大文字、英小文字、数字を含めて入力してください',
     }),
-  passwordConfirm: z.string().min(1, { message: 'もう一度パスワードを入力してください' }),
-  islandName: z
+  passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
+  islandName: z.coerce
     .string()
     .trim()
-    .min(1, { message: '島名を入力してください' })
-    .max(16, { message: '16文字以内の島名を入力してください' })
+    .min(1, { error: '島名を入力してください' })
+    .max(16, { error: '16文字以内の島名を入力してください' })
     .regex(/[^島]$/, {
-      message: '末尾に「島」は登録できません',
+      error: '末尾に「島」は登録できません',
     }),
 });
 
@@ -37,7 +37,7 @@ export const baseSignUpUserInfoSchema = baseUserInfoSchema.refine(
   ({ password, passwordConfirm }) => password === passwordConfirm,
   {
     path: ['passwordConfirm'],
-    message: 'パスワードが一致していません。',
+    error: 'パスワードが一致していません。',
   }
 );
 
@@ -51,7 +51,7 @@ export const userInfoSchema = z.intersection(
         });
         return !data.result;
       }, 150),
-      { message: 'そのIDは使用できません。' }
+      { error: 'そのIDは使用できません。' }
     ),
     islandName: z.string().refine(
       AwesomeDebouncePromise(async (inputData) => {
@@ -60,7 +60,7 @@ export const userInfoSchema = z.intersection(
         });
         return !data.result;
       }, 150),
-      { message: '同じ島名は登録できません' }
+      { error: '同じ島名は登録できません' }
     ),
   })
 );
@@ -70,5 +70,5 @@ export const signInUserInfoSchema = baseUserInfoSchema.omit({
   islandName: true,
 });
 
-export type userInfo = z.infer<typeof baseUserInfoSchema>;
-export type signInUserInfo = z.infer<typeof signInUserInfoSchema>;
+export type userInfo = z.input<typeof userInfoSchema>;
+export type signInUserInfo = z.input<typeof signInUserInfoSchema>;

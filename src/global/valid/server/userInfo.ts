@@ -7,7 +7,7 @@ import { baseSignUpUserInfoSchema } from '../userInfo';
 export const userInfoSchema = z.intersection(
   baseSignUpUserInfoSchema,
   z.object({
-    id: z.coerce.string().refine(
+    id: z.string().refine(
       (inputData) => {
         return !existsDbDate({
           dbPath: './src/db/data/main.db',
@@ -16,7 +16,7 @@ export const userInfoSchema = z.intersection(
           data: inputData,
         });
       },
-      { message: 'そのIDは使用できません。' }
+      { error: 'そのIDは使用できません。' }
     ),
     islandName: z.string().refine(
       (inputData) => {
@@ -27,7 +27,7 @@ export const userInfoSchema = z.intersection(
           data: inputData,
         });
       },
-      { message: '同じ島名は登録できません' }
+      { error: '同じ島名は登録できません' }
     ),
   })
 );
