@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { RxDragHandleVertical } from 'react-icons/rx';
 import META_DATA from '../define/metadata';
 import { getPlanDefine, getPlanSelect } from '../define/planType';
-import { planInfoZodValid } from '../valid/planInfo';
+import { planInfoZod, planInfoZodValid } from '../valid/planInfo';
 import { RangeSliderRHF } from './RangeSliderRHF';
 import { SelectRHF } from './SelectRHF';
 
@@ -42,7 +42,7 @@ const PlanItem = ({
   const { x, y, plan, times } = item;
   const { name, immediate, otherIsland } = getPlanDefine(plan);
   const [edit, setEdit] = useState(false);
-  const { control, subscribe, reset } = useForm<Omit<planSchemaType, 'from_uuid'>>({
+  const { control, subscribe, reset } = useForm<Omit<planInfoZod, 'from_uuid'>>({
     defaultValues: item,
     resolver: zodResolver(
       planInfoZodValid.omit({
@@ -64,7 +64,8 @@ const PlanItem = ({
     const unsubscribe = subscribe({
       formState: { values: true },
       callback: ({ values }) => {
-        setItem(values);
+        const data = planInfoZodValid.omit({ from_uuid: true }).parse(values);
+        setItem(data);
       },
     });
 
