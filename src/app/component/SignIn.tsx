@@ -61,7 +61,6 @@ function SignInForm() {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    console.log(data.post);
     if (data.post?.result) router.push('/development');
   }, [data.post]);
 
