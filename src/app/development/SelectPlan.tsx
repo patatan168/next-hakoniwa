@@ -22,9 +22,9 @@ const POST_HEADER = {
 };
 
 const defaultValues = {
-  planNo: 0,
+  plan_no: 0,
   plan: 'leveling',
-  toUuid: '',
+  to_uuid: '',
   x: 0,
   y: 0,
   times: 1,
@@ -101,7 +101,7 @@ export default function SelectPlan() {
           <li>
             <label htmlFor="to_uuid">目標島</label>
             <SelectRHF
-              key={defaultValues.toUuid}
+              key={defaultValues.to_uuid}
               name="to_uuid"
               control={control}
               id="toUuid"
