@@ -5,7 +5,6 @@ import { PlanList } from '@/global/component/PlanList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
-import { sessionStore } from '@/global/store/api/auth/session';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
 import dynamic from 'next/dynamic';
@@ -25,7 +24,6 @@ export default function IslandList() {
   } = useClientFetch(developmentStore);
   const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
   const { data: fetchPlanData, fetchIfNeeded: fetchPlan } = useClientFetch(planStore);
-  const { data: uuidData, fetchIfNeeded: fetchSession } = useClientFetch(sessionStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
   const [planData, setPlanData] = useState<Array<planSchemaType>>([]);
   const [listHeight, setListHeight] = useState('100svh');
@@ -44,7 +42,6 @@ export default function IslandList() {
     fetchDev({ method: 'GET' });
     fetchTurn({ method: 'GET' });
     fetchPlan({ method: 'GET' });
-    fetchSession({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   });
 
@@ -73,7 +70,7 @@ export default function IslandList() {
           turn={turnData.get?.turn}
           planData={planData}
           setPlanData={setPlanData}
-          uuid={uuidData.get?.uuid}
+          uuid={developData.get?.uuid}
         />
       </div>
     </>
