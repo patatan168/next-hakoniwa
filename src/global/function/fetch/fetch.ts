@@ -49,9 +49,29 @@ export type FetchState<T, U> = {
   isLoading: ApiMethodType<boolean>;
   fetchedAt: ApiMethodType<number>;
   pollingIntervalId: NodeJS.Timeout | null;
+  /**
+   * APIからデータを取得する
+   * @param options Fetchのオプション
+   * @param dataOptions 追加のデータオプション
+   * @returns データの取得が成功した場合はvoid、失敗した場合はエラーをスロー
+   */
   fetch: (options: RequestInit, addOptions?: DataOptions, waitTime?: number) => Promise<void>;
+  /**
+   * 必要に応じてAPIからデータを取得する
+   * @param options Fetchのオプション
+   * @param dataOptions 追加のデータオプション
+   * @returns データの取得が成功した場合はvoid、失敗した場合はエラーをスロー
+   */
   fetchIfNeeded: (options: RequestInit, addOptions?: DataOptions) => Promise<void>;
+  /**
+   * 指定した間隔でAPIからデータを取得するポーリングを開始する
+   * @param interval ポーリングの間隔（ミリ秒）
+   * @param query クエリパラメータ
+   */
   startPolling: (interval?: number, query?: string) => void;
+  /**
+   * ポーリングを停止する
+   */
   stopPolling: () => void;
 };
 
@@ -90,20 +110,26 @@ export class FetchStore<T extends object, U = { result: boolean }> {
       pollingIntervalId: null,
       fetch: async (options, dataOptions) => {
         const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
-        const now = Date.now();
         const state = get();
+
+        // 既にローディング中の場合は何もしない
         if (state.isLoading[method]) return;
-        if (now - state.fetchedAt[method] < waitTime) return;
+
+        const now = Date.now();
+        const isWaitTime = now - state.fetchedAt[method] < waitTime;
+        const isLastGetSucceed = method === 'get' && state.error.get !== undefined;
+        // NOTE: 前回の取得が成功しており、waitTime以内の場合は何もしない
+        if (isLastGetSucceed && isWaitTime) return;
 
         const { urlOrigin = '', query, refresh = false } = dataOptions || {};
         const urlWithQuery = query ? `${urlOrigin}${url}?${query}` : `${urlOrigin}${url}`;
-
+        // ローディング開始
         set((prev) => ({
           isLoading: { ...prev.isLoading, [method]: true },
           error: { ...prev.error, [method]: undefined },
           fetchedAt: { ...prev.fetchedAt, [method]: now },
         }));
-
+        // API呼び出し
         try {
           const fetched = await fetcher<T | U>(urlWithQuery, options);
           const merged = resolveStoreData(state.data[method], fetched, refresh, mergeData[method]);
