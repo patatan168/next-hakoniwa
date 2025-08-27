@@ -270,13 +270,13 @@ const defaultPlan = (uuid: string): Array<planSchemaType & { id: number }> => {
  */
 const useEffectNormalizePlanData = (
   initItems: Array<planSchemaType & { id: number }>,
-  planData: Array<planSchemaType>,
+  planData: Array<planSchemaType> | null,
   uuid: string | undefined,
   setInitItems: (data: Array<planSchemaType & { id: number }>) => void,
   setItems: (data: Array<planSchemaType & { id: number }>) => void
 ) => {
   useEffect(() => {
-    if (uuid && isEqual(initItems, [])) {
+    if (uuid && isEqual(initItems, []) && planData !== null) {
       // NOTE: 資金繰りで埋めて計画番号順にソート
       const tmpItems = sortBy(
         uniqBy([...planData, ...defaultPlan(uuid)], (item) => item.plan_no),
@@ -303,7 +303,7 @@ const GetIslandOptions = (
 type PlanListProps = {
   style?: CSSProperties;
   islandList?: { uuid: string; island_name: string }[];
-  planData: Array<planSchemaType>;
+  planData: Array<planSchemaType> | null;
   setPlanData: (data: Array<planSchemaType>) => void;
   turn?: number;
   uuid?: string;

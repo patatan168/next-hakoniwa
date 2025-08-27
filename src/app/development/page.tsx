@@ -25,7 +25,7 @@ export default function IslandList() {
   const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
   const { data: fetchPlanData, fetchIfNeeded: fetchPlan } = useClientFetch(planStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
-  const [planData, setPlanData] = useState<Array<planSchemaType>>([]);
+  const [planData, setPlanData] = useState<Array<planSchemaType> | null>(null);
   const [listHeight, setListHeight] = useState('100svh');
   const listCallback = useCallback((node: HTMLDivElement) => {
     if (node !== null) {
