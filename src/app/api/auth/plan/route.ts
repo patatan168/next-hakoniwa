@@ -4,6 +4,7 @@ import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import { planInfoZodValid } from '@/global/valid/planInfo';
 import { NextRequest, NextResponse } from 'next/server';
+import z from 'zod';
 
 export async function OPTIONS() {
   return NextResponse.json({});
@@ -27,21 +28,54 @@ export async function POST(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   const response = new NextResponse();
   const uuid = await validAuthCookie(db.client, response, request);
+  const cloned = request.clone();
+  const requestBody = await cloned.json();
   if (uuid !== undefined) {
-    accessLogger(request).info(`Request Plan uuid=${uuid}`);
-    const { response, data } = await asyncRequestValid(
-      request,
-      planInfoZodValid.omit({
-        from_uuid: true,
-      })
-    );
-    if (data !== null) {
-      const postPlan = db.client.prepare(
-        `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
+    if (requestBody instanceof Array) {
+      accessLogger(request).info(`Request Plan uuid=${uuid}`);
+      const postDataZod = z.array(
+        planInfoZodValid.omit({
+          from_uuid: true,
+        })
       );
-      postPlan.run(uuid, data.to_uuid, data.plan_no, data.times, data.x, data.y, data.plan);
+      const { response, data } = await asyncRequestValid(request, postDataZod);
+      if (data !== null) {
+        const insertPlan = db.client.prepare(
+          `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
+        );
+        const deletePlan = db.client.prepare(`DELETE FROM plan WHERE from_uuid=?`);
+        const upsertManyPlans = db.client.transaction((plans) => {
+          // NOTE: 既存の計画を削除してから追加
+          deletePlan.run(uuid);
+          for (const plan of plans) {
+            insertPlan.run(uuid, plan.to_uuid, plan.plan_no, plan.times, plan.x, plan.y, plan.plan);
+          }
+        });
+        upsertManyPlans(data);
+      }
+      return response;
+    } else {
+      accessLogger(request).info(`Request Plan uuid=${uuid}`);
+      const { response, data } = await asyncRequestValid(
+        request,
+        planInfoZodValid.omit({
+          from_uuid: true,
+        })
+      );
+      if (data !== null) {
+        const insertPlan = db.client.prepare(
+          `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
+        );
+        const deletePlan = db.client.prepare(`DELETE FROM plan WHERE from_uuid=? AND plan_no=?`);
+        const upsertPlan = db.client.transaction((plan) => {
+          // NOTE: 既存の計画を削除してから追加
+          deletePlan.run(uuid, plan.plan_no);
+          insertPlan.run(uuid, plan.to_uuid, plan.plan_no, plan.times, plan.x, plan.y, plan.plan);
+        });
+        upsertPlan(data);
+      }
+      return response;
     }
-    return response;
   } else {
     accessLogger(request).warn('Unauthorized Plan');
     return NextResponse.json(
