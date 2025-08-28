@@ -40,7 +40,7 @@ const PlanItem = ({
 }: planItemProps) => {
   const prevItemRef = useRef(item);
   const { x, y, plan, times } = item;
-  const { name, immediate, otherIsland } = getPlanDefine(plan);
+  const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
   const [edit, setEdit] = useState(false);
   const { control, subscribe, reset } = useForm<Omit<planInfoZod, 'from_uuid'>>({
     defaultValues: item,
@@ -170,7 +170,7 @@ const PlanItem = ({
                     name="times"
                     control={control}
                     min={1}
-                    max={99}
+                    max={maxTimes}
                     isBottomSpace={false}
                   />
                 </div>
