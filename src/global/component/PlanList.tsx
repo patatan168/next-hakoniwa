@@ -269,24 +269,33 @@ const defaultPlan = (uuid: string): Array<planSchemaType & { id: number }> => {
  * @param setItems アイテムを設定する関数
  */
 const useEffectNormalizePlanData = (
-  initItems: Array<planSchemaType & { id: number }>,
+  isPlanLoading: boolean,
   planData: Array<planSchemaType> | null,
   uuid: string | undefined,
   setInitItems: (data: Array<planSchemaType & { id: number }>) => void,
   setItems: (data: Array<planSchemaType & { id: number }>) => void
 ) => {
+  const prevIsActive = useRef(isPlanLoading);
+  const isRefresh = prevIsActive.current && !isPlanLoading;
   useEffect(() => {
-    if (uuid && isEqual(initItems, []) && planData !== null) {
-      // NOTE: 資金繰りで埋めて計画番号順にソート
-      const tmpItems = sortBy(
-        uniqBy([...planData, ...defaultPlan(uuid)], (item) => item.plan_no),
-        ['plan_no']
-      ).map((item) => ({ ...item, id: item.plan_no }));
+    if (isRefresh) {
+      // NOTE: UUIDが存在し、かつ計画データがnullでない場合に処理を実行
+      if (uuid && planData !== null) {
+        // 資金繰りで埋めて計画番号順にソート
+        const tmpItems = sortBy(
+          uniqBy([...planData, ...defaultPlan(uuid)], (item) => item.plan_no),
+          ['plan_no']
+        ).map((item) => ({ ...item, id: item.plan_no }));
 
-      setInitItems(tmpItems);
-      setItems(tmpItems);
+        setInitItems(tmpItems);
+        setItems(tmpItems);
+        // NOTE: 初期化するまでRefreshを維持している
+        prevIsActive.current = isPlanLoading;
+      }
+    } else {
+      prevIsActive.current = isPlanLoading;
     }
-  }, [planData, uuid]);
+  }, [planData, uuid, isPlanLoading]);
 };
 
 const GetIslandOptions = (
@@ -303,6 +312,7 @@ const GetIslandOptions = (
 type PlanListProps = {
   style?: CSSProperties;
   islandList?: { uuid: string; island_name: string }[];
+  isPlanLoading: boolean;
   planData: Array<planSchemaType> | null;
   setPlanData: (data: Array<planSchemaType>) => void;
   turn?: number;
@@ -310,13 +320,21 @@ type PlanListProps = {
 };
 
 export const PlanList = memo(
-  function PlanList({ style, islandList, planData, setPlanData, turn = 0, uuid }: PlanListProps) {
+  function PlanList({
+    style,
+    islandList,
+    isPlanLoading,
+    planData,
+    setPlanData,
+    turn = 0,
+    uuid,
+  }: PlanListProps) {
     const [initItems, setInitItems] = useState<Array<planSchemaType & { id: number }>>([]);
     const [items, setItems] = useState<Array<planSchemaType & { id: number }>>(initItems);
     const isChange = useMemo(() => !isEqual(initItems, items), [initItems, items]);
     const islandOptions = GetIslandOptions(islandList);
 
-    useEffectNormalizePlanData(initItems, planData, uuid, setInitItems, setItems);
+    useEffectNormalizePlanData(isPlanLoading, planData, uuid, setInitItems, setItems);
 
     useEffect(() => {
       if (isChange) {
