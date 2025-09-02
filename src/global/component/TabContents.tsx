@@ -28,7 +28,8 @@ export default memo(
         style={style}
         className="flex flex-wrap border-b border-gray-200 text-center font-semibold text-gray-500"
       >
-        {tabContents.map(({ value: tabVal, label, disabled }) => {
+        {tabContents.map((tab: TabType) => {
+          const { value: tabVal, label, disabled } = tab;
           const tabStyle = tabVal === value ? selected : defStyle;
           return (
             <li key={`${label}-${tabVal}`}>
