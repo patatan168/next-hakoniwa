@@ -1,19 +1,15 @@
 'use client';
 import { planSchemaType } from '@/db/schema/planTable';
 import Button from '@/global/component/Button';
-import { Card } from '@/global/component/Card';
+import HakoniwaMap from '@/global/component/HakoniwaMap';
 import { PlanList } from '@/global/component/PlanList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
-import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
-
-const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), {
-  ssr: true,
-});
 
 const POST_HEADER = {
   method: 'POST',
@@ -37,13 +33,19 @@ export default function IslandList() {
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
   const [planData, setPlanData] = useState<Array<planSchemaType> | null>(null);
   const [listHeight, setListHeight] = useState('100svh');
+  const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
+  const [width, height] = useWindowSize();
   const { fetch: trigger } = useClientFetch(planStore);
-  const listCallback = useCallback((node: HTMLDivElement) => {
-    if (node !== null) {
-      const { y } = node.getBoundingClientRect();
-      setListHeight(`calc(100svh - ${y}px)`);
-    }
-  }, []);
+  const listCallback = useCallback(
+    (node: HTMLDivElement) => {
+      if (node !== null) {
+        const { x, y } = node.getBoundingClientRect();
+        setListHeight(`calc(${height} - ${y}px)`);
+        setMapSize(`min(${width} - ${x}px, ${height - 300}px)`);
+      }
+    },
+    [width, height]
+  );
 
   useEffect(() => {
     if (fetchPlanData.get) setPlanData(fetchPlanData.get);
@@ -58,44 +60,33 @@ export default function IslandList() {
 
   return (
     <>
-      <div ref={listCallback} className="flex">
-        <Card
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'start',
-            alignItems: 'center',
-            width: 'fit-content',
-          }}
-        >
-          <HakoniwaMap
-            isLoading={isLoading.get}
-            islandName={developData.get?.island_name}
-            data={developData.get?.island_info}
+      <div className="grid grid-cols-2 gap-4">
+        <HakoniwaMap
+          style={{ width: mapSize, height: mapSize }}
+          isLoading={isLoading.get}
+          islandName={developData.get?.island_name}
+          data={developData.get?.island_info}
+        />
+        <div>
+          <Button
+            type="submit"
+            onClick={() => trigger({ ...POST_HEADER, body: JSON.stringify(planData) })}
+            disabled={!planData || planData.length === 0 || isLoading.get}
+          >
+            計画送信
+          </Button>
+          <PlanList
+            className="overflow-y-auto"
+            ref={listCallback}
+            style={{ height: listHeight }}
+            islandList={islandList.get}
+            turn={turnData.get?.turn}
+            isPlanLoading={isPlanLoading.get}
+            planData={planData}
+            setPlanData={setPlanData}
+            uuid={developData.get?.uuid}
           />
-        </Card>
-        <ul>
-          <li>
-            <Button
-              type="submit"
-              onClick={() => trigger({ ...POST_HEADER, body: JSON.stringify(planData) })}
-              disabled={!planData || planData.length === 0 || isLoading.get}
-            >
-              計画送信
-            </Button>
-          </li>
-          <li>
-            <PlanList
-              style={{ height: listHeight }}
-              islandList={islandList.get}
-              turn={turnData.get?.turn}
-              isPlanLoading={isPlanLoading.get}
-              planData={planData}
-              setPlanData={setPlanData}
-              uuid={developData.get?.uuid}
-            />
-          </li>
-        </ul>
+        </div>
       </div>
     </>
   );

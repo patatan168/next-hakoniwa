@@ -36,7 +36,7 @@ const Tips = memo(
       <span
         className={`absolute ${positionStyle} flex flex-col items-center whitespace-nowrap group-hover:flex`}
       >
-        <span className="whitespace-no-wrap relative z-10 rounded-md bg-gray-600/85 p-2 text-sm leading-none text-white shadow-lg">
+        <span className="whitespace-no-wrap md:text-md relative z-10 rounded-md bg-gray-600/85 p-2 leading-none text-white shadow-lg sm:text-sm lg:text-lg xl:text-xl 2xl:text-2xl">
           {children}
         </span>
       </span>

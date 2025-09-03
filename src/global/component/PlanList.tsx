@@ -310,6 +310,8 @@ const GetIslandOptions = (
   }, [data]);
 
 type PlanListProps = {
+  ref?: Ref<HTMLDivElement>;
+  className?: string;
   style?: CSSProperties;
   islandList?: { uuid: string; island_name: string }[];
   isPlanLoading: boolean;
@@ -321,6 +323,8 @@ type PlanListProps = {
 
 export const PlanList = memo(
   function PlanList({
+    ref,
+    className,
     style,
     islandList,
     isPlanLoading,
@@ -364,7 +368,7 @@ export const PlanList = memo(
     };
 
     return (
-      <div style={style}>
+      <div ref={ref} className={className} style={style}>
         <DndContext
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}

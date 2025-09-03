@@ -118,6 +118,7 @@ const ulStyle = (propsStyle: CSSProperties | undefined) => {
     gap: 0,
   };
   const uiStyle = { ...propsStyle, ...baseStyle };
+  console.warn(uiStyle);
 
   return uiStyle;
 };
@@ -137,17 +138,15 @@ export default memo(
   function HakoniwaMap({ style, className, isLoading, islandName, data }: HakoniwaMapProps) {
     /* 座標表示用のデータを用意する[0,..,X] */
     const coordinate = Array.from({ length: META.MAP_SIZE }, (_, i) => i);
-    const [measured, setMeasured] = useState(false);
     const [mapWidth, setMapWidth] = useState<number>(baseMapPixel);
     const [mapHeight, setMapHeight] = useState<number>(baseMapPixel);
 
     const ulCallback = (node: HTMLUListElement) => {
-      if (node !== null && !measured) {
+      if (node !== null) {
         const { width, height } = node.getBoundingClientRect();
-        setMapWidth(Math.ceil(width / (META.MAP_SIZE + 1)));
-        setMapHeight(Math.ceil(height / (META.MAP_SIZE + 0.5)));
-        // NOTE: 再計算を防ぐ
-        setMeasured(true);
+        const size = Math.min(width, height);
+        setMapWidth(Math.ceil(size / (META.MAP_SIZE + 1)));
+        setMapHeight(Math.ceil(size / (META.MAP_SIZE + 1)));
       }
     };
 
