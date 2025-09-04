@@ -2,6 +2,7 @@
 import TabContents, { TabType } from '@/global/component/TabContents';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { useWindowSize } from '@/global/function/useWindowSize';
 import { userStore } from '@/global/store/api/auth/user';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -22,12 +23,16 @@ export default function IslandList() {
   const [tab, setTab] = useState(0);
   const { data, isLoading, fetch } = useClientFetch(userStore);
   const [listHeight, setListHeight] = useState('100svh');
-  const listCallback = useCallback((node: HTMLDivElement) => {
-    if (node !== null) {
-      const { y } = node.getBoundingClientRect();
-      setListHeight(`calc(100svh - ${y}px)`);
-    }
-  }, []);
+  const [, height] = useWindowSize();
+  const listCallback = useCallback(
+    (node: HTMLDivElement) => {
+      if (node !== null) {
+        const { y } = node.getBoundingClientRect();
+        setListHeight(`${height - y}px`);
+      }
+    },
+    [height]
+  );
 
   const handleChange = (newValue: number) => {
     setTab(newValue);

@@ -117,10 +117,9 @@ const ulStyle = (propsStyle: CSSProperties | undefined) => {
     gridTemplateRows: `repeat(${2 * (META.MAP_SIZE + 1)}, min-content)`,
     gap: 0,
   };
-  const uiStyle = { ...propsStyle, ...baseStyle };
-  console.warn(uiStyle);
+  const ulStyle = { ...propsStyle, ...baseStyle };
 
-  return uiStyle;
+  return ulStyle;
 };
 
 type HakoniwaMapProps = {

@@ -40,8 +40,8 @@ export default function IslandList() {
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { x, y } = node.getBoundingClientRect();
-        setListHeight(`calc(${height} - ${y}px)`);
-        setMapSize(`min(${width} - ${x}px, ${height - 300}px)`);
+        setListHeight(`${height - y}px`);
+        setMapSize(`min(${width - x}px, ${height}px)`);
       }
     },
     [width, height]
@@ -60,7 +60,7 @@ export default function IslandList() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-x-4" style={{ gridTemplateColumns: 'auto 1fr' }}>
         <HakoniwaMap
           style={{ width: mapSize, height: mapSize }}
           isLoading={isLoading.get}
