@@ -14,6 +14,11 @@ const planTest: Array<planSchemaType> = [
   { from_uuid: 'test', to_uuid: 'test', plan_no: 4, times: 0, x: 0, y: 0, plan: 'test4' },
 ];
 
+const islandList = [
+  { uuid: 'test', island_name: 'test島' },
+  { uuid: 'test2', island_name: 'test2島' },
+];
+
 const meta = {
   title: 'Global/PlanList',
   component: PlanList,
@@ -32,6 +37,8 @@ const meta = {
     setPlanData: fn(),
     turn: 0,
     uuid: 'test',
+    islandList: islandList,
+    isPlanLoading: false,
   },
   argTypes: {
     planData: {
@@ -39,6 +46,28 @@ const meta = {
       type: { name: 'other', value: '', required: true },
       table: {
         type: { summary: 'Array<planSchemaType>' },
+      },
+    },
+    setPlanData: {
+      description: '計画リストを更新する関数',
+      type: { name: 'other', value: '', required: true },
+    },
+    uuid: {
+      description: '島のUUID',
+      type: { name: 'string', required: true },
+    },
+    islandList: {
+      description: '島のリスト',
+      type: { name: 'other', value: '', required: true },
+      table: {
+        type: { summary: 'Array<{uuid:string,island_name:string}>' },
+      },
+    },
+    isPlanLoading: {
+      description: '計画がロード中かどうか',
+      control: 'boolean',
+      table: {
+        type: { summary: 'undefined|boolean' },
       },
     },
     turn: {
