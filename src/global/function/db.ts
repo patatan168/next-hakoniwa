@@ -124,8 +124,8 @@ export const existsDbDate = ({
   using db = dbConn(dbPath);
   const dbData = parseDbData(data);
   const countData = db.client
-    .prepare(`SELECT COUNT(*) FROM ${table} WHERE ${key} = ${dbData}`)
-    .get() as { 'COUNT(*)': unknown };
+    .prepare(`SELECT COUNT(*) FROM ${table} WHERE ${key} = ?`)
+    .get(dbData) as { 'COUNT(*)': unknown };
   if (typeof countData['COUNT(*)'] === 'number') {
     return countData['COUNT(*)'] > 0;
   } else {
