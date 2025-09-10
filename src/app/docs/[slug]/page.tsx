@@ -5,7 +5,7 @@ import path from 'path';
 import DocPageCsr from '../DocPageCsr';
 import remarkMermaidAuto from '../remarkMermaidAuto';
 
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({ params }: PageProps<'/docs/[slug]'>) {
   if (process.env.NODE_ENV === 'production') {
     notFound();
   }
