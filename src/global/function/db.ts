@@ -83,7 +83,7 @@ export const createDbTable =
       const nullableKey = nullable ? '' : ' NOT NULL';
       const primaryKey = primary ? ' PRIMARY KEY' : '';
       const uniqueKey = unique ? ' UNIQUE' : '';
-      const defaultKey = defVal !== undefined ? ` DEFAULT ${defVal}` : '';
+      const defaultKey = defVal !== undefined ? ` DEFAULT (${defVal})` : '';
       const checkKey = check !== undefined ? ` CHECK (${check})` : '';
       const foreignKey =
         foreign !== undefined ? ` REFERENCES ${foreign.table}(${foreign.name})` : '';
