@@ -84,7 +84,7 @@ export const createDbTable =
       const primaryKey = primary ? ' PRIMARY KEY' : '';
       const uniqueKey = unique ? ' UNIQUE' : '';
       const defaultKey = defVal !== undefined ? ` DEFAULT ${defVal}` : '';
-      const checkKey = check !== undefined ? ` CHECK (${defVal})` : '';
+      const checkKey = check !== undefined ? ` CHECK (${check})` : '';
       const foreignKey =
         foreign !== undefined ? ` REFERENCES ${foreign.table}(${foreign.name})` : '';
 
@@ -99,7 +99,6 @@ export const createDbTable =
     column = column.trim().slice(0, -1);
 
     if (isForeign) db.pragma('foreign_keys = ON');
-
     db.prepare(`${createTable}(${column})`).run();
   };
 
