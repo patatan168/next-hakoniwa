@@ -35,6 +35,8 @@ type DbColumn = {
   check?: string;
   /** 外部キー(リレーション) */
   foreign?: DbForeign;
+  /** トリガー */
+  trigger?: string;
 };
 
 /** データベースのスキーマ */
@@ -78,7 +80,7 @@ export const createDbTable =
     let isForeign = false;
 
     let column = '';
-    schema.forEach(({ name, type, nullable, primary, unique, defVal, check, foreign }) => {
+    schema.forEach(({ name, type, nullable, primary, unique, defVal, check, foreign, trigger }) => {
       // NOTE: 安全のためにdefaultではnullを許容しない
       const nullableKey = nullable ? '' : ' NOT NULL';
       const primaryKey = primary ? ' PRIMARY KEY' : '';
@@ -94,6 +96,9 @@ export const createDbTable =
       column =
         column +
         `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${foreignKey}, `;
+      if (trigger !== undefined) {
+        db.exec(trigger);
+      }
     });
     // 末尾の空白とカンマをトリム
     column = column.trim().slice(0, -1);
@@ -130,6 +135,20 @@ export const existsDbDate = ({
   } else {
     throw new Error('Exception Error.');
   }
+};
+
+/**
+ * トリガーを全て削除してから再作成する
+ * @param db データベース
+ */
+export const triggerReset = (db: sqlite.Database) => {
+  const triggers = db
+    .prepare(`SELECT name, sql FROM sqlite_master WHERE type='trigger'`)
+    .all() as Array<{ name: string; sql: string }>;
+  triggers.forEach(({ name, sql }) => {
+    db.prepare(`DROP TRIGGER IF EXISTS ${name}`).run();
+    db.prepare(sql).run();
+  });
 };
 
 /**

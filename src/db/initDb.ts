@@ -1,4 +1,4 @@
-import { createDbTable, dbConn } from '@/global/function/db';
+import { createDbTable, dbConn, triggerReset } from '@/global/function/db';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { planSchema } from './schema/planTable';
@@ -9,6 +9,8 @@ import { userSchema } from './schema/userTable';
 
 using db = dbConn('./src/db/data/main.db');
 const createTable = createDbTable(db.client);
+// トリガーを一旦全て削除してから再作成
+triggerReset(db.client);
 // userテーブル作成
 createTable('user', userSchema);
 // islandテーブル作成

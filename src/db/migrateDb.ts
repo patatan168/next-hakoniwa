@@ -2,7 +2,7 @@
  * @brief データベースの移行機能
  * @note userテーブルは外部キーに使用されているので移行しない
  */
-import { dbConn, migrateDbTable } from '@/global/function/db';
+import { dbConn, migrateDbTable, triggerReset } from '@/global/function/db';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { planSchema } from './schema/planTable';
@@ -12,6 +12,8 @@ import { turnStateSchema } from './schema/turnStateTable';
 
 using db = dbConn('./src/db/data/main.db');
 const migrateTable = migrateDbTable(db.client);
+// トリガーを一旦全て削除してから再作成
+triggerReset(db.client);
 // islandテーブルを移行
 migrateTable('island', islandSchema);
 // turn_logテーブルを移行
