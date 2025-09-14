@@ -1,4 +1,5 @@
 import { mapArrayConverter, wideDamage } from '@/global/function/island';
+import { getBaseLog } from '@/global/function/turnProgress';
 import { logSelfCrash } from '../logType';
 import { mapType } from '../mapType';
 
@@ -36,7 +37,7 @@ export const defenseBase: mapType = {
   event: function ({ x, y, turn, fromIsland }) {
     const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
     if (mapInfo.landValue < this.maxVal) {
-      const baseLog = { to_uuid: fromIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
+      const baseLog = getBaseLog(turn, fromIsland);
       const selfCrash = logSelfCrash(fromIsland, x, y);
       const selfCrashLog = { ...baseLog, log: selfCrash, secret_log: selfCrash };
       const damageLog = wideDamage(fromIsland, x, y, turn);

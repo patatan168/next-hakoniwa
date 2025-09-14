@@ -1,5 +1,5 @@
-import { sha256Gen } from '@/global/function/auth';
 import { existsDbDate } from '@/global/function/db';
+import { sha256Gen } from '@/global/function/encrypt';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {

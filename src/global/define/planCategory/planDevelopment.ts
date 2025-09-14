@@ -1,4 +1,5 @@
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
+import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
 import { logCommonDev, logLackCosts, logNoLandAround } from '../logType';
 import { getMapDefine } from '../mapType';
@@ -39,13 +40,13 @@ export const leveling: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
     changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
     // 費用の支払い
     toIsland.money -= this.cost;
     // 埋蔵金をもらえるかどうか
     const { buried_treasure } = eventRate;
     const isTreasure = checkProbability(buried_treasure);
+    const baseLog = () => getBaseLog(turn, toIsland);
     if (isTreasure) {
       // 100~1000億円のお金を手に入れる
       const getMoney = 100 + Math.trunc(Math.random() * 901);
@@ -58,8 +59,8 @@ export const leveling: planType = {
       return {
         nextPlan: this.immediate,
         log: [
-          { ...baseLog, secret_log: log, log: log },
-          { ...baseLog, secret_log: logTreasure, log: logTreasure },
+          { ...baseLog(), secret_log: log, log: log },
+          { ...baseLog(), secret_log: logTreasure, log: logTreasure },
         ],
       };
     } else {
@@ -67,7 +68,10 @@ export const leveling: planType = {
       // 計画回数のデクリメント
       plan.times--;
 
-      return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+      return {
+        nextPlan: this.immediate,
+        log: [{ ...baseLog(), secret_log: log, log: log }],
+      };
     }
   },
 };
@@ -105,7 +109,7 @@ export const immediateLeveling: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
     // 地震発生率を加算する
     eventRate.earthquake += 0.1;
@@ -143,7 +147,7 @@ export const landfill: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 周囲に陸地があるか
     let isLandAround = true;
@@ -212,7 +216,7 @@ export const immediateLandfill: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 周囲に陸地があるか
     let isLandAround = true;
@@ -278,7 +282,7 @@ export const drilling: planType = {
       return validConstAndLand;
     }
 
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = () => getBaseLog(turn, toIsland);
     const arrayNum = mapArrayConverter(plan.x, plan.y);
     // 島情報
     const island_info = toIsland.island_info[arrayNum];
@@ -286,7 +290,7 @@ export const drilling: planType = {
     const baseLand = getMapDefine(island_info.type).baseLand;
     // ログ
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
-    const result = [{ ...baseLog, secret_log: log, log: log }];
+    const result = [{ ...baseLog(), secret_log: log, log: log }];
 
     // 海を採掘した回数
     let seaDrillingCount = 0;
@@ -336,7 +340,7 @@ export const drilling: planType = {
         // 海まで掘削できなかったら資金不足のログを追加する
         if (type !== 'sea') {
           const log = logLackCosts(toIsland, this);
-          result.push({ ...baseLog, secret_log: log, log: log });
+          result.push({ ...baseLog(), secret_log: log, log: log });
         }
         break;
       }
@@ -347,7 +351,7 @@ export const drilling: planType = {
         ? '、油田が掘り当てられました。'
         : 'ましたが、油田は見つかりませんでした。';
       const drillingLog = `${toIsland.island_name}島(${plan.x}, ${plan.y})で${this.cost * seaDrillingCount}の予算をつぎ込んだ掘削が行われ${seaDrillingLog}`;
-      result.push({ ...baseLog, secret_log: drillingLog, log: drillingLog });
+      result.push({ ...baseLog(), secret_log: drillingLog, log: drillingLog });
     }
     // 計画回数の初期化
     plan.times = 0;
@@ -380,7 +384,7 @@ export const immediateDrilling: planType = {
       return validConstAndLand;
     }
 
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = () => getBaseLog(turn, toIsland);
     const arrayNum = mapArrayConverter(plan.x, plan.y);
     // 島情報
     const island_info = toIsland.island_info[arrayNum];
@@ -388,7 +392,7 @@ export const immediateDrilling: planType = {
     const baseLand = getMapDefine(island_info.type).baseLand;
     // ログ
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
-    const result = [{ ...baseLog, secret_log: log, log: log }];
+    const result = [{ ...baseLog(), secret_log: log, log: log }];
 
     // 海を採掘した回数
     let seaDrillingCount = 0;
@@ -437,7 +441,7 @@ export const immediateDrilling: planType = {
         // 海まで掘削できなかったら資金不足のログを追加する
         if (type !== 'sea') {
           const log = logLackCosts(toIsland, this);
-          result.push({ ...baseLog, secret_log: log, log: log });
+          result.push({ ...baseLog(), secret_log: log, log: log });
         }
         break;
       }
@@ -448,7 +452,7 @@ export const immediateDrilling: planType = {
         ? '、油田が掘り当てられました。'
         : 'ましたが、油田は見つかりませんでした。';
       const drillingLog = `${toIsland.island_name}島(${plan.x}, ${plan.y})で${this.cost * seaDrillingCount}の予算をつぎ込んだ掘削が行われ${seaDrillingLog}`;
-      result.push({ ...baseLog, secret_log: drillingLog, log: drillingLog });
+      result.push({ ...baseLog(), secret_log: drillingLog, log: drillingLog });
     }
     // 計画回数の初期化
     plan.times = 0;
@@ -486,7 +490,7 @@ export const logging: planType = {
     // マップの変更
     changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     // 計画回数のデクリメント
     plan.times--;
@@ -525,7 +529,7 @@ export const immediateLogging: planType = {
     // マップの変更
     changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     // 計画回数の初期化
     plan.times = 0;

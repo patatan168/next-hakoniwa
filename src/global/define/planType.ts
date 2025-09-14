@@ -8,6 +8,7 @@ import { islandInfo, islandInfoTurnProgress, islandSchemaType } from '@/db/schem
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { mapArrayConverter } from '../function/island';
+import { getBaseLog } from '../function/turnProgress';
 import { logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
 import META_DATA from './metadata';
@@ -210,7 +211,7 @@ export const validCostAndLandType = (
   y: number,
   turn: number
 ): planResult => {
-  const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+  const baseLog = getBaseLog(turn, island);
   // 地形整備が不可能なら中止
   if (!validLandType(island, plan, x, y)) {
     const log = logLandFail(island, plan, x, y);

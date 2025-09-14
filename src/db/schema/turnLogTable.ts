@@ -2,6 +2,11 @@ import { DbSchema } from '@/global/function/db';
 
 export const turnLogSchema: DbSchema = [
   {
+    name: 'log_uuid',
+    type: 'string',
+    primary: true,
+  },
+  {
     name: 'from_uuid',
     type: 'TEXT',
     foreign: { table: 'user', name: 'uuid' },
@@ -26,6 +31,7 @@ export const turnLogSchema: DbSchema = [
 ];
 
 export type turnLogSchemaType = {
+  log_uuid: string;
   from_uuid: string;
   to_uuid: string;
   turn: number;

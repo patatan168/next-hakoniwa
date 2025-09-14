@@ -1,13 +1,8 @@
 import { asyncRequestValid } from '@/global/function/api';
-import {
-  argon2Gen,
-  createJwtToken,
-  createUuid25,
-  setAuthCookie,
-  sha256Gen,
-} from '@/global/function/auth';
+import { createJwtToken, setAuthCookie } from '@/global/function/auth';
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
+import { argon2Gen, createUuid25, sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { userInfoSchema } from '@/global/valid/server/userInfo';
 import sqlite from 'better-sqlite3';

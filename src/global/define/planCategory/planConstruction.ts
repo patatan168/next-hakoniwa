@@ -1,4 +1,5 @@
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
+import { getBaseLog } from '@/global/function/turnProgress';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
@@ -27,7 +28,7 @@ export const afforest: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const { defVal } = getMapDefine('forest');
     changeMapData(toIsland, plan.x, plan.y, 'forest', { type: 'ins', value: defVal });
     // 費用の支払い
@@ -65,7 +66,7 @@ export const immediateAfforest: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const { defVal } = getMapDefine('forest');
     changeMapData(toIsland, plan.x, plan.y, 'forest', { type: 'ins', value: defVal });
     // 費用の支払い
@@ -128,7 +129,7 @@ export const farmDev: planType = {
       }
     }
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     // 計画回数のデクリメント
     plan.times--;
@@ -161,7 +162,7 @@ export const immediateFarmDev: planType = {
     }
 
     // マップの変更
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     // 開発回数
     let devCount = 0;
@@ -252,7 +253,7 @@ export const factoryDev: planType = {
       }
     }
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     // 計画回数のデクリメント
     plan.times--;
@@ -316,7 +317,7 @@ export const immediateFactoryDev: planType = {
       if (!hasSufficientCosts(toIsland, this)) break;
     }
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logAnyTimesDev(toIsland, this, plan.x, plan.y, devCount);
     // 計画回数の初期化
     plan.times = 0;
@@ -376,7 +377,7 @@ export const miningDev: planType = {
       }
     }
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     // 計画回数のデクリメント
     plan.times--;
@@ -440,7 +441,7 @@ export const immediateMiningDev: planType = {
       if (!hasSufficientCosts(toIsland, this)) break;
     }
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logAnyTimesDev(toIsland, this, plan.x, plan.y, devCount);
     // 計画回数の初期化
     plan.times = 0;
@@ -482,7 +483,7 @@ export const missileDev: planType = {
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
     // 計画回数のデクリメント
@@ -521,7 +522,7 @@ export const immediateMissileDev: planType = {
     // 費用の支払い
     toIsland.money -= this.cost;
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const forest = logForest(toIsland);
     // 計画回数の初期化
@@ -561,7 +562,7 @@ export const defenseBaseDev: planType = {
       case 'defense_base': {
         // 自爆セット
         changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: -1 });
-        const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+        const baseLog = getBaseLog(turn, toIsland);
         const log = logSetSelfCrash(toIsland, this, plan.x, plan.y);
         // 計画回数のデクリメント
         plan.times--;
@@ -574,7 +575,7 @@ export const defenseBaseDev: planType = {
         // 費用の支払い
         toIsland.money -= this.cost;
         // ログ出力
-        const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+        const baseLog = getBaseLog(turn, toIsland);
         const log = logCommonDev(toIsland, this, plan.x, plan.y);
         const forest = logForest(toIsland);
         // 計画回数のデクリメント
@@ -615,7 +616,7 @@ export const immediateDefenseBaseDev: planType = {
       case 'defense_base': {
         // 自爆セット
         changeMapData(toIsland, plan.x, plan.y, 'defense_base', { type: 'ins', value: -1 });
-        const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+        const baseLog = getBaseLog(turn, toIsland);
         const log = logSetSelfCrash(toIsland, this, plan.x, plan.y);
         // 計画回数の初期化
         plan.times = 0;
@@ -629,7 +630,7 @@ export const immediateDefenseBaseDev: planType = {
         // 費用の支払い
         toIsland.money -= this.cost;
         // ログ出力
-        const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+        const baseLog = getBaseLog(turn, toIsland);
         const log = logCommonDev(toIsland, this, plan.x, plan.y);
         const forest = logForest(toIsland);
         // 計画回数の初期化
@@ -670,7 +671,7 @@ export const submarineMissileDev: planType = {
     const { defVal } = getMapDefine('submarine_missile');
     changeMapData(toIsland, plan.x, plan.y, 'submarine_missile', { type: 'ins', value: defVal });
     // ログ出力
-    const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, toIsland);
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
     const secretLog = logCommonDev(toIsland, this, plan.x, plan.y, true);
     // 計画回数のデクリメント

@@ -3,6 +3,7 @@ import {
   islandData,
   islandInfo,
   islandInfoTurnProgress,
+  islandSchemaType,
   parseJsonIslandDataTurnProgress,
 } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
@@ -35,6 +36,7 @@ import * as mapMonster from '../define/mapCategory/mapMonster';
 import { people } from '../define/mapCategory/mapOther';
 import { getMapDefine, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
+import { createUuid25 } from './encrypt';
 import {
   changeMapData,
   countBaseLandAround,
@@ -198,7 +200,7 @@ export const insertLogs = (
   logData: turnLogSchemaType[]
 ) => {
   const insert = db.client.prepare(
-    'INSERT INTO turn_log (from_uuid, to_uuid, turn, secret_log, log) VALUES (@from_uuid, @to_uuid, @turn, @secret_log, @log)'
+    'INSERT INTO turn_log (log_uuid, from_uuid, to_uuid, turn, secret_log, log) VALUES (@log_uuid, @from_uuid, @to_uuid, @turn, @secret_log, @log)'
   );
 
   const insertManyLogs = db.client.transaction((logs) => {
@@ -239,6 +241,23 @@ export const insertDeletePlan = (
 };
 
 /**
+ * 基本ログ情報の取得
+ * @note uuidの重複を防ぐため、ログごとにUUIDを生成すること
+ * @param turn ターン数
+ * @param fromIsland 送信元島情報
+ * @param toIsland 送信先島情報
+ * @returns 基本ログ情報
+ */
+export const getBaseLog = (
+  turn: number,
+  fromIsland: islandSchemaType,
+  toIsland: islandSchemaType = fromIsland
+) => {
+  const log_uuid = createUuid25();
+  return { log_uuid: log_uuid, to_uuid: toIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
+};
+
+/**
  * 地震で破壊されるマップの判定
  * @param islandInfo 島情報
  * @returns 地震で破壊されるマップかどうか
@@ -265,7 +284,7 @@ export const earthquakeExecute = (
   turn: number
 ) => {
   if (checkProbability(eventRate.earthquake)) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, island);
     const earthquakeLog = logEarthquake(island);
     const earthquakeLogs: turnLogSchemaType[] = [
       { ...baseLog, log: earthquakeLog, secret_log: earthquakeLog },
@@ -309,16 +328,16 @@ const isLackFoodsDamageMap = (islandInfo: islandInfo) => {
  */
 export const lackFoodsExecute = (island: islandInfoTurnProgress, turn: number) => {
   if (island.food <= 0) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
     const lackFoodsLog = logLackFoods(island);
+    const baseLog = () => getBaseLog(turn, island);
     const lackFoodsLogs: turnLogSchemaType[] = [
-      { ...baseLog, log: lackFoodsLog, secret_log: lackFoodsLog },
+      { ...baseLog(), log: lackFoodsLog, secret_log: lackFoodsLog },
     ];
     for (const islandInfo of island.island_info) {
       if (isLackFoodsDamageMap(islandInfo)) {
         if (checkProbability(META_DATA.LACK_FOOD_DESTROY_RATE)) {
           const log = logLackFoodsDamage(island, islandInfo.x, islandInfo.y);
-          lackFoodsLogs.push({ ...baseLog, log: log, secret_log: log });
+          lackFoodsLogs.push({ ...baseLog(), log: log, secret_log: log });
           changeMapData(island, islandInfo.x, islandInfo.y, 'wasteland', { type: 'ins', value: 0 });
         }
       }
@@ -374,16 +393,16 @@ export const tsunamiExecute = (
   turn: number
 ) => {
   if (checkProbability(eventRate.tsunami)) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+    const baseLog = () => getBaseLog(turn, island);
     const tsunamiLog = logTsunami(island);
     const tsunamiLogs: turnLogSchemaType[] = [
-      { ...baseLog, log: tsunamiLog, secret_log: tsunamiLog },
+      { ...baseLog(), log: tsunamiLog, secret_log: tsunamiLog },
     ];
     for (const islandInfo of island.island_info) {
       if (isTsunamiDamageMap(islandInfo)) {
         if (tsunamiDestroyRate(island.island_info, islandInfo.x, islandInfo.y)) {
           const log = logTsunamiDamage(island, islandInfo.x, islandInfo.y);
-          tsunamiLogs.push({ ...baseLog, log: log, secret_log: log });
+          tsunamiLogs.push({ ...baseLog(), log: log, secret_log: log });
           changeMapData(island, islandInfo.x, islandInfo.y, 'wasteland', { type: 'ins', value: 0 });
         }
       }
@@ -419,7 +438,7 @@ const popMonster = (
   exeNum = 1
 ) => {
   const logs = [];
-  const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+  const baseLog = () => getBaseLog(turn, island);
   const islandInfoFindPeople = island.island_info.filter((info) => info.type === 'people');
   // NOTE: 実行数か都市数のどちらか小さい方を出現数とする
   const popNum = Math.min(exeNum, islandInfoFindPeople.length);
@@ -437,7 +456,7 @@ const popMonster = (
       value: monsterLevel,
     });
     const log = logPopMonster(island, popMonsterType, islandInfo.x, islandInfo.y);
-    logs.push({ ...baseLog, log: log, secret_log: log });
+    logs.push({ ...baseLog(), log: log, secret_log: log });
   }
   return logs;
 };
@@ -509,16 +528,16 @@ export const landSubsidenceExecute = (
   turn: number
 ) => {
   if (island.area > META_DATA.FALL_DOWN_BORDER && checkProbability(eventRate.fall_down)) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+    const baseLog = () => getBaseLog(turn, island);
     const landSubsidenceLog = logLandSubsidence(island);
     const landSubsidenceLogs: turnLogSchemaType[] = [
-      { ...baseLog, log: landSubsidenceLog, secret_log: landSubsidenceLog },
+      { ...baseLog(), log: landSubsidenceLog, secret_log: landSubsidenceLog },
     ];
     for (const islandInfo of island.island_info) {
       if (isLandSubsidenceDamageMap(islandInfo)) {
         if (isLandSubsidenceDestroyAround(island.island_info, islandInfo.x, islandInfo.y)) {
           const log = logLandSubsidenceDamage(island, islandInfo.x, islandInfo.y);
-          landSubsidenceLogs.push({ ...baseLog, log: log, secret_log: log });
+          landSubsidenceLogs.push({ ...baseLog(), log: log, secret_log: log });
           // 浅瀬なら海へ、それ以外は浅瀬へ変更
           if (islandInfo.type === 'shallows') {
             changeMapData(island, islandInfo.x, islandInfo.y, 'sea', { type: 'ins', value: 0 });
@@ -544,7 +563,7 @@ export const landSubsidenceExecute = (
  */
 export const monumentAttackExecute = (island: islandInfoTurnProgress, turn: number) => {
   for (let i = 0; i < island.fallMonument; i++) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+    const baseLog = getBaseLog(turn, island);
     const monumentX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const monumentY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const fallMonumentLog = logFallMonument(island, monumentX, monumentY);
@@ -621,7 +640,7 @@ export const meteoriteExecute = (
   turn: number
 ) => {
   if (checkProbability(eventRate.meteorite)) {
-    const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+    const baseLog = () => getBaseLog(turn, island);
     const landSubsidenceLogs: turnLogSchemaType[] = [];
     let meteoriteFlag = true;
     while (meteoriteFlag) {
@@ -629,7 +648,7 @@ export const meteoriteExecute = (
       const meteoriteY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
       const meteoriteLog = meteoriteDamage(island, meteoriteX, meteoriteY);
 
-      landSubsidenceLogs.push({ ...baseLog, log: meteoriteLog, secret_log: meteoriteLog });
+      landSubsidenceLogs.push({ ...baseLog(), log: meteoriteLog, secret_log: meteoriteLog });
       // 隕石継続判定
       meteoriteFlag = checkProbability(META_DATA.CONTINUOUS_METEORITE_RATE);
     }
@@ -646,9 +665,9 @@ export const meteoriteExecute = (
  */
 const eruptionDamage = (island: islandInfoTurnProgress, turn: number, x: number, y: number) => {
   const logs: turnLogSchemaType[] = [];
-  const baseLog = { to_uuid: island.uuid, from_uuid: island.uuid, turn: turn };
+  const baseLog = () => getBaseLog(turn, island);
   const eruptionLog = logEruption(island, x, y);
-  logs.push({ ...baseLog, secret_log: eruptionLog, log: eruptionLog });
+  logs.push({ ...baseLog(), secret_log: eruptionLog, log: eruptionLog });
   changeMapData(island, x, y, 'mountain', { type: 'ins', value: 0 });
 
   // 周囲1HEXのみ
@@ -660,13 +679,13 @@ const eruptionDamage = (island: islandInfoTurnProgress, turn: number, x: number,
       switch (mapDefine.baseLand) {
         case 'shallows': {
           const tmpLog = logEruptionDamageToShallows(island, changeX, changeY);
-          logs.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
           changeMapData(island, x, y, 'wasteland', { type: 'ins', value: 0 });
           break;
         }
         case 'sea': {
           const tmpLog = logEruptionDamageToSea(island, changeX, changeY);
-          logs.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
           changeMapData(island, x, y, 'shallows', { type: 'ins', value: 0 });
           break;
         }
@@ -678,7 +697,7 @@ const eruptionDamage = (island: islandInfoTurnProgress, turn: number, x: number,
         default: {
           if (mapInfo.type !== 'ruins' && mapInfo.type !== 'wasteland') {
             const tmpLog = logEarthquakeDamage(island, changeX, changeY);
-            logs.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+            logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
             changeMapData(island, x, y, 'wasteland', { type: 'ins', value: 0 });
             break;
           }

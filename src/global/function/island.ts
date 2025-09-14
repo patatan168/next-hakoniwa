@@ -9,6 +9,7 @@ import {
 import { sea } from '../define/mapCategory/mapLand';
 import { getMapDefine, landType } from '../define/mapType';
 import META_DATA from '../define/metadata';
+import { getBaseLog } from './turnProgress';
 
 /**
  * 外海かどうか
@@ -257,7 +258,7 @@ export const changeMapData = (
  * @returns ログ
  */
 export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, turn: number) => {
-  const baseLog = { to_uuid: toIsland.uuid, from_uuid: toIsland.uuid, turn: turn };
+  const baseLog = () => getBaseLog(turn, toIsland);
   // 周囲1HEXのみ
   const aroundHex1 = difference(getMapAround(x, y, 1), [{ x, y }]);
   // 周囲2HEXのみ
@@ -267,7 +268,7 @@ export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, tur
   const { defVal } = getMapDefine('sea');
   changeMapData(toIsland, x, y, 'sea', { type: 'ins', value: defVal });
   const tmpLog = logSubmersion(toIsland, x, y);
-  const log = [{ ...baseLog, secret_log: tmpLog, log: tmpLog }];
+  const log = [{ ...baseLog(), secret_log: tmpLog, log: tmpLog }];
 
   // 周囲1HEXは陸地破壊相当の処理 (NOTE: 山は消し飛ぶ)
   aroundHex1.forEach(({ x: changeX, y: changeY }) => {
@@ -283,10 +284,10 @@ export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, tur
         const monsterType = ['monster', 'sanjira', 'kujira'];
         if (monsterType.includes(baseLand)) {
           const tmpLog = logMonsterSubmersion(toIsland, changeX, changeY);
-          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         } else {
           const tmpLog = logSubmersion(toIsland, changeX, changeY);
-          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         }
       }
     }
@@ -314,10 +315,10 @@ export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, tur
         // ログ出力
         if (monsterType.includes(baseLand)) {
           const tmpLog = logScatterMonster(toIsland, changeX, changeY);
-          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         } else {
           const tmpLog = logDamageWaste(toIsland, changeX, changeY);
-          log.push({ ...baseLog, secret_log: tmpLog, log: tmpLog });
+          log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         }
       }
     }

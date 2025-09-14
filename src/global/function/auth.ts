@@ -2,84 +2,11 @@ import 'server-only';
 
 import { sessionSchemaType } from '@/db/schema/sessionTable';
 import { default as META, default as META_DATA } from '@/global/define/metadata';
-import * as argon2 from 'argon2';
 import sqlite from 'better-sqlite3';
 import { getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
-import crypto, { generateKeyPairSync } from 'node:crypto';
-import { Uuid25 } from 'uuid25';
-import { uuidv7obj } from 'uuidv7';
-import { secureRandom } from './utility';
-
-/**
- * UUIDを作成
- * @description UUIDv7からBase36に可逆エンコードしたUUID
- * @returns
- */
-export const createUuid25 = () => {
-  const uuid25 = Uuid25.fromBytes(uuidv7obj().bytes);
-  return uuid25.value;
-};
-
-/**
- * Argon2のハッシュ値を返す
- * @param text ハッシュ化するテキスト
- * @returns ハッシュ化されたテキスト
- */
-export async function argon2Gen(text: string) {
-  return await argon2.hash(text);
-}
-
-/**
- * Argon2の検証
- * @param hash ハッシュ化されたテキスト
- * @param rawText 生のテキスト
- * @returns 検証結果
- */
-export async function argon2Verify(hash: string, rawText: string) {
-  return await argon2.verify(hash, rawText);
-}
-
-/**
- * SHA-256のハッシュ値を返す
- * @param text ハッシュ化するテキスト
- * @returns ハッシュ化されたテキスト
- */
-export async function sha256Gen(text: string) {
-  const uint8 = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest('SHA-256', uint8);
-  return Array.from(new Uint8Array(digest))
-    .map((v) => v.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-/**
- * ES256の秘密鍵と公開鍵を作成
- * @returns es256Gen.privateKey 秘密鍵
- * @returns es256Gen.publicKey 公開鍵
- */
-const es256Gen = () => {
-  return generateKeyPairSync('ec', {
-    namedCurve: 'P-256',
-    privateKeyEncoding: { format: 'pem', type: 'pkcs8' },
-    publicKeyEncoding: { format: 'pem', type: 'spki' },
-  });
-};
-
-/**
- * 特殊文字を含むランダムな文字列を生成
- * @param length 文字数
- */
-const randomString = (length: number) => {
-  const str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+_@!?#$%&=-~^*';
-  let result: string = '';
-  for (let i = 0; i < length; i++) {
-    const random = Math.trunc(secureRandom() * str.length);
-    result = result + str[random];
-  }
-  return result;
-};
+import { es256Gen, randomString } from './encrypt';
 
 /**
  * JWTのペイロード

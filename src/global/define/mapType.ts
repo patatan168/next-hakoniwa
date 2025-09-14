@@ -9,6 +9,7 @@ import {
   mapArrayConverter,
   wideDamage,
 } from '../function/island';
+import { getBaseLog } from '../function/turnProgress';
 import { checkProbability, randomIntInRange } from '../function/utility';
 import { logFire, logMonsterMove, logMonsterSuicideBombing } from './logType';
 import * as mapFacility from './mapCategory/mapFacility';
@@ -194,15 +195,14 @@ export function fireDisaster(
   if (checkProbability(eventRate.fire)) {
     const forestNum = countMapAround(fromIsland.island_info, 'forest', x, y, 1);
     const monumentNum = countMapAround(fromIsland.island_info, 'monument', x, y, 1);
+    const baseLog = getBaseLog(turn, fromIsland);
     if (forestNum === 0 && monumentNum === 0) {
       // 火事のログを作成
       const log = logFire(fromIsland, x, y);
       // 火災で焼失
       changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
       return {
-        from_uuid: fromIsland.uuid,
-        to_uuid: fromIsland.uuid,
-        turn: turn,
+        ...baseLog,
         log: log,
         secret_log: log,
       };
@@ -263,14 +263,13 @@ export function monsterMove(
       const { x: moveX, y: moveY } = moveCoordinate;
       const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
       let log: string;
+      const baseLog = getBaseLog(turn, fromIsland);
       if (moveMapInfo.type === 'defense_base') {
         log = logMonsterSuicideBombing(fromIsland, x, y, moveX, moveY);
         const wideDamageLog = wideDamage(fromIsland, moveX, moveY, turn);
         return [
           {
-            from_uuid: fromIsland.uuid,
-            to_uuid: fromIsland.uuid,
-            turn: turn,
+            ...baseLog,
             log: log,
             secret_log: log,
           },
@@ -287,9 +286,7 @@ export function monsterMove(
         changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
         return [
           {
-            from_uuid: fromIsland.uuid,
-            to_uuid: fromIsland.uuid,
-            turn: turn,
+            ...baseLog,
             log: log,
             secret_log: log,
           },
