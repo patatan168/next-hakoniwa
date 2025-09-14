@@ -26,6 +26,11 @@ type DataOptions = {
   refresh?: boolean;
 };
 
+/**
+ * APIメソッドのデフォルト値を作成する
+ * @param value デフォルト値
+ * @returns 各APIメソッドに対して同じデフォルト値を持つオブジェクト
+ */
 function createApiMethodDefaults<T>(value: T): ApiMethodType<T> {
   return {
     get: value,
@@ -38,6 +43,14 @@ function createApiMethodDefaults<T>(value: T): ApiMethodType<T> {
   };
 }
 
+/**
+ * データをマージして取得する
+ * @param current 現在のデータ
+ * @param next 次のデータ
+ * @param refresh リフレッシュフラグ
+ * @param shouldMerge マージフラグ
+ * @returns マージ後のデータ
+ */
 function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge: boolean): T {
   if (refresh) return next;
   return shouldMerge ? { ...current, ...next } : next;
