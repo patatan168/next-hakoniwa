@@ -3,10 +3,7 @@ import Link from 'next/link';
 export default async function ErrorPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ statusCode: string }>;
-  searchParams?: Promise<{ message?: string }>;
-}) {
+}: PageProps<'/error/[statusCode]'>) {
   const { statusCode } = await params;
   const { message } = (await searchParams) ?? {};
   return (
@@ -20,16 +17,28 @@ export default async function ErrorPage({
   );
 }
 
-function ErrorMessage({ statusCode, message }: { statusCode: string; message?: string }) {
+function ErrorMessage({
+  statusCode,
+  message,
+}: {
+  statusCode: string;
+  message?: string | string[];
+}) {
   switch (statusCode) {
     case '400':
-      return <h2 className="text-xl font-bold text-red-600">不正なアクセスです</h2>;
+      return (
+        <>
+          <h2 className="text-xl font-bold text-red-600">不正なアクセスです</h2>
+          <Message message={message} />
+        </>
+      );
     case '401':
     case '403':
       return (
         <>
           <h2 className="text-xl font-bold text-red-600">アクセスが拒否されました</h2>
           <p className="text-red-600">ログインが必要です。</p>
+          <Message message={message} />
         </>
       );
     case '500':
@@ -38,7 +47,7 @@ function ErrorMessage({ statusCode, message }: { statusCode: string; message?: s
           <h2 className="text-xl font-bold text-red-600">
             サーバー側のエラーです。管理者にお問い合わせください。
           </h2>
-          {message && <p className="text-red-600">{message}</p>}
+          <Message message={message} />
         </>
       );
     default:
@@ -47,8 +56,22 @@ function ErrorMessage({ statusCode, message }: { statusCode: string; message?: s
           <h2 className="text-xl font-bold text-red-600">
             不明なエラーです。管理者にお問い合わせください。
           </h2>
-          {message && <p className="text-red-600">{message}</p>}
+          <Message message={message} />
         </>
       );
   }
+}
+
+function Message({ message }: { message?: string | string[] }) {
+  if (!message) return null;
+  if (Array.isArray(message)) {
+    return (
+      <ul className="text-red-600">
+        {message.map((msg, index) => (
+          <li key={index}>{msg}</li>
+        ))}
+      </ul>
+    );
+  }
+  return <p className="text-red-600">{message}</p>;
 }
