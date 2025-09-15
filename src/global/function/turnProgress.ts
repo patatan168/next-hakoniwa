@@ -145,14 +145,14 @@ export const getEventRate = (
   uuid: string
 ) =>
   db.client
-    .prepare(
+    .prepare<string, eventRateSchemaType>(
       `SELECT
         *
       FROM
         event_rate
       WHERE uuid=?`
     )
-    .get(uuid) as eventRateSchemaType;
+    .get(uuid);
 
 /**
  * 島情報の一括更新

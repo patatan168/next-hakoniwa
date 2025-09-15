@@ -12,10 +12,11 @@ export async function GET(request: NextRequest) {
   const getId = searchParams.get('log_uuid') ?? 'zzzzzzzzzzzzzzzzzzzzzzzzz';
 
   const log = db.client
-    .prepare(
-      'SELECT log_uuid, from_uuid, to_uuid, turn, secret_log, log FROM turn_log WHERE log_uuid < ? ORDER BY log_uuid DESC LIMIT 100;'
-    )
-    .all(getId) as turnLogSchemaType[];
+    .prepare<
+      string,
+      turnLogSchemaType[]
+    >('SELECT log_uuid, from_uuid, to_uuid, turn, secret_log, log FROM turn_log WHERE log_uuid < ? ORDER BY log_uuid DESC LIMIT 100;')
+    .all(getId);
   return NextResponse.json({
     log: log,
   });

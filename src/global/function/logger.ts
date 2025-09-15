@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { NextRequest } from 'next/server';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
@@ -42,3 +40,9 @@ const logger = (dir: string, request?: NextRequest) => {
  * @param request Next.jsのリクエスト
  */
 export const accessLogger = (request: NextRequest) => logger('access', request);
+
+/**
+ * ターン進行ログ (log/turn_proceed)
+ * @param request Next.jsのリクエスト
+ */
+export const turnProceedLogger = logger('turn_proceed');

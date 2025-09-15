@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   if (uuid !== undefined) {
     accessLogger(request).info(`Request Development uuid=${uuid}`);
     const islandData = db.client
-      .prepare(
+      .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
         `SELECT
           island.uuid, user.island_name,
           json(island.prize) as prize,
@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
         WHERE
           island.uuid=?`
       )
-      .get(uuid) as islandSchemaType & Pick<userSchemaType, 'island_name'>;
+      .get(uuid);
+    if (islandData === undefined) {
+      return NextResponse.json(
+        { error: '島の取得に失敗しました。再度お試しください。' },
+        { status: 401 }
+      );
+    }
     parseJsonIslandData(islandData, false);
     return NextResponse.json(islandData);
   } else {

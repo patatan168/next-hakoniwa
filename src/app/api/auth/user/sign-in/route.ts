@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const hashId = await sha256Gen(id);
 
     const user = db.client
-      .prepare(`SELECT uuid, id, password FROM user WHERE id = ?`)
-      .get(hashId) as userSchemaType | undefined;
+      .prepare<string, userSchemaType>(`SELECT uuid, id, password FROM user WHERE id = ?`)
+      .get(hashId);
 
     if (user !== undefined) {
       const verify = await argon2Verify(user.password, password);

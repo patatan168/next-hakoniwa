@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { isIPv4, isIPv6 } from 'net';
 import { NextRequest } from 'next/server';
 

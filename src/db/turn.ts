@@ -4,6 +4,7 @@ import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
 import { calcAllTypeNum, countArea } from '@/global/function/island';
+import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
   eruptionExecute,
@@ -222,46 +223,52 @@ function turnProceed(recursiveCount = 0) {
   const turnInfo = getTurnInfo(db);
   if (turnInfo.turn_processing === 1) {
     if (recursiveCount < MAX_RECURSIVE) {
-      console.warn(
+      turnProceedLogger.warn(
         `現在のターン処理が完了していません。再実行します。試行数：${recursiveCount + 1}`
       );
       return setTimeout(turnProceed, WAIT_TIME * (recursiveCount + 1), recursiveCount + 1);
     } else {
-      console.error('再実行上限に達しました。終了します。');
+      turnProceedLogger.error('再実行上限に達しました。終了します。');
       return;
     }
   } else {
     updateTurnProgressing(db, true);
   }
-  const islandList = getInhabitedIslands(db, true);
-  const randomArray = arrayRandomInt(islandList.length);
-  const logArray: Array<turnLogSchemaType> = [];
+  try {
+    const islandList = getInhabitedIslands(db, true);
+    const randomArray = arrayRandomInt(islandList.length);
+    const logArray: Array<turnLogSchemaType> = [];
 
-  for (let i = 0; i < randomArray.length; i++) {
-    const island = islandList[randomArray[i]];
-    const eventRate = getEventRate(db, island.uuid);
-    // 収入/食料消費フェーズ
-    incomeAndEatenPhase(island);
-    // 計画実行フェーズ
-    planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
-    // マップイベントフェーズ
-    mapEventPhase(turnInfo.turn, island, eventRate, logArray);
-    // 島全体イベントフェーズ
-    wideIslandEventPhase(turnInfo.turn, island, eventRate, logArray);
-    // 計算フェーズ
-    calcPhase(island);
+    for (let i = 0; i < randomArray.length; i++) {
+      const island = islandList[randomArray[i]];
+      const eventRate = getEventRate(db, island.uuid);
+      if (eventRate === undefined) {
+        turnProceedLogger.error(`イベント発生率の取得に失敗しました。uuid=${island.uuid}`);
+        continue;
+      }
+      // 収入/食料消費フェーズ
+      incomeAndEatenPhase(island);
+      // 計画実行フェーズ
+      planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
+      // マップイベントフェーズ
+      mapEventPhase(turnInfo.turn, island, eventRate, logArray);
+      // 島全体イベントフェーズ
+      wideIslandEventPhase(turnInfo.turn, island, eventRate, logArray);
+      // 計算フェーズ
+      calcPhase(island);
+    }
+    updateIslands(db, islandList);
+    insertLogs(db, logArray);
+  } catch (error) {
+    turnProceedLogger.error(`ターン処理中にエラーが発生しました。${error}`);
+  } finally {
+    updateTurnProgressing(db, false);
   }
-  updateIslands(db, islandList);
-  insertLogs(db, logArray);
-  updateTurnProgressing(db, false);
 }
 // メイン処理
 const startUsage = memoryUsage();
 const startTime = performance.now(); // 開始時間
 turnProceed();
 const endTime = performance.now(); // 終了時間
-console.log('=== Execute Time (msec) ===');
-console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
-console.log('=== Memory Usage ===');
-console.log(`start ${startUsage}`);
-console.log(`end   ${memoryUsage()}`);
+turnProceedLogger.info(`ExecuteTime: ${endTime - startTime} msec`); // 何ミリ秒かかったかを表示する
+turnProceedLogger.info(`Memory Usage: ${startUsage} -> ${memoryUsage()}`); // メモリ使用量を表示
