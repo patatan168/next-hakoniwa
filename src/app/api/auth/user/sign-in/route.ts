@@ -1,8 +1,9 @@
 import { userSchemaType } from '@/db/schema/userTable';
 import { asyncRequestValid } from '@/global/function/api';
+import { argon2Verify } from '@/global/function/argon2';
 import { createJwtToken, setAuthCookie } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
-import { argon2Verify, sha256Gen } from '@/global/function/encrypt';
+import { sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { signInUserInfoSchema } from '@/global/valid/userInfo';
 import { NextRequest, NextResponse } from 'next/server';

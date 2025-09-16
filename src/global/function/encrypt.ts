@@ -1,4 +1,3 @@
-import * as argon2 from 'argon2';
 import crypto, { generateKeyPairSync } from 'crypto';
 import { Uuid25 } from 'uuid25';
 import { uuidv7obj } from 'uuidv7';
@@ -13,25 +12,6 @@ export const createUuid25 = () => {
   const uuid25 = Uuid25.fromBytes(uuidv7obj().bytes);
   return uuid25.value;
 };
-
-/**
- * Argon2のハッシュ値を返す
- * @param text ハッシュ化するテキスト
- * @returns ハッシュ化されたテキスト
- */
-export async function argon2Gen(text: string) {
-  return await argon2.hash(text);
-}
-
-/**
- * Argon2の検証
- * @param hash ハッシュ化されたテキスト
- * @param rawText 生のテキスト
- * @returns 検証結果
- */
-export async function argon2Verify(hash: string, rawText: string) {
-  return await argon2.verify(hash, rawText);
-}
 
 /**
  * SHA-256のハッシュ値を返す

@@ -38,14 +38,7 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (config, { isServer, webpack }) => {
-    // NOTE: fsモジュールの参照を無効化
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-      };
-    }
+  webpack: (config, { webpack }) => {
     // NOTE: node: インポートを通常のモジュール名に置き換える
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
