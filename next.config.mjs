@@ -38,7 +38,20 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (config) => {
+  webpack: (config, { isServer, webpack }) => {
+    // NOTE: fsモジュールの参照を無効化
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    // NOTE: node: インポートを通常のモジュール名に置き換える
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, '');
+      })
+    );
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     config.optimization.minimize = true;
     config.optimization.minimizer = [

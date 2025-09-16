@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { UrlObject } from 'url';
 
 const LinkList = ({
   children,
@@ -8,7 +7,7 @@ const LinkList = ({
   slug,
 }: {
   children?: React.ReactNode;
-  href: string | UrlObject;
+  href: string;
   path: string;
   slug: string;
 }) => {
@@ -18,7 +17,7 @@ const LinkList = ({
 
   return (
     <li className="text-blue-600 hover:underline dark:text-blue-500">
-      <Link href={href}>{children}</Link>
+      <Link href={{ pathname: href }}>{children}</Link>
     </li>
   );
 };

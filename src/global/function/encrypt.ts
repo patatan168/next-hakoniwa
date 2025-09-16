@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2';
-import { generateKeyPairSync } from 'node:crypto';
+import crypto, { generateKeyPairSync } from 'crypto';
 import { Uuid25 } from 'uuid25';
 import { uuidv7obj } from 'uuidv7';
 import { secureRandom } from './utility';
