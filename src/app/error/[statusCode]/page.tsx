@@ -41,6 +41,13 @@ function ErrorMessage({
           <Message message={message} />
         </>
       );
+    case '404':
+      return (
+        <>
+          <h2 className="text-xl font-bold text-red-600">お探しのページは見つかりません。</h2>
+          <Message message={message} />
+        </>
+      );
     case '500':
       return (
         <>
