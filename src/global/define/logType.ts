@@ -12,7 +12,20 @@ import { planType } from './planType';
  * @returns 座標
  */
 const coordinate = (x: number, y: number, isSecret = false): string => {
-  return isSecret ? '(?, ?)' : `(${x}, ${y})`;
+  const char = isSecret ? '(?, ?)' : `(${x}, ${y})`;
+  return `<font color="#a06040"><b>${char}</b></font>`;
+};
+
+const islandName = (island: islandSchemaType) => {
+  return `<a href="/sight?uuid=${island.uuid}" target="_blank"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
+};
+
+const planName = (plan: planType) => {
+  return `<font color="#d08000"><b>${plan.name}</b></font>`;
+};
+
+const disaster = (char: string) => {
+  return `<font color="#ff0000"><b>${char}</b></font>`;
 };
 
 /**
@@ -23,7 +36,7 @@ const coordinate = (x: number, y: number, isSecret = false): string => {
  */
 export const logLackCosts = (island: islandSchemaType, plan: planType): string => {
   const lackCost = plan.costType === 'money' ? '資金' : '備蓄食料';
-  return `${island.island_name}島で予定されていた${plan.name}は、${lackCost}不足のため中止されました。`;
+  return `${islandName(island)}で予定されていた${planName(plan)}は、${lackCost}不足のため中止されました。`;
 };
 
 /**
@@ -44,7 +57,7 @@ export const logLandFail = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const defineMapName = getMapDefine(mapInfo.type).name;
   const mapName = getMapName(mapInfo.type, mapInfo.landValue, defineMapName);
-  return `${island.island_name}島で予定されていた${plan.name}は、予定地の${coordinate(x, y)}が${mapName}だったため中止されました。`;
+  return `${islandName(island)}で予定されていた${planName(plan)}は、予定地の${coordinate(x, y)}が<b>${mapName}</b>だったため中止されました。`;
 };
 
 /**
@@ -65,7 +78,7 @@ export const logNoLandAround = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const defineMapName = getMapDefine(mapInfo.type).name;
   const mapName = getMapName(mapInfo.type, mapInfo.landValue, defineMapName);
-  return `${island.island_name}島で予定されていた${plan.name}は、予定地の${coordinate(x, y)}の${mapName}の周辺に陸地が無かったため中止されました。`;
+  return `${islandName(island)}で予定されていた${planName(plan)}は、予定地の${coordinate(x, y)}の${mapName}の周辺に陸地が無かったため中止されました。`;
 };
 
 /**
@@ -84,7 +97,11 @@ export const logCommonDev = (
   y: number,
   isSecret = false
 ): string => {
-  return `${island.island_name}島${coordinate(x, y, isSecret)}で${plan.name}が行われました。`;
+  return `${islandName(island)}${coordinate(x, y, isSecret)}で${planName(plan)}が行われました。`;
+};
+
+export const logNoCoordinateCommonDev = (island: islandSchemaType, plan: planType): string => {
+  return `${islandName(island)}で${planName(plan)}が行われました。`;
 };
 
 /**
@@ -105,7 +122,7 @@ export const logAnyTimesDev = (
   isSecret = false
 ): string => {
   const timesLog = times > 1 ? `${times}回、` : '';
-  return `${island.island_name}島${coordinate(x, y, isSecret)}で${plan.name}が${timesLog}行われました。`;
+  return `${islandName(island)}${coordinate(x, y, isSecret)}で${planName(plan)}が${timesLog}行われました。`;
 };
 
 /**
@@ -114,7 +131,7 @@ export const logAnyTimesDev = (
  * @returns ログ
  */
 export const logForest = (island: islandSchemaType): string => {
-  return `こころなしか、${island.island_name}島の森が増えたようです。`;
+  return `こころなしか、${islandName(island)}の森が増えたようです。`;
 };
 
 /**
@@ -131,7 +148,7 @@ export const logSubmersion = (island: islandSchemaType, x: number, y: number): s
   const seaType = ['sea', 'submarine_missile', 'oil_field'];
   const submersionLog = seaType.includes(baseLand) ? '跡形もなくなりました。' : '水没しました。';
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は${submersionLog}`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は${submersionLog}`;
 };
 
 /**
@@ -146,7 +163,7 @@ export const logMonsterSubmersion = (island: islandSchemaType, x: number, y: num
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の陸地は${name}もろとも水没しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の陸地は<b>${name}</b>もろとも水没しました。`;
 };
 
 /**
@@ -161,7 +178,7 @@ export const logDamageWaste = (island: islandSchemaType, x: number, y: number): 
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は一瞬にして荒地と化しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は一瞬にして荒地と化しました。`;
 };
 
 /**
@@ -176,7 +193,7 @@ export const logScatterMonster = (island: islandSchemaType, x: number, y: number
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は消し飛びました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は消し飛びました。`;
 };
 
 /**
@@ -197,7 +214,7 @@ export const logSetSelfCrash = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}で${name}の自爆装置がセットされました。`;
+  return `${islandName(island)}${coordinate(x, y)}で<b>${name}</b>の自爆装置がセットされました。`;
 };
 
 /**
@@ -212,7 +229,7 @@ export const logSelfCrash = (island: islandSchemaType, x: number, y: number): st
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}、自爆装置作動！！`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>、${disaster('自爆装置作動！！')}`;
 };
 
 /**
@@ -233,7 +250,7 @@ export const logOilEarned = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}から、${earn}${META_DATA.UNIT_MONEY}の収益が上がりました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>から、${earn}${META_DATA.UNIT_MONEY}の収益が上がりました。`;
 };
 
 /**
@@ -248,7 +265,7 @@ export const logOilEnd = (island: islandSchemaType, x: number, y: number): strin
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は枯渇したようです。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は枯渇したようです。`;
 };
 
 /**
@@ -262,7 +279,32 @@ export const logFire = (island: islandSchemaType, x: number, y: number): string 
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}が火災により壊滅しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>が${disaster('火災')}により壊滅しました。`;
+};
+
+/**
+ * 台風のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const logTyphoon = (island: islandSchemaType): string => {
+  return `${islandName(island)}に${disaster('台風')}上陸！！`;
+};
+
+/**
+ * 台風のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ
+ */
+export const logTyphoonDamage = (island: islandSchemaType, x: number, y: number): string => {
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は${disaster('台風')}台風で飛ばされました。`;
 };
 
 /**
@@ -288,7 +330,7 @@ export const logMonsterMove = (
   const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
   const { name: moveName } = getMapDefine(moveMapInfo.type);
 
-  return `${island.island_name}島${coordinate(moveX, moveY)}の${moveName}が怪獣${name}に踏み荒らされました。`;
+  return `${islandName(island)}${coordinate(moveX, moveY)}の${moveName}が<b>怪獣${name}</b>に踏み荒らされました。`;
 };
 
 /**
@@ -314,7 +356,7 @@ export const logMonsterSuicideBombing = (
   const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
   const { name: moveName } = getMapDefine(moveMapInfo.type);
 
-  return `怪獣${name}が${island.island_name}島${coordinate(moveX, moveY)}へ到達、${moveName}の自爆装置が発動！！`;
+  return `怪獣<b>${name}</b>が${islandName(island)}${coordinate(moveX, moveY)}へ到達、${moveName}の${disaster('自爆装置が発動！！')}`;
 };
 
 /**
@@ -323,7 +365,7 @@ export const logMonsterSuicideBombing = (
  * @returns ログ
  */
 export const logEarthquake = (island: islandSchemaType): string => {
-  return `${island.island_name}島で大規模な地震が発生！！`;
+  return `${islandName(island)}で大規模な${disaster('地震')}が発生！！`;
 };
 
 /**
@@ -338,7 +380,7 @@ export const logEarthquakeDamage = (island: islandSchemaType, x: number, y: numb
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は地震により壊滅しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は${disaster('地震')}により壊滅しました。`;
 };
 
 /**
@@ -347,7 +389,7 @@ export const logEarthquakeDamage = (island: islandSchemaType, x: number, y: numb
  * @returns ログ
  */
 export const logLackFoods = (island: islandSchemaType): string => {
-  return `${island.island_name}島の食料が不足しています！！`;
+  return `${islandName(island)}の${disaster('食料が不足')}しています！！`;
 };
 
 /**
@@ -362,7 +404,7 @@ export const logLackFoodsDamage = (island: islandSchemaType, x: number, y: numbe
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}に食料を求めて住民が殺到。${name}は壊滅しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>に<b>食料を求めて住民が殺到</b>。<b>${name}</b>は壊滅しました。`;
 };
 
 /**
@@ -371,7 +413,7 @@ export const logLackFoodsDamage = (island: islandSchemaType, x: number, y: numbe
  * @returns ログ
  */
 export const logTsunami = (island: islandSchemaType): string => {
-  return `${island.island_name}島付近で津波が発生！！`;
+  return `${islandName(island)}付近で${disaster('津波')}が発生！！`;
 };
 
 /**
@@ -386,7 +428,7 @@ export const logTsunamiDamage = (island: islandSchemaType, x: number, y: number)
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は津波により崩壊しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は${disaster('津波')}により崩壊しました。`;
 };
 
 /**
@@ -407,7 +449,7 @@ export const logPopMonster = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
   const monsterName = popMonsterType.name;
-  return `${island.island_name}島${coordinate(x, y)}に怪獣${monsterName}が出現！！${coordinate(x, y)}の${name}が踏み荒らされました。`;
+  return `${islandName(island)}${coordinate(x, y)}に<b>怪獣${monsterName}</b>が出現！！${coordinate(x, y)}の<b>${name}</b>が踏み荒らされました。`;
 };
 
 /**
@@ -416,7 +458,7 @@ export const logPopMonster = (
  * @returns 地盤沈下のログ
  */
 export const logLandSubsidence = (island: islandSchemaType): string => {
-  return `${island.island_name}島で地盤沈下が発生しました！！`;
+  return `${islandName(island)}で地盤沈下が発生しました！！`;
 };
 
 /**
@@ -431,7 +473,7 @@ export const logLandSubsidenceDamage = (island: islandSchemaType, x: number, y: 
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}は海の中へ沈みました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>は海の中へ沈みました。`;
 };
 
 /**
@@ -442,7 +484,7 @@ export const logLandSubsidenceDamage = (island: islandSchemaType, x: number, y: 
  * @returns 記念碑落下のログ
  */
 export const logFallMonument = (island: islandSchemaType, x: number, y: number): string => {
-  return `何かとてつもないものが${island.island_name}島${coordinate(x, y)}地点に落下しました！！。`;
+  return `何かとてつもないものが${islandName(island)}${coordinate(x, y)}地点に落下しました！！。`;
 };
 
 /**
@@ -457,7 +499,18 @@ export const logMeteorite = (island: islandSchemaType, x: number, y: number): st
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}に隕石が落下、一帯が水没しました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>に${disaster('隕石')}が落下、一帯が水没しました。`;
+};
+
+/**
+ * 巨大隕石落下のログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns 巨大隕石落下のログ
+ */
+export const logHugeMeteorite = (island: islandSchemaType, x: number, y: number): string => {
+  return `${islandName(island)}${coordinate(x, y)}地点に${disaster('巨大隕石')}が落下！！`;
 };
 
 /**
@@ -472,7 +525,7 @@ export const logMeteoriteToSea = (island: islandSchemaType, x: number, y: number
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}に隕石が落下しました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>に${disaster('隕石')}が落下しました。`;
 };
 
 /**
@@ -483,7 +536,7 @@ export const logMeteoriteToSea = (island: islandSchemaType, x: number, y: number
  * @returns 隕石が浅瀬に落下したログ
  */
 export const logMeteoriteToShallows = (island: islandSchemaType, x: number, y: number): string => {
-  return `${island.island_name}島${coordinate(x, y)}地点に隕石が落下、海面がえぐられました。。`;
+  return `${islandName(island)}${coordinate(x, y)}地点に${disaster('隕石')}が落下、海面がえぐられました。`;
 };
 
 /**
@@ -498,7 +551,7 @@ export const logMeteoriteToMountain = (island: islandSchemaType, x: number, y: n
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}に隕石、${name}は消し飛びました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>に${disaster('隕石')}、<b>${name}</b>は消し飛びました。`;
 };
 
 /**
@@ -517,7 +570,7 @@ export const logMeteoriteToSubmarineMissile = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}に隕石が落下、${name}は崩壊しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>に${disaster('隕石')}が落下、<b>${name}</b>は崩壊しました。`;
 };
 
 /**
@@ -532,7 +585,7 @@ export const logMeteoriteToMonster = (island: islandSchemaType, x: number, y: nu
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}の${name}に隕石が落下、陸地は怪獣${name}もろとも水没しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の<b>${name}</b>に${disaster('隕石が')}落下、陸地は<b>怪獣${name}</b>もろとも水没しました。`;
 };
 
 /**
@@ -543,7 +596,7 @@ export const logMeteoriteToMonster = (island: islandSchemaType, x: number, y: nu
  * @returns 噴火ログ
  */
 export const logEruption = (island: islandSchemaType, x: number, y: number): string => {
-  return `${island.island_name}島${coordinate(x, y)}地点で火山が噴火、山が出来ました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点${disaster('で火山が噴火')}、<b>山</b>が出来ました。`;
 };
 
 /**
@@ -562,7 +615,7 @@ export const logEruptionDamageToShallows = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}は、噴火の影響で陸地になりました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>は、${disaster('噴火')}の影響で陸地になりました。`;
 };
 
 /**
@@ -577,7 +630,7 @@ export const logEruptionDamage = (island: islandSchemaType, x: number, y: number
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}は、噴火の影響で壊滅しました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>は、${disaster('噴火')}の影響で壊滅しました。`;
 };
 
 /**
@@ -592,5 +645,26 @@ export const logEruptionDamageToSea = (island: islandSchemaType, x: number, y: n
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { name } = getMapDefine(mapInfo.type);
 
-  return `${island.island_name}島${coordinate(x, y)}地点の${name}は、噴火の影響で海底が隆起、浅瀬になりました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点の<b>${name}</b>は、${disaster('噴火')}の影響で海底が隆起、浅瀬になりました。`;
+};
+
+/**
+ * 埋蔵金発見ログ
+ * @param island 島情報
+ * @param x X座標
+ * @param y Y座標
+ * @param earn 発見した埋蔵金
+ * @returns 埋蔵金発見ログ
+ */
+export const logTreasure = (
+  island: islandSchemaType,
+  x: number,
+  y: number,
+  earn: number
+): string => {
+  // マップ情報の取得
+  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const { name } = getMapDefine(mapInfo.type);
+
+  return `${islandName(island)}${coordinate(x, y)}での${name}中に、<b>${earn}${META_DATA.UNIT_MONEY}</b>もの埋蔵金が発見されました。`;
 };

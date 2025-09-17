@@ -18,6 +18,7 @@ import {
   logEruptionDamageToSea,
   logEruptionDamageToShallows,
   logFallMonument,
+  logHugeMeteorite,
   logLackFoods,
   logLackFoodsDamage,
   logLandSubsidence,
@@ -31,6 +32,8 @@ import {
   logPopMonster,
   logTsunami,
   logTsunamiDamage,
+  logTyphoon,
+  logTyphoonDamage,
 } from '../define/logType';
 import * as mapMonster from '../define/mapCategory/mapMonster';
 import { people } from '../define/mapCategory/mapOther';
@@ -40,6 +43,7 @@ import { createUuid25 } from './encrypt';
 import {
   changeMapData,
   countBaseLandAround,
+  countMapAround,
   getMapAround,
   isOpenSea,
   mapArrayConverter,
@@ -551,6 +555,96 @@ export const landSubsidenceExecute = (
       }
     }
     return landSubsidenceLogs;
+  }
+};
+
+/**
+ * 台風で破壊されるマップの判定
+ * @param islandInfo 島情報
+ * @returns 台風で破壊されるマップかどうか
+ */
+const isTyphoonDamageMap = (islandInfo: islandInfo) => {
+  switch (islandInfo.type) {
+    case 'farm':
+    case 'fake_defense_base':
+      return true;
+    default:
+      return false;
+  }
+};
+
+/**
+ * 台風イベントの実行
+ * @param island 島情報
+ * @param eventRate イベント発生率
+ * @param turn ターン数
+ * @return 台風のログ配列
+ */
+export function typhoonExecute(
+  island: islandInfoTurnProgress,
+  eventRate: eventRateSchemaType,
+  turn: number
+) {
+  if (checkProbability(eventRate.typhoon)) {
+    const baseLog = () => getBaseLog(turn, island);
+    const typhoonLog = logTyphoon(island);
+    const typhoonLogs: turnLogSchemaType[] = [
+      { ...baseLog(), log: typhoonLog, secret_log: typhoonLog },
+    ];
+    for (const islandInfo of island.island_info) {
+      if (isTyphoonDamageMap(islandInfo)) {
+        // 台風のログを作成
+        const forestNum = countMapAround(
+          island.island_info,
+          'forest',
+          islandInfo.x,
+          islandInfo.y,
+          1
+        );
+        const monumentNum = countMapAround(
+          island.island_info,
+          'monument',
+          islandInfo.x,
+          islandInfo.y,
+          1
+        );
+        const baseLog = getBaseLog(turn, island);
+        if (forestNum === 0 && monumentNum === 0) {
+          // 台風の被害
+          const log = logTyphoonDamage(island, islandInfo.x, islandInfo.y);
+          changeMapData(island, islandInfo.x, islandInfo.y, 'plains', { type: 'ins', value: 0 });
+          typhoonLogs.push({ ...baseLog, log: log, secret_log: log });
+        }
+      }
+    }
+    return typhoonLogs;
+  }
+}
+
+/**
+ * 地盤沈下イベントの実行
+ * @param island 島情報
+ * @param eventRate イベント発生率
+ * @param turn ターン数
+ * @returns 地盤沈下のログ配列
+ */
+export const hugeMeteoriteExecute = (
+  island: islandInfoTurnProgress,
+  eventRate: eventRateSchemaType,
+  turn: number
+) => {
+  if (checkProbability(eventRate.huge_meteorite)) {
+    const baseLog = () => getBaseLog(turn, island);
+    const meteoriteX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+    const meteoriteY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+    const hugeMeteoriteLog = logHugeMeteorite(island, meteoriteX, meteoriteY);
+    const hugeMeteoriteLogs: turnLogSchemaType[] = [
+      { ...baseLog(), log: hugeMeteoriteLog, secret_log: hugeMeteoriteLog },
+    ];
+    // 巨大隕石落下
+    hugeMeteoriteLogs.push(...wideDamage(island, meteoriteX, meteoriteY, turn));
+
+    return hugeMeteoriteLogs;
   }
 };
 

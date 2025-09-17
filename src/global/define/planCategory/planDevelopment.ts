@@ -1,7 +1,7 @@
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
-import { logCommonDev, logLackCosts, logNoLandAround } from '../logType';
+import { logCommonDev, logLackCosts, logNoLandAround, logTreasure } from '../logType';
 import { getMapDefine } from '../mapType';
 import META_DATA from '../metadata';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
@@ -52,7 +52,7 @@ export const leveling: planType = {
       const getMoney = 100 + Math.trunc(Math.random() * 901);
       toIsland.money += 100 + getMoney;
       const log = logCommonDev(toIsland, this, plan.x, plan.y);
-      const logTreasure = `${toIsland.island_name}島(${plan.x}, ${plan.y})での整地中に、${getMoney}${META_DATA.UNIT_MONEY}もの埋蔵金が発見されました。`;
+      const logTreas = logTreasure(toIsland, plan.x, plan.y, getMoney);
       // 計画回数のデクリメント
       plan.times--;
 
@@ -60,7 +60,7 @@ export const leveling: planType = {
         nextPlan: this.immediate,
         log: [
           { ...baseLog(), secret_log: log, log: log },
-          { ...baseLog(), secret_log: logTreasure, log: logTreasure },
+          { ...baseLog(), secret_log: logTreas, log: logTreas },
         ],
       };
     } else {

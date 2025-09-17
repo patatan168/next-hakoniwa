@@ -13,6 +13,7 @@ import {
   getIslandData,
   getTurnInfo,
   getUserPlanInfo,
+  hugeMeteoriteExecute,
   insertDeletePlan,
   insertLogs,
   lackFoodsExecute,
@@ -21,6 +22,7 @@ import {
   monumentAttackExecute,
   popMonsterExecute,
   tsunamiExecute,
+  typhoonExecute,
   updateIslands,
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
@@ -192,6 +194,12 @@ function wideIslandEventPhase(
   // 地盤沈下
   const landSubsidenceLog = landSubsidenceExecute(fromIsland, eventRate, nextTurn);
   if (landSubsidenceLog !== undefined) logArray.push(...landSubsidenceLog);
+  // 台風発生
+  const typhoonLog = typhoonExecute(fromIsland, eventRate, nextTurn);
+  if (typhoonLog !== undefined) logArray.push(...typhoonLog);
+  // 巨大隕石落下
+  const hugeMeteoriteLog = hugeMeteoriteExecute(fromIsland, eventRate, nextTurn);
+  if (hugeMeteoriteLog !== undefined) logArray.push(...hugeMeteoriteLog);
   // モノリス落下
   const monumentAttackLog = monumentAttackExecute(fromIsland, nextTurn);
   if (monumentAttackLog !== undefined) logArray.push(...monumentAttackLog);

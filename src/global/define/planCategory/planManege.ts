@@ -1,4 +1,5 @@
 import { getBaseLog } from '@/global/function/turnProgress';
+import { logNoCoordinateCommonDev } from '../logType';
 import { changeDataArgs, planType } from '../planType';
 
 export const financing: planType = {
@@ -20,7 +21,7 @@ export const financing: planType = {
     const { toIsland } = info;
     const baseLog = getBaseLog(turn, toIsland);
     toIsland.money -= this.cost;
-    const log = `${toIsland.island_name}島で資金繰りが行われました。`;
+    const log = logNoCoordinateCommonDev(toIsland, this);
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
 };
