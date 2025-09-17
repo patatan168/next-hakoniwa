@@ -113,6 +113,18 @@ export function getUserPlanInfo(
 export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
   return db.client.prepare(`SELECT * FROM turn_state`).get() as turnStateSchemaType;
 }
+/**
+ * ターンを更新
+ * @param db DB接続情報
+ * @param nextTurn 次のターン数
+ * @returns 全ユーザー情報
+ */
+export function updateTurn(
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  nextTurn: number
+) {
+  db.client.prepare(`UPDATE turn_state SET turn = ?`).run(nextTurn);
+}
 
 /**
  * ターン実行情報の更新

@@ -24,6 +24,7 @@ import {
   tsunamiExecute,
   typhoonExecute,
   updateIslands,
+  updateTurn,
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
@@ -266,6 +267,7 @@ function turnProceed(recursiveCount = 0) {
       calcPhase(island);
     }
     updateIslands(db, islandList);
+    updateTurn(db, turnInfo.turn + 1);
     insertLogs(db, logArray);
   } catch (error) {
     turnProceedLogger.error(`ターン処理中にエラーが発生しました。${error}`);
