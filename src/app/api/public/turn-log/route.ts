@@ -14,10 +14,8 @@ export async function GET(request: NextRequest) {
   const log = db.client
     .prepare<
       string,
-      turnLogSchemaType[]
+      turnLogSchemaType
     >('SELECT log_uuid, from_uuid, to_uuid, turn, secret_log, log FROM turn_log WHERE log_uuid < ? ORDER BY log_uuid DESC LIMIT 100;')
     .all(getId);
-  return NextResponse.json({
-    log: log,
-  });
+  return NextResponse.json(log);
 }
