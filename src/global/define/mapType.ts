@@ -11,6 +11,7 @@ import {
 } from '../function/island';
 import { getBaseLog } from '../function/turnProgress';
 import { checkProbability, randomIntInRange } from '../function/utility';
+import { islandDataGetSet } from '../store/turnProgress';
 import { logFire, logMonsterMove, logMonsterSuicideBombing } from './logType';
 import * as mapFacility from './mapCategory/mapFacility';
 import * as mapFake from './mapCategory/mapFake';
@@ -18,7 +19,6 @@ import * as mapLand from './mapCategory/mapLand';
 import * as mapMilitary from './mapCategory/mapMilitary';
 import * as mapMonster from './mapCategory/mapMonster';
 import * as mapOther from './mapCategory/mapOther';
-import { islandDataGetSet } from '../store/turnProgress';
 
 export type landType =
   | 'sea'

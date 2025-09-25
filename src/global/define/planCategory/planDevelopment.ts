@@ -1,11 +1,11 @@
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logCommonDev, logLackCosts, logNoLandAround, logTreasure } from '../logType';
 import { getMapDefine } from '../mapType';
 import META_DATA from '../metadata';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
-import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const leveling: planType = {
   planNo: 0,

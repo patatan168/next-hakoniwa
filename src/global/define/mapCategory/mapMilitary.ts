@@ -1,8 +1,8 @@
 import { mapArrayConverter, wideDamage } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
+import { islandDataStore } from '@/global/store/turnProgress';
 import { logSelfCrash } from '../logType';
 import { mapType } from '../mapType';
-import { islandDataStore } from '@/global/store/turnProgress';
 
 export const missile: mapType = {
   type: 'missile',

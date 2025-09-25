@@ -1,10 +1,9 @@
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
-import { islandDataGetSet } from '@/global/store/turnProgress';
-
 
 export const afforest: planType = {
   planNo: 100,
@@ -109,7 +108,6 @@ export const farmDev: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -168,7 +166,6 @@ export const immediateFarmDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
@@ -241,7 +238,6 @@ export const factoryDev: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -300,7 +296,6 @@ export const immediateFactoryDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
@@ -373,7 +368,6 @@ export const miningDev: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -432,7 +426,6 @@ export const immediateMiningDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
@@ -505,7 +498,6 @@ export const missileDev: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -547,7 +539,6 @@ export const immediateMissileDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
@@ -591,7 +582,6 @@ export const defenseBaseDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
@@ -650,7 +640,6 @@ export const immediateDefenseBaseDev: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -708,7 +697,6 @@ export const submarineMissileDev: planType = {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
 
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);

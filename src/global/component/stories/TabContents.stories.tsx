@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import TabContents, { TabType } from '@/global/component/TabContents';
-import { fn } from 'storybook/test';
 import { omit } from 'es-toolkit';
 import { useState } from 'react';
+import { fn } from 'storybook/test';
 
 const tabTest: Array<TabType> = [
   { value: 0, label: 'test0' },

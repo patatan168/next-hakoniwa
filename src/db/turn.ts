@@ -26,12 +26,11 @@ import {
   updateTurnProgressing,
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
+import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
 import sqlite from 'better-sqlite3';
+import { islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
-import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
-import { islandSchemaType } from './schema/islandTable';
-
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
@@ -80,7 +79,7 @@ function incomeAndEatenPhase(fromUuid: string) {
  * @param logArray    実行結果のログ配列（参照渡しで結果が追加される）
  */
 function planPhase(
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   currentTurn: number,
   fromUuid: string,
   logArray: turnLogSchemaType[]
@@ -153,11 +152,11 @@ function mapEventPhase(
     const log =
       mapInfo.event !== undefined
         ? mapInfo.event({
-          x: islandData.x,
-          y: islandData.y,
-          turn: nextTurn,
-          fromUuid: fromIsland.uuid,
-        })
+            x: islandData.x,
+            y: islandData.y,
+            turn: nextTurn,
+            fromUuid: fromIsland.uuid,
+          })
         : undefined;
     if (log !== undefined) logArray.push(...log);
   }
@@ -285,7 +284,15 @@ const endTime = performance.now(); // 終了時間
 turnProceedLogger.info(`ExecuteTime: ${endTime - startTime} msec`); // 何ミリ秒かかったかを表示する
 const endUsage = memoryUsage();
 turnProceedLogger.info(`Memory Usage: ${startUsage.messages} -> ${endUsage.messages}`); // メモリ使用量を表示
-turnProceedLogger.info(`Heap Total Diff: ${Math.round(((endUsage.values['heapTotal'] - startUsage.values['heapTotal']) / 1024 / 1024) * 100) / 100} MB`);
-turnProceedLogger.info(`Heap Used Diff: ${(Math.round((endUsage.values['heapUsed'] - startUsage.values['heapUsed']) / 1024 / 1024) * 100) / 100} MB`);
-turnProceedLogger.info(`External Diff: ${(Math.round((endUsage.values['external'] - startUsage.values['external']) / 1024 / 1024) * 100) / 100} MB`);
-turnProceedLogger.info(`Array Buffers Diff: ${(Math.round((endUsage.values['arrayBuffers'] - startUsage.values['arrayBuffers']) / 1024 / 1024) * 100) / 100} MB`);
+turnProceedLogger.info(
+  `Heap Total Diff: ${Math.round(((endUsage.values['heapTotal'] - startUsage.values['heapTotal']) / 1024 / 1024) * 100) / 100} MB`
+);
+turnProceedLogger.info(
+  `Heap Used Diff: ${(Math.round((endUsage.values['heapUsed'] - startUsage.values['heapUsed']) / 1024 / 1024) * 100) / 100} MB`
+);
+turnProceedLogger.info(
+  `External Diff: ${(Math.round((endUsage.values['external'] - startUsage.values['external']) / 1024 / 1024) * 100) / 100} MB`
+);
+turnProceedLogger.info(
+  `Array Buffers Diff: ${(Math.round((endUsage.values['arrayBuffers'] - startUsage.values['arrayBuffers']) / 1024 / 1024) * 100) / 100} MB`
+);

@@ -1,9 +1,9 @@
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { mapType } from '../mapType';
 import META_DATA from '../metadata';
 import { people } from './mapOther';
-import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const forest: mapType = {
   type: 'forest',

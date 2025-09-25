@@ -1,11 +1,11 @@
 import { changeMapData } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logOilEarned, logOilEnd } from '../logType';
 import { mapType } from '../mapType';
 import META_DATA from '../metadata';
 import { sea } from './mapLand';
-import { islandDataGetSet } from '@/global/store/turnProgress';
 
 const facilityUnit = '人規模';
 export const factory: mapType = {

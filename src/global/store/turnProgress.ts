@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
-import { islandInfoTurnProgress } from "@/db/schema/islandTable";
-import { isEqual } from "es-toolkit";
-import { createStore } from "zustand/vanilla";
+import { islandInfoTurnProgress } from '@/db/schema/islandTable';
+import { isEqual } from 'es-toolkit';
+import { createStore } from 'zustand/vanilla';
 
 type islandProgressStore = {
   data: islandInfoTurnProgress[];

@@ -1,8 +1,8 @@
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { randomIntInRange, valueOrSafeLimit } from '@/global/function/utility';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { fireDisaster, mapType } from '../mapType';
 import META_DATA from '../metadata';
-import { islandDataGetSet } from '@/global/store/turnProgress';
 
 // People
 export const people: mapType = {

@@ -1,7 +1,7 @@
 import { getBaseLog } from '@/global/function/turnProgress';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logNoCoordinateCommonDev } from '../logType';
 import { changeDataArgs, planType } from '../planType';
-import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const financing: planType = {
   planNo: 998,

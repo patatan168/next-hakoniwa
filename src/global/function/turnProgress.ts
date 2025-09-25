@@ -39,6 +39,8 @@ import * as mapMonster from '../define/mapCategory/mapMonster';
 import { people } from '../define/mapCategory/mapOther';
 import { getMapDefine, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
+import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
+import { allDbColumns } from './dbUtility';
 import { createUuid25 } from './encrypt';
 import {
   changeMapData,
@@ -56,8 +58,6 @@ import {
   randomIntInRange,
   valueOrSafeLimit,
 } from './utility';
-import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
-import { allDbColumns } from './dbUtility';
 
 /**
  * 放棄されていない島情報
@@ -66,7 +66,7 @@ import { allDbColumns } from './dbUtility';
  * @returns 全ユーザー情報
  */
 export function getInhabitedIslands(
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   inhabited: boolean
 ) {
   const inhabitedNum = inhabited ? 1 : 0;
@@ -99,7 +99,7 @@ export function getInhabitedIslands(
  * @returns 全ユーザー情報
  */
 export function getUserPlanInfo(
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   uuid: string
 ) {
   const plans = db.client
@@ -113,7 +113,7 @@ export function getUserPlanInfo(
  * @param db DB接続情報
  * @returns 全ユーザー情報
  */
-export function getTurnInfo(db: { client: sqlite.Database;[Symbol.dispose]: () => void }) {
+export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
   return db.client.prepare(`SELECT * FROM turn_state`).get() as turnStateSchemaType;
 }
 /**
@@ -123,7 +123,7 @@ export function getTurnInfo(db: { client: sqlite.Database;[Symbol.dispose]: () =
  * @returns 全ユーザー情報
  */
 export function updateTurn(
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   nextTurn: number
 ) {
   db.client.prepare(`UPDATE turn_state SET turn = ?`).run(nextTurn);
@@ -136,7 +136,7 @@ export function updateTurn(
  * @returns 全ユーザー情報
  */
 export function updateTurnProgressing(
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   turnProgress: boolean
 ) {
   db.client.prepare(`UPDATE turn_state SET turn_processing = ?`).run(parseDbData(turnProgress));
@@ -160,7 +160,7 @@ export const getIslandData = (islandData: islandInfoTurnProgress[], uuid: string
  * @returns イベント発生率
  */
 export const getEventRate = (
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   uuid: string
 ) =>
   db.client
@@ -179,7 +179,7 @@ export const getEventRate = (
  * @param uuid UUID
  */
 export const updateIslands = (
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   islandData: islandData
 ) => {
   const updateIsland = db.client.prepare<unknown[], islandSchemaType>(
@@ -215,7 +215,7 @@ export const updateIslands = (
  * @param logData ログ情報
  */
 export const insertLogs = (
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   logData: turnLogSchemaType[]
 ) => {
   const insert = db.client.prepare(
@@ -237,7 +237,7 @@ export const insertLogs = (
  * @param uuid ユーザーUUID
  */
 export const insertDeletePlan = (
-  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   updatePlan: planSchemaType[],
   deleteLength: number,
   uuid: string
@@ -296,10 +296,7 @@ const isEarthquakeDamageMap = (islandInfo: islandInfo) => {
  * @param turn ターン数
  * @returns 地震のログ配列
  */
-export const earthquakeExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const earthquakeExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -411,10 +408,7 @@ const tsunamiDestroyRate = (islandData: islandInfo[], x: number, y: number) => {
  * @param turn ターン数
  * @returns 津波のログ配列
  */
-export const tsunamiExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const tsunamiExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -494,10 +488,7 @@ const popMonster = (
  * @param turn ターン数
  * @returns 津波のログ配列
  */
-export const popMonsterExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const popMonsterExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -550,10 +541,7 @@ const isLandSubsidenceDestroyAround = (islandData: islandInfo[], x: number, y: n
  * @param turn ターン数
  * @returns 地盤沈下のログ配列
  */
-export const landSubsidenceExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const landSubsidenceExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -606,10 +594,7 @@ const isTyphoonDamageMap = (islandInfo: islandInfo) => {
  * @param turn ターン数
  * @return 台風のログ配列
  */
-export function typhoonExecute(
-  islandUuid: string,
-  turn: number
-) {
+export function typhoonExecute(islandUuid: string, turn: number) {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -656,10 +641,7 @@ export function typhoonExecute(
  * @param turn ターン数
  * @returns 地盤沈下のログ配列
  */
-export const hugeMeteoriteExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const hugeMeteoriteExecute = (islandUuid: string, turn: number) => {
   const island = islandDataStore.getState().islandGet(islandUuid);
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
 
@@ -711,10 +693,7 @@ export const monumentAttackExecute = (islandUuid: string, turn: number) => {
  * @param turn ターン数
  * @returns 隕石のログ
  */
-export const meteoriteExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const meteoriteExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
@@ -789,10 +768,7 @@ export const meteoriteExecute = (
  * @param turn ターン数
  * @returns 噴火のログ
  */
-export const eruptionExecute = (
-  islandUuid: string,
-  turn: number
-) => {
+export const eruptionExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);

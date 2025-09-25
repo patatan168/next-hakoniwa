@@ -10,8 +10,8 @@ import {
 import { sea } from '../define/mapCategory/mapLand';
 import { getMapDefine, landType } from '../define/mapType';
 import META_DATA from '../define/metadata';
-import { getBaseLog } from './turnProgress';
 import { islandDataGetSet } from '../store/turnProgress';
+import { getBaseLog } from './turnProgress';
 
 /**
  * 外海かどうか
