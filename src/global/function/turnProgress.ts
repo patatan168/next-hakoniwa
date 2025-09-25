@@ -58,8 +58,6 @@ import {
 } from './utility';
 import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
 import { allDbColumns } from './dbUtility';
-import { isKeyboardEvent } from '@dnd-kit/utilities';
-import { th } from 'zod/v4/locales';
 
 /**
  * 放棄されていない島情報
@@ -746,10 +744,12 @@ export const meteoriteExecute = (
               break;
             }
           }
+          break;
         }
         case 'mountain': {
           meteoriteLog = logMeteoriteToMountain(island, x, y);
           changeMapData(island, x, y, 'ruins', { type: 'ins', value: 0 });
+          break;
         }
         case 'shallows': {
           meteoriteLog = logMeteoriteToShallows(island, x, y);

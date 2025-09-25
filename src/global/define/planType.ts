@@ -3,8 +3,7 @@
  * @listen
  * @author patatan
  */
-import { eventRateSchemaType } from '@/db/schema/eventRateTable';
-import { islandInfo, islandInfoTurnProgress, islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { mapArrayConverter } from '../function/island';

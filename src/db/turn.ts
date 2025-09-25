@@ -8,9 +8,7 @@ import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
   eruptionExecute,
-  getEventRate,
   getInhabitedIslands,
-  getIslandData,
   getTurnInfo,
   getUserPlanInfo,
   hugeMeteoriteExecute,
@@ -29,12 +27,11 @@ import {
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import sqlite from 'better-sqlite3';
-import { eventRateSchemaType } from './schema/eventRateTable';
-import { islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
-import { is } from 'zod/v4/locales';
+import { islandSchemaType } from './schema/islandTable';
+
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;

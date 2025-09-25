@@ -3,8 +3,8 @@ import { getBaseLog } from '@/global/function/turnProgress';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
-import { islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
-import { islandInfoTurnProgress } from '@/db/schema/islandTable';
+import { islandDataGetSet } from '@/global/store/turnProgress';
+
 
 export const afforest: planType = {
   planNo: 100,

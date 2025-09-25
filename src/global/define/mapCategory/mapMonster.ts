@@ -1,4 +1,3 @@
-import { islandDataGetSet } from '@/global/store/turnProgress';
 import { mapType, monsterMove } from '../mapType';
 
 export const inora: mapType = {
