@@ -93,5 +93,5 @@ export const memoryUsage = () => {
   for (const [key, value] of Object.entries(used)) {
     messages.push(`${key}: ${Math.round((value / 1024 / 1024) * 100) / 100} MB`);
   }
-  return messages.join(', ');
+  return { messages: messages.join(', '), values: used };
 };

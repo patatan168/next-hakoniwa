@@ -1,6 +1,7 @@
 import { getBaseLog } from '@/global/function/turnProgress';
 import { logNoCoordinateCommonDev } from '../logType';
 import { changeDataArgs, planType } from '../planType';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const financing: planType = {
   planNo: 998,
@@ -17,8 +18,11 @@ export const financing: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     const baseLog = getBaseLog(turn, toIsland);
     toIsland.money -= this.cost;
     const log = logNoCoordinateCommonDev(toIsland, this);

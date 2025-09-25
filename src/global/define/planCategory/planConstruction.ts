@@ -3,6 +3,8 @@ import { getBaseLog } from '@/global/function/turnProgress';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
+import { islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
+import { islandInfoTurnProgress } from '@/db/schema/islandTable';
 
 export const afforest: planType = {
   planNo: 100,
@@ -18,8 +20,11 @@ export const afforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -56,8 +61,11 @@ export const immediateAfforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -96,8 +104,12 @@ export const farmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -152,8 +164,12 @@ export const immediateFarmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -220,8 +236,12 @@ export const factoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -276,8 +296,12 @@ export const immediateFactoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -344,8 +368,12 @@ export const miningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -400,8 +428,12 @@ export const immediateMiningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -468,8 +500,12 @@ export const missileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -507,8 +543,12 @@ export const immediateMissileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -547,8 +587,12 @@ export const defenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -601,8 +645,12 @@ export const immediateDefenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -656,8 +704,12 @@ export const submarineMissileDev: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {

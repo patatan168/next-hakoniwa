@@ -17,11 +17,11 @@ import * as planDevelopment from './planCategory/planDevelopment';
 import * as planManage from './planCategory/planManege';
 
 /** 計画情報 */
-export type planInfo = {
+export type planUuid = {
   /** 目標島 */
-  toIsland: islandInfoTurnProgress;
+  toIsland: string;
   /** 命令島 */
-  fromIsland: islandInfoTurnProgress;
+  fromIsland: string;
 };
 
 export type planResult = {
@@ -37,9 +37,7 @@ export type changeDataArgs = {
   /** ターン数 */
   turn: number;
   /** 計画情報 */
-  info: planInfo;
-  /** イベント発生率(目標島のみ) */
-  eventRate: eventRateSchemaType;
+  uuid: planUuid;
 };
 
 export type planType = {
@@ -78,7 +76,7 @@ export type planType = {
   /** データの変更
    * @returns ログ
    */
-  readonly changeData: ({ plan, turn, info, eventRate }: changeDataArgs) => planResult;
+  readonly changeData: ({ plan, turn, uuid }: changeDataArgs) => planResult;
 };
 
 /**

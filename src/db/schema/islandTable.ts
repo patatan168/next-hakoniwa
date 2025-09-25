@@ -1,6 +1,7 @@
 import { DbSchema } from '@/global/function/db';
 import { getPublicIslandInfo } from '@/global/function/island';
 import { userSchemaType } from './userTable';
+import { eventRateSchemaType } from './eventRateTable';
 
 export const islandSchema: DbSchema = [
   {
@@ -77,7 +78,8 @@ export type islandSchemaType = {
 
 export interface islandInfoTurnProgress
   extends islandSchemaType,
-    Pick<userSchemaType, 'island_name'> {
+  Omit<eventRateSchemaType, 'uuid'>,
+  Pick<userSchemaType, 'island_name'> {
   /** 人工怪獣出現数 */
   artificialMonster: number;
   /** モノリス落下数 */

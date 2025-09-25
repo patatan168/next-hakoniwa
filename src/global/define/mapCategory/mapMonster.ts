@@ -1,3 +1,4 @@
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { mapType, monsterMove } from '../mapType';
 
 export const inora: mapType = {
@@ -13,8 +14,8 @@ export const inora: mapType = {
   exp: 5,
   bounty: 400,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const mekaInora: mapType = {
@@ -29,8 +30,8 @@ export const mekaInora: mapType = {
   exp: 5,
   bounty: 0,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const inoraGhost: mapType = {
@@ -46,8 +47,8 @@ export const inoraGhost: mapType = {
   exp: 10,
   bounty: 300,
   maxMoveDistance: Number.MAX_SAFE_INTEGER,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const redInora: mapType = {
@@ -63,8 +64,8 @@ export const redInora: mapType = {
   exp: 12,
   bounty: 1000,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const darkInora: mapType = {
@@ -80,8 +81,8 @@ export const darkInora: mapType = {
   exp: 15,
   bounty: 800,
   maxMoveDistance: 2,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const kingInora: mapType = {
@@ -97,8 +98,8 @@ export const kingInora: mapType = {
   exp: 30,
   bounty: 2000,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const sanjira: mapType = {
@@ -114,8 +115,8 @@ export const sanjira: mapType = {
   exp: 7,
   bounty: 500,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };
 export const kujira: mapType = {
@@ -131,7 +132,7 @@ export const kujira: mapType = {
   exp: 20,
   bounty: 1500,
   maxMoveDistance: 1,
-  event: function ({ x, y, turn, fromIsland }) {
-    return monsterMove(x, y, turn, fromIsland);
+  event: function ({ x, y, turn, fromUuid }) {
+    return monsterMove(x, y, turn, fromUuid);
   },
 };

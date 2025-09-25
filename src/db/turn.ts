@@ -33,6 +33,8 @@ import { eventRateSchemaType } from './schema/eventRateTable';
 import { islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
+import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
+import { is } from 'zod/v4/locales';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
@@ -48,9 +50,13 @@ const WAIT_TIME = 2000;
 
 /**
  * 収入/食料消費フェーズ
- * @param fromIsland
+ * @param fromUuid 島のUuid
  */
-function incomeAndEatenPhase(fromIsland: islandSchemaType) {
+function incomeAndEatenPhase(fromUuid: string) {
+  using fromIslandGetSet = islandDataGetSet(fromUuid);
+  const fromIsland = fromIslandGetSet.islandData;
+  if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
+
   if (fromIsland.population > fromIsland.farm) {
     fromIsland.food += fromIsland.farm / 100;
     fromIsland.money += Math.trunc(
@@ -66,27 +72,24 @@ function incomeAndEatenPhase(fromIsland: islandSchemaType) {
 /**
  * 各島の計画フェーズを実行する関数。
  *
- * 指定された島（fromIsland）に対して、ユーザーが設定した計画（プラン）を順に実行し、
+ * 指定された島（fromUuid）に対して、ユーザーが設定した計画（プラン）を順に実行し、
  * その結果をログ配列（logArray）に追加します。すべての計画が終了した場合や
  * 計画が存在しない場合は、資金繰り（financing）を自動で実行します。
  *
  * @param db         データベース接続オブジェクト
  * @param currentTurn 現在のターン数
- * @param islandList  島データの配列
- * @param fromIsland  計画を実行する対象の島
+ * @param fromUuid  計画を実行する対象の島
  * @param eventRate   イベント発生率データ
  * @param logArray    実行結果のログ配列（参照渡しで結果が追加される）
  */
 function planPhase(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   currentTurn: number,
-  islandList: islandInfoTurnProgress[],
-  fromIsland: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  fromUuid: string,
   logArray: turnLogSchemaType[]
 ) {
   const nextTurn = currentTurn + 1;
-  const plans = getUserPlanInfo(db, fromIsland.uuid);
+  const plans = getUserPlanInfo(db, fromUuid);
   const dropPlans: planSchemaType[] = [];
   let financingFlag = plans.length === 0;
   for (let i = 0; i < plans.length; i++) {
@@ -96,17 +99,13 @@ function planPhase(
       break;
     }
 
-    const toIsland =
-      plans[i].to_uuid === fromIsland.uuid
-        ? fromIsland
-        : getIslandData(islandList, plans[i].from_uuid);
+    const toUuid = plans[i].to_uuid;
     const planType = getPlanDefine(plans[i].plan);
     // 計画の実行
     const result = planType.changeData({
       plan: plans[i],
       turn: nextTurn,
-      info: { toIsland: toIsland, fromIsland: fromIsland },
-      eventRate: eventRate,
+      uuid: { toIsland: toUuid, fromIsland: fromUuid },
     });
 
     // ログの格納
@@ -133,11 +132,7 @@ function planPhase(
         plan: 'dummy',
       },
       turn: nextTurn,
-      info: {
-        toIsland: fromIsland,
-        fromIsland: fromIsland,
-      },
-      eventRate: eventRate,
+      uuid: { toIsland: fromUuid, fromIsland: fromUuid },
     });
     // ログの格納
     logArray.push(...result.log);
@@ -146,14 +141,13 @@ function planPhase(
   // 計画の更新
   if (plans.length > 0) {
     const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
-    insertDeletePlan(db, insertPlans, dropLength, fromIsland.uuid);
+    insertDeletePlan(db, insertPlans, dropLength, fromUuid);
   }
 }
 
 function mapEventPhase(
   currentTurn: number,
   fromIsland: islandSchemaType,
-  eventRate: eventRateSchemaType,
   logArray: turnLogSchemaType[]
 ) {
   const nextTurn = currentTurn + 1;
@@ -162,12 +156,11 @@ function mapEventPhase(
     const log =
       mapInfo.event !== undefined
         ? mapInfo.event({
-            x: islandData.x,
-            y: islandData.y,
-            turn: nextTurn,
-            fromIsland: fromIsland,
-            eventRate: eventRate,
-          })
+          x: islandData.x,
+          y: islandData.y,
+          turn: nextTurn,
+          fromUuid: fromIsland.uuid,
+        })
         : undefined;
     if (log !== undefined) logArray.push(...log);
   }
@@ -175,40 +168,39 @@ function mapEventPhase(
 
 function wideIslandEventPhase(
   currentTurn: number,
-  fromIsland: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  fromUuid: string,
   logArray: turnLogSchemaType[]
 ) {
   const nextTurn = currentTurn + 1;
   // 地震
-  const earthquakeLog = earthquakeExecute(fromIsland, eventRate, nextTurn);
+  const earthquakeLog = earthquakeExecute(fromUuid, nextTurn);
   if (earthquakeLog !== undefined) logArray.push(...earthquakeLog);
   // 食糧不足
-  const lackFoodsLog = lackFoodsExecute(fromIsland, nextTurn);
+  const lackFoodsLog = lackFoodsExecute(fromUuid, nextTurn);
   if (lackFoodsLog !== undefined) logArray.push(...lackFoodsLog);
   // 津波
-  const tsunamiLog = tsunamiExecute(fromIsland, eventRate, nextTurn);
+  const tsunamiLog = tsunamiExecute(fromUuid, nextTurn);
   if (tsunamiLog !== undefined) logArray.push(...tsunamiLog);
   // モンスター出現
-  const popMonsterLog = popMonsterExecute(fromIsland, eventRate, nextTurn);
+  const popMonsterLog = popMonsterExecute(fromUuid, nextTurn);
   if (popMonsterLog !== undefined) logArray.push(...popMonsterLog);
   // 地盤沈下
-  const landSubsidenceLog = landSubsidenceExecute(fromIsland, eventRate, nextTurn);
+  const landSubsidenceLog = landSubsidenceExecute(fromUuid, nextTurn);
   if (landSubsidenceLog !== undefined) logArray.push(...landSubsidenceLog);
   // 台風発生
-  const typhoonLog = typhoonExecute(fromIsland, eventRate, nextTurn);
+  const typhoonLog = typhoonExecute(fromUuid, nextTurn);
   if (typhoonLog !== undefined) logArray.push(...typhoonLog);
   // 巨大隕石落下
-  const hugeMeteoriteLog = hugeMeteoriteExecute(fromIsland, eventRate, nextTurn);
+  const hugeMeteoriteLog = hugeMeteoriteExecute(fromUuid, nextTurn);
   if (hugeMeteoriteLog !== undefined) logArray.push(...hugeMeteoriteLog);
   // モノリス落下
-  const monumentAttackLog = monumentAttackExecute(fromIsland, nextTurn);
+  const monumentAttackLog = monumentAttackExecute(fromUuid, nextTurn);
   if (monumentAttackLog !== undefined) logArray.push(...monumentAttackLog);
   // 隕石落下
-  const meteoriteLog = meteoriteExecute(fromIsland, eventRate, nextTurn);
+  const meteoriteLog = meteoriteExecute(fromUuid, nextTurn);
   if (meteoriteLog !== undefined) logArray.push(...meteoriteLog);
   // 火山噴火
-  const eruptionLog = eruptionExecute(fromIsland, eventRate, nextTurn);
+  const eruptionLog = eruptionExecute(fromUuid, nextTurn);
   if (eruptionLog !== undefined) logArray.push(...eruptionLog);
 }
 
@@ -244,35 +236,48 @@ function turnProceed(recursiveCount = 0) {
     updateTurnProgressing(db, true);
   }
   try {
-    const islandList = getInhabitedIslands(db, true);
+    let islandList = getInhabitedIslands(db, true);
+    if (islandList === undefined || islandList.length === 0) return;
+    // ランダムに処理する
     const randomArray = arrayRandomInt(islandList.length);
     const logArray: Array<turnLogSchemaType> = [];
+    // 進行状況用ストアにデータをセット
+    islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
     for (let i = 0; i < randomArray.length; i++) {
       const island = islandList[randomArray[i]];
-      const eventRate = getEventRate(db, island.uuid);
-      if (eventRate === undefined) {
-        turnProceedLogger.error(`イベント発生率の取得に失敗しました。uuid=${island.uuid}`);
-        continue;
-      }
       // 収入/食料消費フェーズ
-      incomeAndEatenPhase(island);
+      incomeAndEatenPhase(island.uuid);
       // 計画実行フェーズ
-      planPhase(db, turnInfo.turn, islandList, island, eventRate, logArray);
+      planPhase(db, turnInfo.turn, island.uuid, logArray);
       // マップイベントフェーズ
-      mapEventPhase(turnInfo.turn, island, eventRate, logArray);
+      mapEventPhase(turnInfo.turn, island, logArray);
       // 島全体イベントフェーズ
-      wideIslandEventPhase(turnInfo.turn, island, eventRate, logArray);
+      wideIslandEventPhase(turnInfo.turn, island.uuid, logArray);
       // 計算フェーズ
       calcPhase(island);
     }
-    updateIslands(db, islandList);
+    // 進行状況用のデータをクリア
+    islandList = undefined;
+
+    const islandData = islandDataStore.getState().data;
+    if (islandData === undefined) {
+      turnProceedLogger.error('島データの取得に失敗しました。');
+      return;
+    }
+    updateIslands(db, islandData);
     updateTurn(db, turnInfo.turn + 1);
     insertLogs(db, logArray);
-  } catch (error) {
-    turnProceedLogger.error(`ターン処理中にエラーが発生しました。${error}`);
+  } catch (error: Error | unknown) {
+    if (error instanceof Error) {
+      turnProceedLogger.error(`${error.stack}`);
+    } else {
+      turnProceedLogger.error(`${error}`);
+    }
   } finally {
     updateTurnProgressing(db, false);
+    db[Symbol.dispose]();
+    islandDataStore.getState().reset();
   }
 }
 // メイン処理
@@ -281,4 +286,9 @@ const startTime = performance.now(); // 開始時間
 turnProceed();
 const endTime = performance.now(); // 終了時間
 turnProceedLogger.info(`ExecuteTime: ${endTime - startTime} msec`); // 何ミリ秒かかったかを表示する
-turnProceedLogger.info(`Memory Usage: ${startUsage} -> ${memoryUsage()}`); // メモリ使用量を表示
+const endUsage = memoryUsage();
+turnProceedLogger.info(`Memory Usage: ${startUsage.messages} -> ${endUsage.messages}`); // メモリ使用量を表示
+turnProceedLogger.info(`Heap Total Diff: ${Math.round(((endUsage.values['heapTotal'] - startUsage.values['heapTotal']) / 1024 / 1024) * 100) / 100} MB`);
+turnProceedLogger.info(`Heap Used Diff: ${(Math.round((endUsage.values['heapUsed'] - startUsage.values['heapUsed']) / 1024 / 1024) * 100) / 100} MB`);
+turnProceedLogger.info(`External Diff: ${(Math.round((endUsage.values['external'] - startUsage.values['external']) / 1024 / 1024) * 100) / 100} MB`);
+turnProceedLogger.info(`Array Buffers Diff: ${(Math.round((endUsage.values['arrayBuffers'] - startUsage.values['arrayBuffers']) / 1024 / 1024) * 100) / 100} MB`);

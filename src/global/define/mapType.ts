@@ -18,6 +18,7 @@ import * as mapLand from './mapCategory/mapLand';
 import * as mapMilitary from './mapCategory/mapMilitary';
 import * as mapMonster from './mapCategory/mapMonster';
 import * as mapOther from './mapCategory/mapOther';
+import { islandDataGetSet } from '../store/turnProgress';
 
 export type landType =
   | 'sea'
@@ -69,14 +70,12 @@ export type mapType = {
     x,
     y,
     turn,
-    fromIsland,
-    eventRate,
+    fromUuid,
   }: {
     x: number;
     y: number;
     turn: number;
-    fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>;
-    eventRate: eventRateSchemaType;
+    fromUuid: string;
   }) => Array<turnLogSchemaType> | void | undefined;
 };
 
@@ -222,8 +221,11 @@ export function monsterMove(
   x: number,
   y: number,
   turn: number,
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>
+  fromUuid: string
 ): Array<turnLogSchemaType> | undefined {
+  using fromIslandGetSet = islandDataGetSet(fromUuid);
+  const fromIsland = fromIslandGetSet.islandData;
+  if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
   const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
 
   // サンジラとクジラの硬化判定
@@ -266,7 +268,7 @@ export function monsterMove(
       const baseLog = getBaseLog(turn, fromIsland);
       if (moveMapInfo.type === 'defense_base') {
         log = logMonsterSuicideBombing(fromIsland, x, y, moveX, moveY);
-        const wideDamageLog = wideDamage(fromIsland, moveX, moveY, turn);
+        const wideDamageLog = wideDamage(fromUuid, moveX, moveY, turn);
         return [
           {
             ...baseLog,

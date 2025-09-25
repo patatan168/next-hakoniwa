@@ -5,6 +5,7 @@ import { logOilEarned, logOilEnd } from '../logType';
 import { mapType } from '../mapType';
 import META_DATA from '../metadata';
 import { sea } from './mapLand';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 
 const facilityUnit = '人規模';
 export const factory: mapType = {
@@ -44,7 +45,11 @@ export const oilField: mapType = {
   imgPath: '/img/facility/oil_field.gif',
   defVal: 0,
   maxVal: 0,
-  event: function ({ x, y, turn, fromIsland }) {
+  event: function ({ x, y, turn, fromUuid }) {
+    using fromIslandGetSet = islandDataGetSet(fromUuid);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
+
     const baseLog = () => getBaseLog(turn, fromIsland);
     const earningLog = logOilEarned(fromIsland, x, y, META_DATA.OIL_EARN);
     const resultLog = [{ ...baseLog(), log: earningLog, secret_log: earningLog }];

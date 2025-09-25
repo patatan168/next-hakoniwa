@@ -1,9 +1,11 @@
 'use client';
 import TabContents, { TabType } from '@/global/component/TabContents';
+import TurnLog from '@/global/component/TurnLog';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { userStore } from '@/global/store/api/auth/user';
+import { turnLogStore } from '@/global/store/api/public/turnLog';
 import { useCallback, useEffect, useState } from 'react';
 
 const header: ColumnInfo = [
@@ -22,6 +24,7 @@ const tabTest: Array<TabType> = [
 export default function IslandList() {
   const [tab, setTab] = useState(0);
   const { data, isLoading, fetch } = useClientFetch(userStore);
+  const { data: logData, fetch: logFetch } = useClientFetch(turnLogStore);
   const [listHeight, setListHeight] = useState('100svh');
   const [, height] = useWindowSize();
   const listCallback = useCallback(
@@ -40,18 +43,27 @@ export default function IslandList() {
 
   useEffect(() => {
     fetch({ method: 'GET' });
+    logFetch({ method: 'GET' });
   }, []);
 
   return (
     <>
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
-      <VrTableList
-        isLoading={isLoading.get}
-        ref={listCallback}
-        style={{ height: listHeight, backgroundColor: 'transparent' }}
-        columnHeader={header}
-        data={data.get}
-      />
+      {tab === 0 && (
+        <VrTableList
+          isLoading={isLoading.get}
+          ref={listCallback}
+          style={{ height: listHeight, backgroundColor: 'transparent' }}
+          columnHeader={header}
+          data={data.get}
+        />
+      )}
+      {tab === 1 && (
+        <TurnLog
+          style={{ height: listHeight, backgroundColor: 'transparent' }}
+          logs={logData.get}
+        />
+      )}
     </>
   );
 }

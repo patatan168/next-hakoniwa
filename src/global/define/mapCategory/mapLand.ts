@@ -3,6 +3,7 @@ import { checkProbability } from '@/global/function/utility';
 import { mapType } from '../mapType';
 import META_DATA from '../metadata';
 import { people } from './mapOther';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const forest: mapType = {
   type: 'forest',
@@ -14,7 +15,11 @@ export const forest: mapType = {
   maxVal: 200,
   coefficient: 100,
   unit: '本',
-  event: function ({ x, y, fromIsland }) {
+  event: function ({ x, y, fromUuid }) {
+    using fromIslandGetSet = islandDataGetSet(fromUuid);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
+
     const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
     // 森林増加
     if (mapInfo.landValue < this.maxVal) {
@@ -37,7 +42,11 @@ export const plains: mapType = {
   imgPath: '/img/land/plains.gif',
   defVal: 0,
   maxVal: 0,
-  event: function ({ x, y, fromIsland }) {
+  event: function ({ x, y, fromUuid }) {
+    using fromIslandGetSet = islandDataGetSet(fromUuid);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
+
     // 平地に村ができる
     if (checkProbability(META_DATA.VILLAGE_APPEARANCE_RATE)) {
       const peopleNum = countMapAround(fromIsland.island_info, 'people', x, y, 1);

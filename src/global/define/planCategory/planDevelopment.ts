@@ -5,6 +5,7 @@ import { logCommonDev, logLackCosts, logNoLandAround, logTreasure } from '../log
 import { getMapDefine } from '../mapType';
 import META_DATA from '../metadata';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 
 export const leveling: planType = {
   planNo: 0,
@@ -30,8 +31,11 @@ export const leveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info, eventRate }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -44,7 +48,7 @@ export const leveling: planType = {
     // 費用の支払い
     toIsland.money -= this.cost;
     // 埋蔵金をもらえるかどうか
-    const { buried_treasure } = eventRate;
+    const { buried_treasure } = toIsland;
     const isTreasure = checkProbability(buried_treasure);
     const baseLog = () => getBaseLog(turn, toIsland);
     if (isTreasure) {
@@ -99,8 +103,11 @@ export const immediateLeveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ plan, turn, info, eventRate }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -112,7 +119,7 @@ export const immediateLeveling: planType = {
     const baseLog = getBaseLog(turn, toIsland);
     changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
     // 地震発生率を加算する
-    eventRate.earthquake += 0.1;
+    toIsland.earthquake += 0.1;
     // 費用の支払い
     toIsland.money -= this.cost;
     const log = logCommonDev(toIsland, this, plan.x, plan.y);
@@ -137,8 +144,11 @@ export const landfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -206,8 +216,11 @@ export const immediateLandfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -273,8 +286,11 @@ export const drilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ plan, turn, info, eventRate }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -316,7 +332,7 @@ export const drilling: planType = {
             if (type === 'sea') {
               if (!oilFieldFound) {
                 // 油田が発見されるかどうか
-                const { oil_field } = eventRate;
+                const { oil_field } = toIsland;
                 const isOilField = checkProbability(oil_field);
                 if (isOilField) {
                   changeMapData(toIsland, plan.x, plan.y, 'oil_field', { type: 'ins', value: 0 });
@@ -375,8 +391,11 @@ export const immediateDrilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
-  changeData: function ({ plan, turn, info, eventRate }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -417,7 +436,7 @@ export const immediateDrilling: planType = {
           if (type === 'sea') {
             if (!oilFieldFound) {
               // 油田が発見されるかどうか
-              const { oil_field } = eventRate;
+              const { oil_field } = toIsland;
               const isOilField = checkProbability(oil_field);
               if (isOilField) {
                 changeMapData(toIsland, plan.x, plan.y, 'oil_field', { type: 'ins', value: 0 });
@@ -475,8 +494,11 @@ export const logging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {
@@ -512,8 +534,11 @@ export const immediateLogging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
-  changeData: function ({ plan, turn, info }: changeDataArgs) {
-    const { toIsland } = info;
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
     // 地形や費用が不適切なら中止
     const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
     if (validConstAndLand.nextPlan) {

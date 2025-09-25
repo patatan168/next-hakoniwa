@@ -1,5 +1,6 @@
 import { islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
-import { difference } from 'es-toolkit/array';
+import { isEqual } from 'es-toolkit';
+import { differenceWith } from 'es-toolkit/array';
 import {
   logDamageWaste,
   logMonsterSubmersion,
@@ -10,6 +11,7 @@ import { sea } from '../define/mapCategory/mapLand';
 import { getMapDefine, landType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { getBaseLog } from './turnProgress';
+import { islandDataGetSet } from '../store/turnProgress';
 
 /**
  * 外海かどうか
@@ -251,18 +253,22 @@ export const changeMapData = (
 
 /**
  * 広域被害
- * @param toIsland 島情報
+ * @param toIslandUuid 島のUUID
  * @param x X座標
  * @param y Y座標
  * @param turn ターン
  * @returns ログ
  */
-export const wideDamage = (toIsland: islandSchemaType, x: number, y: number, turn: number) => {
+export const wideDamage = (toIslandUuid: string, x: number, y: number, turn: number) => {
+  using fromIslandGetSet = islandDataGetSet(toIslandUuid);
+  const toIsland = fromIslandGetSet.islandData;
+  if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${toIslandUuid}`);
+
   const baseLog = () => getBaseLog(turn, toIsland);
   // 周囲1HEXのみ
-  const aroundHex1 = difference(getMapAround(x, y, 1), [{ x, y }]);
+  const aroundHex1 = differenceWith(getMapAround(x, y, 1), [{ x, y }], isEqual);
   // 周囲2HEXのみ
-  const aroundHex2 = difference(getMapAround(x, y, 2), [...aroundHex1, { x, y }]);
+  const aroundHex2 = differenceWith(getMapAround(x, y, 2), [...aroundHex1, { x, y }], isEqual);
 
   // 中心座標は完全に水没
   const { defVal } = getMapDefine('sea');

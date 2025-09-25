@@ -2,6 +2,7 @@ import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { randomIntInRange, valueOrSafeLimit } from '@/global/function/utility';
 import { fireDisaster, mapType } from '../mapType';
 import META_DATA from '../metadata';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 
 // People
 export const people: mapType = {
@@ -14,22 +15,26 @@ export const people: mapType = {
   level: [1, 30, 100],
   coefficient: 100,
   unit: '人',
-  event: function ({ x, y, turn, fromIsland, eventRate }) {
+  event: function ({ x, y, turn, fromUuid }) {
+    using fromIslandGetSet = islandDataGetSet(fromUuid);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
+
     const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
     // 人口増加
     if (mapInfo.landValue < this.maxVal) {
       const growthValue = () => {
         if (fromIsland.food >= 0) {
           if (mapInfo.landValue > valueOrSafeLimit(this.level?.[0], 'max')) {
-            return eventRate.propaganda === 100
+            return fromIsland.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
               : META_DATA.PEOPLE_GROWTH.VILLAGE;
           } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[1], 'max')) {
-            return eventRate.propaganda === 100
+            return fromIsland.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.TOWN
               : META_DATA.PEOPLE_GROWTH.TOWN;
           } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[2], 'max')) {
-            return eventRate.propaganda === 100
+            return fromIsland.propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.CITY
               : META_DATA.PEOPLE_GROWTH.CITY;
           } else {
@@ -49,7 +54,7 @@ export const people: mapType = {
     }
     // 町以上なら火事判定
     if (mapInfo.landValue > (this.level?.[1] ?? Number.MAX_SAFE_INTEGER)) {
-      const log = fireDisaster(x, y, turn, fromIsland, eventRate);
+      const log = fireDisaster(x, y, turn, fromIsland, fromIsland);
       return log !== undefined ? [log] : undefined;
     }
   },

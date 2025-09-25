@@ -10,7 +10,7 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { turnStateSchemaType } from '@/db/schema/turnStateTable';
 import sqlite from 'better-sqlite3';
-import { difference } from 'es-toolkit';
+import { differenceWith, isEqual } from 'es-toolkit';
 import {
   logEarthquake,
   logEarthquakeDamage,
@@ -56,6 +56,10 @@ import {
   randomIntInRange,
   valueOrSafeLimit,
 } from './utility';
+import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
+import { allDbColumns } from './dbUtility';
+import { isKeyboardEvent } from '@dnd-kit/utilities';
+import { th } from 'zod/v4/locales';
 
 /**
  * 放棄されていない島情報
@@ -64,29 +68,30 @@ import {
  * @returns 全ユーザー情報
  */
 export function getInhabitedIslands(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   inhabited: boolean
 ) {
   const inhabitedNum = inhabited ? 1 : 0;
   const islands = db.client
-    .prepare(
+    .prepare<number, islandInfoTurnProgress>(
       `SELECT 
-        island.uuid, user.island_name,
-        json(island.prize) as prize,
-        island.money, island.food,
-        island.area, island.population,
-        island.farm, island.factory, island.mining,
-        json(island.island_info) as island_info
+        user.island_name,
+        ${allDbColumns(db.client, 'island')},
+        ${allDbColumns(db.client, 'event_rate')}
       FROM
-        user INNER JOIN island 
-      ON
-        user.uuid = island.uuid
+        user
+      INNER JOIN island
+        ON user.uuid = island.uuid
+      INNER JOIN event_rate
+        ON island.uuid = event_rate.uuid
       WHERE
-        inhabited=${inhabitedNum}`
+        inhabited= ?`
     )
-    .all() as Array<islandInfoTurnProgress>;
-  islands.forEach((island) => parseJsonIslandDataTurnProgress(island, false));
-  return islands;
+    .all(inhabitedNum);
+  if (islands) {
+    islands.forEach((island) => parseJsonIslandDataTurnProgress(island, false));
+    return islands;
+  }
 }
 
 /**
@@ -96,7 +101,7 @@ export function getInhabitedIslands(
  * @returns 全ユーザー情報
  */
 export function getUserPlanInfo(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   uuid: string
 ) {
   const plans = db.client
@@ -110,7 +115,7 @@ export function getUserPlanInfo(
  * @param db DB接続情報
  * @returns 全ユーザー情報
  */
-export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
+export function getTurnInfo(db: { client: sqlite.Database;[Symbol.dispose]: () => void }) {
   return db.client.prepare(`SELECT * FROM turn_state`).get() as turnStateSchemaType;
 }
 /**
@@ -120,7 +125,7 @@ export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () 
  * @returns 全ユーザー情報
  */
 export function updateTurn(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   nextTurn: number
 ) {
   db.client.prepare(`UPDATE turn_state SET turn = ?`).run(nextTurn);
@@ -133,7 +138,7 @@ export function updateTurn(
  * @returns 全ユーザー情報
  */
 export function updateTurnProgressing(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   turnProgress: boolean
 ) {
   db.client.prepare(`UPDATE turn_state SET turn_processing = ?`).run(parseDbData(turnProgress));
@@ -157,7 +162,7 @@ export const getIslandData = (islandData: islandInfoTurnProgress[], uuid: string
  * @returns イベント発生率
  */
 export const getEventRate = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   uuid: string
 ) =>
   db.client
@@ -176,10 +181,10 @@ export const getEventRate = (
  * @param uuid UUID
  */
 export const updateIslands = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   islandData: islandData
 ) => {
-  const updateIsland = db.client.prepare(
+  const updateIsland = db.client.prepare<unknown[], islandSchemaType>(
     `UPDATE island
       SET 
         prize = jsonb(@prize),
@@ -212,7 +217,7 @@ export const updateIslands = (
  * @param logData ログ情報
  */
 export const insertLogs = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   logData: turnLogSchemaType[]
 ) => {
   const insert = db.client.prepare(
@@ -234,7 +239,7 @@ export const insertLogs = (
  * @param uuid ユーザーUUID
  */
 export const insertDeletePlan = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   updatePlan: planSchemaType[],
   deleteLength: number,
   uuid: string
@@ -289,17 +294,19 @@ const isEarthquakeDamageMap = (islandInfo: islandInfo) => {
 
 /**
  * 地震イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 地震のログ配列
  */
 export const earthquakeExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (checkProbability(eventRate.earthquake)) {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.earthquake)) {
     const baseLog = getBaseLog(turn, island);
     const earthquakeLog = logEarthquake(island);
     const earthquakeLogs: turnLogSchemaType[] = [
@@ -338,11 +345,15 @@ const isLackFoodsDamageMap = (islandInfo: islandInfo) => {
 
 /**
  * 食糧不足イベントの実行
- * @param island 島情報
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 食糧不足のログ配列
  */
-export const lackFoodsExecute = (island: islandInfoTurnProgress, turn: number) => {
+export const lackFoodsExecute = (islandUuid: string, turn: number) => {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
   if (island.food <= 0) {
     const lackFoodsLog = logLackFoods(island);
     const baseLog = () => getBaseLog(turn, island);
@@ -398,17 +409,19 @@ const tsunamiDestroyRate = (islandData: islandInfo[], x: number, y: number) => {
 
 /**
  * 津波イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 津波のログ配列
  */
 export const tsunamiExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (checkProbability(eventRate.tsunami)) {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.tsunami)) {
     const baseLog = () => getBaseLog(turn, island);
     const tsunamiLog = logTsunami(island);
     const tsunamiLogs: turnLogSchemaType[] = [
@@ -479,20 +492,22 @@ const popMonster = (
 
 /**
  * モンスター出現イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 津波のログ配列
  */
 export const popMonsterExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
   if (island.artificialMonster > 0) {
     // 怪獣派遣がされている場合は、メカいのらを出現させる
     return popMonster(island, mapMonster.mekaInora, turn, island.artificialMonster);
-  } else if (checkProbability((eventRate.monster * island.area) / 100)) {
+  } else if (checkProbability((island.monster * island.area) / 100)) {
     // 怪獣派遣がされていない場合は、人口に応じたモンスターを出現させる
     const monsterArray = getPopMonsterArray(island.population);
     if (monsterArray.length > 0) {
@@ -533,17 +548,19 @@ const isLandSubsidenceDestroyAround = (islandData: islandInfo[], x: number, y: n
 
 /**
  * 地盤沈下イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 地盤沈下のログ配列
  */
 export const landSubsidenceExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (island.area > META_DATA.FALL_DOWN_BORDER && checkProbability(eventRate.fall_down)) {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (island.area > META_DATA.FALL_DOWN_BORDER && checkProbability(island.fall_down)) {
     const baseLog = () => getBaseLog(turn, island);
     const landSubsidenceLog = logLandSubsidence(island);
     const landSubsidenceLogs: turnLogSchemaType[] = [
@@ -587,17 +604,19 @@ const isTyphoonDamageMap = (islandInfo: islandInfo) => {
 
 /**
  * 台風イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @return 台風のログ配列
  */
 export function typhoonExecute(
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) {
-  if (checkProbability(eventRate.typhoon)) {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.typhoon)) {
     const baseLog = () => getBaseLog(turn, island);
     const typhoonLog = logTyphoon(island);
     const typhoonLogs: turnLogSchemaType[] = [
@@ -634,18 +653,19 @@ export function typhoonExecute(
 }
 
 /**
- * 地盤沈下イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * 巨大隕石イベントの実行
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 地盤沈下のログ配列
  */
 export const hugeMeteoriteExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (checkProbability(eventRate.huge_meteorite)) {
+  const island = islandDataStore.getState().islandGet(islandUuid);
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.huge_meteorite)) {
     const baseLog = () => getBaseLog(turn, island);
     const meteoriteX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const meteoriteY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
@@ -654,7 +674,7 @@ export const hugeMeteoriteExecute = (
       { ...baseLog(), log: hugeMeteoriteLog, secret_log: hugeMeteoriteLog },
     ];
     // 巨大隕石落下
-    hugeMeteoriteLogs.push(...wideDamage(island, meteoriteX, meteoriteY, turn));
+    hugeMeteoriteLogs.push(...wideDamage(islandUuid, meteoriteX, meteoriteY, turn));
 
     return hugeMeteoriteLogs;
   }
@@ -662,12 +682,15 @@ export const hugeMeteoriteExecute = (
 
 /**
  * モノリス落下のログを作成
- * @param island 島情報
+ * @param islandUuid 島のUuid
  * @param x X座標
  * @param y Y座標
  * @returns モノリス落下のログ
  */
-export const monumentAttackExecute = (island: islandInfoTurnProgress, turn: number) => {
+export const monumentAttackExecute = (islandUuid: string, turn: number) => {
+  const island = islandDataStore.getState().islandGet(islandUuid);
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
   for (let i = 0; i < island.fallMonument; i++) {
     const baseLog = getBaseLog(turn, island);
     const monumentX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
@@ -677,7 +700,7 @@ export const monumentAttackExecute = (island: islandInfoTurnProgress, turn: numb
       { ...baseLog, log: fallMonumentLog, secret_log: fallMonumentLog },
     ];
     // モノリス落下
-    const wideDamageLogs = wideDamage(island, monumentX, monumentY, turn);
+    const wideDamageLogs = wideDamage(islandUuid, monumentX, monumentY, turn);
     monumentAttackLogs.push(...wideDamageLogs);
 
     return monumentAttackLogs;
@@ -685,75 +708,73 @@ export const monumentAttackExecute = (island: islandInfoTurnProgress, turn: numb
 };
 
 /**
- * 隕石のダメージを与える処理
- * @param island 島情報
- * @param x X座標
- * @param y Y座標
- * @returns 隕石のログ
- */
-const meteoriteDamage = (island: islandInfoTurnProgress, x: number, y: number) => {
-  const islandInfo = island.island_info[mapArrayConverter(x, y)];
-  const mapDef = getMapDefine(islandInfo.type);
-  switch (mapDef.baseLand) {
-    case 'sea': {
-      switch (islandInfo.type) {
-        case 'submarine_missile': {
-          // 海底ミサイルは海に変更
-          changeMapData(island, x, y, 'sea', { type: 'ins', value: 0 });
-          return logMeteoriteToSubmarineMissile(island, x, y);
-        }
-        default: {
-          return logMeteoriteToSea(island, x, y);
-        }
-      }
-    }
-    case 'mountain': {
-      changeMapData(island, x, y, 'ruins', { type: 'ins', value: 0 });
-      return logMeteoriteToMountain(island, x, y);
-    }
-    case 'shallows': {
-      // 浅瀬は海に変更
-      changeMapData(island, x, y, 'sea', { type: 'ins', value: 0 });
-      return logMeteoriteToShallows(island, x, y);
-    }
-    case 'monster':
-    case 'sanjira':
-    case 'kujira': {
-      changeMapData(island, x, y, 'shallows', { type: 'ins', value: 0 });
-      return logMeteoriteToMonster(island, x, y);
-    }
-    default: {
-      // その他の地形は浅瀬に変更
-      changeMapData(island, x, y, 'shallows', {
-        type: 'ins',
-        value: 0,
-      });
-      return logMeteorite(island, x, y);
-    }
-  }
-};
-
-/**
  * 隕石イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 隕石のログ
  */
 export const meteoriteExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (checkProbability(eventRate.meteorite)) {
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.meteorite)) {
     const baseLog = () => getBaseLog(turn, island);
     const landSubsidenceLogs: turnLogSchemaType[] = [];
     let meteoriteFlag = true;
+    // 隕石落下
     while (meteoriteFlag) {
-      const meteoriteX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
-      const meteoriteY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
-      const meteoriteLog = meteoriteDamage(island, meteoriteX, meteoriteY);
-
+      const x = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+      const y = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+      let meteoriteLog = '';
+      const islandInfo = island.island_info[mapArrayConverter(x, y)];
+      const mapDef = getMapDefine(islandInfo.type);
+      switch (mapDef.baseLand) {
+        case 'sea': {
+          switch (islandInfo.type) {
+            case 'submarine_missile': {
+              // 海底ミサイルは海に変更
+              meteoriteLog = logMeteoriteToSubmarineMissile(island, x, y);
+              changeMapData(island, x, y, 'sea', { type: 'ins', value: 0 });
+              break;
+            }
+            default: {
+              meteoriteLog = logMeteoriteToSea(island, x, y);
+              break;
+            }
+          }
+        }
+        case 'mountain': {
+          meteoriteLog = logMeteoriteToMountain(island, x, y);
+          changeMapData(island, x, y, 'ruins', { type: 'ins', value: 0 });
+        }
+        case 'shallows': {
+          meteoriteLog = logMeteoriteToShallows(island, x, y);
+          // 浅瀬は海に変更
+          changeMapData(island, x, y, 'sea', { type: 'ins', value: 0 });
+          break;
+        }
+        case 'monster':
+        case 'sanjira':
+        case 'kujira': {
+          meteoriteLog = logMeteoriteToMonster(island, x, y);
+          changeMapData(island, x, y, 'shallows', { type: 'ins', value: 0 });
+          break;
+        }
+        default: {
+          meteoriteLog = logMeteorite(island, x, y);
+          // その他の地形は浅瀬に変更
+          changeMapData(island, x, y, 'shallows', {
+            type: 'ins',
+            value: 0,
+          });
+          break;
+        }
+      }
+      // 隕石落下ログ
       landSubsidenceLogs.push({ ...baseLog(), log: meteoriteLog, secret_log: meteoriteLog });
       // 隕石継続判定
       meteoriteFlag = checkProbability(META_DATA.CONTINUOUS_METEORITE_RATE);
@@ -763,74 +784,68 @@ export const meteoriteExecute = (
 };
 
 /**
- * 隕石のダメージを与える処理
- * @param island 島情報
- * @param x X座標
- * @param y Y座標
- * @returns 隕石のログ
- */
-const eruptionDamage = (island: islandInfoTurnProgress, turn: number, x: number, y: number) => {
-  const logs: turnLogSchemaType[] = [];
-  const baseLog = () => getBaseLog(turn, island);
-  const eruptionLog = logEruption(island, x, y);
-  logs.push({ ...baseLog(), secret_log: eruptionLog, log: eruptionLog });
-  changeMapData(island, x, y, 'mountain', { type: 'ins', value: 0 });
-
-  // 周囲1HEXのみ
-  const aroundHex1 = difference(getMapAround(x, y, 1), [{ x, y }]);
-  aroundHex1.forEach(({ x: changeX, y: changeY }) => {
-    if (!isOpenSea(changeX, changeY)) {
-      const mapInfo = island.island_info[mapArrayConverter(changeX, changeY)];
-      const mapDefine = getMapDefine(mapInfo.type);
-      switch (mapDefine.baseLand) {
-        case 'shallows': {
-          const tmpLog = logEruptionDamageToShallows(island, changeX, changeY);
-          logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
-          changeMapData(island, x, y, 'wasteland', { type: 'ins', value: 0 });
-          break;
-        }
-        case 'sea': {
-          const tmpLog = logEruptionDamageToSea(island, changeX, changeY);
-          logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
-          changeMapData(island, x, y, 'shallows', { type: 'ins', value: 0 });
-          break;
-        }
-        case 'mountain':
-        case 'monster':
-        case 'sanjira':
-        case 'kujira':
-          break;
-        default: {
-          if (mapInfo.type !== 'ruins' && mapInfo.type !== 'wasteland') {
-            const tmpLog = logEarthquakeDamage(island, changeX, changeY);
-            logs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
-            changeMapData(island, x, y, 'wasteland', { type: 'ins', value: 0 });
-            break;
-          }
-        }
-      }
-    }
-  });
-
-  return logs;
-};
-
-/**
  * 噴火イベントの実行
- * @param island 島情報
- * @param eventRate イベント発生率
+ * @param islandUuid 島のUuid
  * @param turn ターン数
  * @returns 噴火のログ
  */
 export const eruptionExecute = (
-  island: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType,
+  islandUuid: string,
   turn: number
 ) => {
-  if (checkProbability(eventRate.eruption)) {
-    const eruptionX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
-    const eruptionY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
-    const eruptionLogs = eruptionDamage(island, turn, eruptionX, eruptionY);
+  using fromIslandGetSet = islandDataGetSet(islandUuid);
+  const island = fromIslandGetSet.islandData;
+  if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
+
+  if (checkProbability(island.eruption)) {
+    const x = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+    const y = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+    const eruptionLogs: turnLogSchemaType[] = [];
+
+    const baseLog = () => getBaseLog(turn, island);
+    const eruptionLog = logEruption(island, x, y);
+    eruptionLogs.push({ ...baseLog(), secret_log: eruptionLog, log: eruptionLog });
+    const init = structuredClone(island);
+    changeMapData(island, x, y, 'mountain', { type: 'ins', value: 0 });
+    if (isEqual(init, island)) {
+      throw new Error(`噴火でマップの変更が行われませんでした。uuid=${islandUuid} x=${x} y=${y}`);
+    }
+
+    // 周囲1HEXのみ
+    const aroundHex1 = differenceWith(getMapAround(x, y, 1), [{ x, y }], isEqual);
+    aroundHex1.forEach(({ x: changeX, y: changeY }) => {
+      if (!isOpenSea(changeX, changeY)) {
+        const mapInfo = island.island_info[mapArrayConverter(changeX, changeY)];
+        const mapDefine = getMapDefine(mapInfo.type);
+        switch (mapDefine.baseLand) {
+          case 'shallows': {
+            const tmpLog = logEruptionDamageToShallows(island, changeX, changeY);
+            eruptionLogs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
+            changeMapData(island, changeX, changeY, 'wasteland', { type: 'ins', value: 0 });
+            break;
+          }
+          case 'sea': {
+            const tmpLog = logEruptionDamageToSea(island, changeX, changeY);
+            eruptionLogs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
+            changeMapData(island, changeX, changeY, 'shallows', { type: 'ins', value: 0 });
+            break;
+          }
+          case 'mountain':
+          case 'monster':
+          case 'sanjira':
+          case 'kujira':
+            break;
+          default: {
+            if (mapInfo.type !== 'ruins' && mapInfo.type !== 'wasteland') {
+              const tmpLog = logEarthquakeDamage(island, changeX, changeY);
+              eruptionLogs.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
+              changeMapData(island, changeX, changeY, 'wasteland', { type: 'ins', value: 0 });
+              break;
+            }
+          }
+        }
+      }
+    });
     return eruptionLogs;
   }
 };
