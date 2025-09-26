@@ -226,7 +226,11 @@ export const insertLogs = (
     for (const log of logs) insert.run(log);
   });
 
-  insertManyLogs(logData);
+  try {
+    insertManyLogs(logData);
+  } catch (e) {
+    throw new Error(`ログの挿入に失敗しました。message: ${(e as Error).message}, log: ${JSON.stringify(logData)}`);
+  }
 };
 
 /**
@@ -302,17 +306,17 @@ export const earthquakeExecute = (islandUuid: string, turn: number) => {
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
 
   if (checkProbability(island.earthquake)) {
-    const baseLog = getBaseLog(turn, island);
+    const baseLog = () => getBaseLog(turn, island);
     const earthquakeLog = logEarthquake(island);
     const earthquakeLogs: turnLogSchemaType[] = [
-      { ...baseLog, log: earthquakeLog, secret_log: earthquakeLog },
+      { ...baseLog(), log: earthquakeLog, secret_log: earthquakeLog },
     ];
     for (const islandInfo of island.island_info) {
       if (isEarthquakeDamageMap(islandInfo)) {
         // 都市やハリボテ、防衛施設、工場は地震で破壊される
         if (checkProbability(META_DATA.EARTHQUAKE_DESTROY_RATE)) {
           const log = logEarthquakeDamage(island, islandInfo.x, islandInfo.y);
-          earthquakeLogs.push({ ...baseLog, log: log, secret_log: log });
+          earthquakeLogs.push({ ...baseLog(), log: log, secret_log: log });
           changeMapData(island, islandInfo.x, islandInfo.y, 'wasteland', { type: 'ins', value: 0 });
         }
       }
