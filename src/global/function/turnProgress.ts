@@ -66,7 +66,7 @@ import {
  * @returns 全ユーザー情報
  */
 export function getInhabitedIslands(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   inhabited: boolean
 ) {
   const inhabitedNum = inhabited ? 1 : 0;
@@ -99,7 +99,7 @@ export function getInhabitedIslands(
  * @returns 全ユーザー情報
  */
 export function getUserPlanInfo(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   uuid: string
 ) {
   const plans = db.client
@@ -113,7 +113,7 @@ export function getUserPlanInfo(
  * @param db DB接続情報
  * @returns 全ユーザー情報
  */
-export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
+export function getTurnInfo(db: { client: sqlite.Database;[Symbol.dispose]: () => void }) {
   return db.client.prepare(`SELECT * FROM turn_state`).get() as turnStateSchemaType;
 }
 /**
@@ -123,7 +123,7 @@ export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () 
  * @returns 全ユーザー情報
  */
 export function updateTurn(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   nextTurn: number
 ) {
   db.client.prepare(`UPDATE turn_state SET turn = ?`).run(nextTurn);
@@ -136,7 +136,7 @@ export function updateTurn(
  * @returns 全ユーザー情報
  */
 export function updateTurnProgressing(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   turnProgress: boolean
 ) {
   db.client.prepare(`UPDATE turn_state SET turn_processing = ?`).run(parseDbData(turnProgress));
@@ -160,7 +160,7 @@ export const getIslandData = (islandData: islandInfoTurnProgress[], uuid: string
  * @returns イベント発生率
  */
 export const getEventRate = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   uuid: string
 ) =>
   db.client
@@ -179,7 +179,7 @@ export const getEventRate = (
  * @param uuid UUID
  */
 export const updateIslands = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   islandData: islandData
 ) => {
   const updateIsland = db.client.prepare<unknown[], islandSchemaType>(
@@ -215,7 +215,7 @@ export const updateIslands = (
  * @param logData ログ情報
  */
 export const insertLogs = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   logData: turnLogSchemaType[]
 ) => {
   const insert = db.client.prepare(
@@ -237,7 +237,7 @@ export const insertLogs = (
  * @param uuid ユーザーUUID
  */
 export const insertDeletePlan = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  db: { client: sqlite.Database;[Symbol.dispose]: () => void },
   updatePlan: planSchemaType[],
   deleteLength: number,
   uuid: string
@@ -781,11 +781,7 @@ export const eruptionExecute = (islandUuid: string, turn: number) => {
     const baseLog = () => getBaseLog(turn, island);
     const eruptionLog = logEruption(island, x, y);
     eruptionLogs.push({ ...baseLog(), secret_log: eruptionLog, log: eruptionLog });
-    const init = structuredClone(island);
     changeMapData(island, x, y, 'mountain', { type: 'ins', value: 0 });
-    if (isEqual(init, island)) {
-      throw new Error(`噴火でマップの変更が行われませんでした。uuid=${islandUuid} x=${x} y=${y}`);
-    }
 
     // 周囲1HEXのみ
     const aroundHex1 = differenceWith(getMapAround(x, y, 1), [{ x, y }], isEqual);
