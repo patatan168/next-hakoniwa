@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { islandInfoTurnProgress } from '@/db/schema/islandTable';
-import { clone } from 'es-toolkit';
+import { cloneDeep } from 'es-toolkit';
 import { createStore } from 'zustand/vanilla';
 
 type islandProgressStore = {
@@ -17,7 +17,7 @@ export const islandDataStore = createStore<islandProgressStore>((set, get) => ({
   islandGet: (uuid) => {
     const index = get().indexMap[uuid];
     if (index === undefined) return;
-    return clone(get().data[index]);
+    return cloneDeep(get().data[index]);
   },
   change: (data, uuid) => {
     const index = get().indexMap[uuid];
