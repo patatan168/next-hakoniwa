@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { islandInfoTurnProgress } from '@/db/schema/islandTable';
-import { isEqual } from 'es-toolkit';
+import { clone } from 'es-toolkit';
 import { createStore } from 'zustand/vanilla';
 
 type islandProgressStore = {
@@ -17,7 +17,7 @@ export const islandDataStore = createStore<islandProgressStore>((set, get) => ({
   islandGet: (uuid) => {
     const index = get().indexMap[uuid];
     if (index === undefined) return;
-    return structuredClone(get().data[index]);
+    return clone(get().data[index]);
   },
   change: (data, uuid) => {
     const index = get().indexMap[uuid];
@@ -39,13 +39,10 @@ export function buildIndexMap(data: islandInfoTurnProgress[]): Record<string, nu
 
 export function islandDataGetSet(uuid: string) {
   let islandData = islandDataStore.getState().islandGet(uuid);
-  const initIslandData = structuredClone(islandData);
   return {
     islandData,
     [Symbol.dispose]: () => {
-      if (!isEqual(islandData, initIslandData) && islandData) {
-        islandDataStore.getState().change(islandData, uuid);
-      }
+      if (islandData) islandDataStore.getState().change(islandData, uuid);
     },
   };
 }
