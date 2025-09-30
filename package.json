@@ -5,6 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "postinstall": "npx lefthook install",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
