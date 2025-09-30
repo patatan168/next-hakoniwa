@@ -1,5 +1,8 @@
 # Ignore artifacts:
 build
+.next
+node_modules
+dist
 
 # Ignore files:
 package.json

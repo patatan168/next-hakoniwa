@@ -7,11 +7,5 @@
     "**/build/**": true,
     "**/coverage/**": true,
     "**/log/**": true
-  },
-  // デフォルトのフォーマッターとして選択
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  // 設定ファイルがプロジェクトのルートディレクトリに存在する場合にのみ動作します。
-  "prettier.requireConfig": true,
-  // 設定ファイルの名前と場所(各プロジェクトのrootに置きます。)
-  "prettier.configPath": ".prettierrc.json"
+  }
 }
