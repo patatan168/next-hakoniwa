@@ -11,3 +11,6 @@ pre-commit:
         npx eslint --fix {staged_files}
         npx eslint {staged_files} || exit 1
         git add --force {staged_files}
+    tsc:
+      run: |
+        npx tsc --noEmit
