@@ -16,10 +16,12 @@ const compat = new FlatCompat();
 export default [
   {
     ignores: [
+      '.stylelintrc.mjs',
       'dist',
       'node_modules',
       'eslint.config.mjs',
       'next.config.mjs',
+      'next-env.d.ts',
       'vitest.config.mts',
       'tailwind.config.js',
       'postcss.config.cjs',
