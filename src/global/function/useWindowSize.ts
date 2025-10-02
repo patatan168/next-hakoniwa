@@ -1,35 +1,56 @@
 'use client';
 
-import { throttle } from 'es-toolkit';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+
+const initSnapshot: [number, number] = [0, 0];
+let cachedClientSnapshot: [number, number] = [0, 0];
+const debounceDelay = 100;
 
 /**
- * ウィンドウのサイズを取得するカスタムフック
+ * ウィンドウサイズを取得するカスタムフック（ResizeObserver + window resize）
  * @returns [width, height]
  */
-export function useWindowSize(): number[] {
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+export const useWindowSize = () => {
+  const size = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return size;
+};
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return; // SSRガード
+const subscribe = (callback: () => void) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
 
-    const updateSize = throttle(() => {
-      setWidth(document.documentElement.clientWidth);
-      setHeight(document.documentElement.clientHeight);
-    }, 100);
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const resizeObserver = new ResizeObserver(() => {
-      updateSize();
-    });
+  const updateSnapshot = () => {
+    cachedClientSnapshot = [
+      document.documentElement.clientWidth,
+      document.documentElement.clientHeight,
+    ];
+    callback();
+  };
 
-    resizeObserver.observe(document.documentElement);
-    updateSize(); // 初期値の設定
+  const debouncedUpdate = () => {
+    if (timeoutId !== null) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      updateSnapshot();
+      timeoutId = null;
+    }, debounceDelay);
+  };
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
+  const resizeObserver = new ResizeObserver(debouncedUpdate);
+  resizeObserver.observe(document.documentElement);
 
-  return [width, height];
-}
+  window.addEventListener('resize', debouncedUpdate);
+
+  return () => {
+    resizeObserver.disconnect();
+    window.removeEventListener('resize', debouncedUpdate);
+    if (timeoutId !== null) clearTimeout(timeoutId);
+  };
+};
+
+const getSnapshot = (): [number, number] => {
+  if (typeof document === 'undefined') return initSnapshot;
+  return cachedClientSnapshot;
+};
+
+const getServerSnapshot = (): [number, number] => initSnapshot;
