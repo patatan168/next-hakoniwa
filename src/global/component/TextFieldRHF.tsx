@@ -7,6 +7,7 @@ import {
   FieldValues,
   UseControllerProps,
 } from 'react-hook-form';
+import { FaEye, FaEyeSlash } from 'react-icons/fa6';
 
 type HelperTextProps = {
   style?: CSSProperties;
@@ -41,17 +42,21 @@ const UlStyle = (propsStyle: CSSProperties | undefined) =>
     return uiStyle;
   }, [propsStyle]);
 
-const InputStyle = (error: boolean) =>
+const InputStyle = (
+  error: boolean,
+  type: 'number' | 'password' | 'text' | 'email' | 'tel' | 'search' | undefined
+) =>
   useMemo(() => {
     const baseStyle =
       'w-full h-full rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
     const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 dark:bg-white/70 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
     const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
+    const typeStyle = type === 'password' ? ' pr-7' : '';
 
     if (error) {
-      return errorStyle;
+      return errorStyle + typeStyle;
     } else {
-      return defStyle;
+      return defStyle + typeStyle;
     }
   }, [error]);
 
@@ -90,7 +95,7 @@ const HelperText = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-function _TextFieldRHF<
+function TextFieldRHFInner<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(props: TextFieldRHFProps<TFieldValues, TName>) {
@@ -99,10 +104,14 @@ function _TextFieldRHF<
     'control',
     'rules',
     'style',
+    'type',
     'shouldUnregister',
     'helperText',
     'isBottomSpace',
   ]);
+  const [viewText, setViewText] = useState(props.type !== 'password');
+  const [inputWidth, setInputWidth] = useState(0);
+
   return (
     <Controller
       name={props.name}
@@ -113,7 +122,6 @@ function _TextFieldRHF<
       disabled={props.disabled}
       render={({ field, fieldState: { isTouched, isDirty, invalid, error } }) => {
         const isError = props.disabled || ((isTouched || isDirty) && invalid);
-        const [inputWidth, setInputWidth] = useState(0);
         const inputCallback = (node: HTMLInputElement) => {
           if (node !== null) {
             const { width } = node.getBoundingClientRect();
@@ -125,12 +133,26 @@ function _TextFieldRHF<
         return (
           <ul style={UlStyle(props.style)} className={props.className}>
             <li>
-              <input
-                className={InputStyle(isError)}
-                {...field}
-                {...textFieldProps}
-                ref={inputCallback}
-              />
+              <div className="relative flex items-center">
+                <input
+                  className={InputStyle(isError, props.type)}
+                  {...field}
+                  {...textFieldProps}
+                  type={viewText ? 'text' : 'password'}
+                  ref={inputCallback}
+                />
+                {props.type === 'password' && (
+                  <button
+                    type="button"
+                    className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-lg text-gray-500 hover:text-sky-700"
+                    onClick={() => setViewText(!viewText)}
+                    disabled={props.type !== 'password'}
+                    tabIndex={-1}
+                  >
+                    {viewText ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                )}
+              </div>
             </li>
             <HelperText
               style={HelperTextWidth(inputWidth)}
@@ -164,6 +186,6 @@ function _TextFieldRHF<
  * This component is designed to work seamlessly with React Hook Form, providing a consistent and user-friendly input experience.
  * It supports various input types, validation rules, and customizable styles.
  */
-export const TextFieldRHF = memo(_TextFieldRHF, (oldProps, newProps) =>
+export const TextFieldRHF = memo(TextFieldRHFInner, (oldProps, newProps) =>
   isEqual(oldProps, newProps)
-) as typeof _TextFieldRHF;
+) as typeof TextFieldRHFInner;
