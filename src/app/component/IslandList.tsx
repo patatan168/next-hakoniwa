@@ -60,6 +60,7 @@ export default function IslandList() {
       )}
       {tab === 1 && (
         <TurnLog
+          ref={listCallback}
           style={{ height: listHeight, backgroundColor: 'transparent' }}
           logs={logData.get}
         />
