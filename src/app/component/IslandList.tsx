@@ -24,9 +24,10 @@ const tabTest: Array<TabType> = [
 export default function IslandList() {
   const [tab, setTab] = useState(0);
   const { data, isLoading, fetch } = useClientFetch(userStore);
-  const { data: logData, fetch: logFetch } = useClientFetch(turnLogStore);
+  const { data: logData, fetch: logFetch, isLoading: logLoading } = useClientFetch(turnLogStore);
   const [listHeight, setListHeight] = useState('100svh');
   const [, height] = useWindowSize();
+  const [lazyFlag, setLazyFlag] = useState(false);
   const listCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
@@ -46,6 +47,13 @@ export default function IslandList() {
     logFetch({ method: 'GET' });
   }, []);
 
+  useEffect(() => {
+    if (lazyFlag && logData.get && logLoading.get === false) {
+      const lastUuid = logData.get.at(-1)?.log_uuid ?? '';
+      logFetch({ method: 'GET' }, { query: `log_uuid=${lastUuid}` });
+    }
+  }, [lazyFlag, logData.get, logLoading.get]);
+
   return (
     <>
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
@@ -63,6 +71,7 @@ export default function IslandList() {
           ref={listCallback}
           style={{ height: listHeight, backgroundColor: 'transparent' }}
           logs={logData.get}
+          setLazyFlag={setLazyFlag}
         />
       )}
     </>
