@@ -52,7 +52,7 @@ function createApiMethodDefaults<T>(value: T): ApiMethodType<T> {
  * @returns マージ後のデータ
  */
 function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge: boolean): T {
-  if (refresh || shouldMerge) return next;
+  if (refresh || !shouldMerge) return next;
   // Array or Object
   if (typeof current !== 'object' || typeof next !== 'object') return next;
 
