@@ -1,6 +1,8 @@
 import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
+import { uuid25Regex } from '@/global/define/regex';
 import { dbConn } from '@/global/function/db';
+import { allDbColumns } from '@/global/function/dbUtility';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -9,18 +11,23 @@ export async function OPTIONS() {
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const getId = searchParams.get('uuid');
+  const uuid = searchParams.get('uuid') ?? '';
+  if (!uuid25Regex.test(uuid)) {
+    const response = NextResponse.json(
+      { error: 'Invalid Input' },
+      {
+        status: 400,
+      }
+    );
+    return response;
+  }
   using db = dbConn('./src/db/data/main.db');
-  if (getId !== null) {
+  if (uuid !== null) {
     const islandData = db.client
       .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
         `SELECT
-          island.uuid, user.island_name,
-          json(island.prize) as prize,
-          island.money, island.food,
-          island.area, island.population,
-          island.farm, island.factory, island.mining,
-          json(island.island_info) as island_info
+          user.island_name,
+          ${allDbColumns(db.client, 'island')}
         FROM
           user INNER JOIN island 
         ON
@@ -28,7 +35,7 @@ export async function GET(request: NextRequest) {
         WHERE
           island.uuid = ? AND user.inhabited = 1;`
       )
-      .get(getId);
+      .get(uuid);
     if (islandData === undefined) {
       return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 404 });
     }

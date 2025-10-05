@@ -2,6 +2,7 @@ import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { validAuthCookie } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
+import { allDbColumns } from '@/global/function/dbUtility';
 import { accessLogger } from '@/global/function/logger';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -18,12 +19,8 @@ export async function GET(request: NextRequest) {
     const islandData = db.client
       .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
         `SELECT
-          island.uuid, user.island_name,
-          json(island.prize) as prize,
-          island.money, island.food,
-          island.area, island.population,
-          island.farm, island.factory, island.mining,
-          json(island.island_info) as island_info
+          user.island_name,
+          ${allDbColumns(db.client, 'island')}
         FROM
           user INNER JOIN island 
         ON
