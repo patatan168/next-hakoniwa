@@ -1,16 +1,26 @@
 pre-commit:
+  skip:
+    - merge
+    - rebase
   parallel: false
+  piped: true
   commands:
-    prettier:
+    tsc:
+      priority: 1
       run: |
-        npx prettier --write {staged_files}
-        npx prettier --check {staged_files} || exit 1
-        git add --force {staged_files}
+        npx tsc --noEmit
+      glob: '*.{ts,tsx}'
     eslint:
+      priority: 2
       run: |
         npx eslint --fix {staged_files}
         npx eslint {staged_files} || exit 1
-        git add --force {staged_files}
-    tsc:
+      stage_fixed: true
+      glob: '*.{ts,tsx}'
+    prettier:
+      priority: 3
       run: |
-        npx tsc --noEmit
+        npx prettier --write {staged_files}
+        npx prettier --check {staged_files} || exit 1
+      stage_fixed: true
+      glob: '*.{css,scss,json,md,ts,tsx}'
