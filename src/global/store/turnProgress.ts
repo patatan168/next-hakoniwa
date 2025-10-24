@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import { islandInfoTurnProgress } from '@/db/schema/islandTable';
 import { cloneDeep } from 'es-toolkit';
 import { createStore } from 'zustand/vanilla';

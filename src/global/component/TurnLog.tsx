@@ -1,6 +1,6 @@
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { isEqual } from 'es-toolkit';
-import { memo, Ref, useEffect, useState } from 'react';
+import { memo, Ref } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import Loading from './Loading';
 import { TransformHTML } from './TransFormHTML';
@@ -16,12 +16,7 @@ function TurnLog({
   logs: turnLogSchemaType[] | undefined;
   setLazyFlag: (value: boolean) => void;
 }) {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (logs !== undefined && logs.length > 0) {
-      setReady(true);
-    }
-  }, [logs]);
+  const ready = logs !== undefined && logs.length > 0;
 
   if (!ready) return <Loading />;
 

@@ -2,15 +2,14 @@ import { FlatCompat } from '@eslint/eslintrc';
 import jsESLint from '@eslint/js';
 import typeScriptESLint from '@typescript-eslint/eslint-plugin';
 import typeScriptESLintParser from '@typescript-eslint/parser';
+import nextVitals from 'eslint-config-next/core-web-vitals';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
 import requireAsyncContext from 'eslint-plugin-next-router-async';
 import prettier from 'eslint-plugin-prettier';
 import react from 'eslint-plugin-react';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tailwindcss from 'eslint-plugin-tailwindcss';
 import globals from 'globals';
-
 const compat = new FlatCompat();
 
 export default [
@@ -27,25 +26,18 @@ export default [
       'postcss.config.cjs',
     ],
   },
+  ...nextVitals,
   jsESLint.configs.recommended,
   eslintConfigPrettier,
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
-  ...compat.extends(
-    'next/core-web-vitals',
-    'next/typescript',
-    'plugin:jsx-a11y/strict',
-    'plugin:storybook/recommended',
-    'prettier'
-  ),
+  ...compat.extends('plugin:storybook/recommended'),
   {
     files: ['src/**/*.{ts,tsx}'],
     plugins: {
       '@typescript-eslint': typeScriptESLint,
       typeScriptESLintParser,
-      jsxA11y,
       prettier,
-      react,
       'react-refresh': reactRefresh,
       tailwindcss,
       'next-router-async': requireAsyncContext,
@@ -72,18 +64,26 @@ export default [
     rules: {
       // ===にしないとエラー
       eqeqeq: 'error',
-      // サイクロマティック複雑度が10を超えるとエラー
+      // サイクロマティック複雑度が15を超えるとエラー
       complexity: ['error', 15],
       // Any型は警告のとどめて許容する
       '@typescript-eslint/no-explicit-any': 'warn',
       // 未使用変数
+      'no-unused-vars': 'off', // 無効化：ESLint 本体の no-unused-vars
+      'react/react-in-jsx-scope': 'off', // 無効化：React での JSX 内の未使用変数
       '@typescript-eslint/no-unused-vars': [
+        // 有効化：TypeScript 用の no-unused-vars
         'error',
         {
-          // アンダースコアで書けば無視
-          argsIgnorePattern: '^_',
+          vars: 'all', // すべての変数を対象（default）
+          args: 'after-used', // 使用されていない引数のみ警告
+          ignoreRestSiblings: true, // 分割代入の残り要素を無視
+          argsIgnorePattern: '^_', // アンダースコア始まりの引数は無視
+          varsIgnorePattern: '^_', // アンダースコア始まりの変数も無視
         },
       ],
+      // 未定義変数の使用を許可（TypeScriptでチェックするため）
+      'no-undef': 'off',
       // Childrenの一行タグを許可<Example />
       'react/no-children-prop': 'error',
       // useEffectの依存関係のWarningを無効

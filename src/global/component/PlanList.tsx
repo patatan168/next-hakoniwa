@@ -276,8 +276,8 @@ const useEffectNormalizePlanData = (
   setItems: (data: Array<planSchemaType & { id: number }>) => void
 ) => {
   const prevIsActive = useRef(isPlanLoading);
-  const isRefresh = prevIsActive.current && !isPlanLoading;
   useEffect(() => {
+    const isRefresh = prevIsActive.current && !isPlanLoading;
     if (isRefresh) {
       // NOTE: UUIDが存在し、かつ計画データがnullでない場合に処理を実行
       if (uuid && planData !== null) {

@@ -31,7 +31,7 @@ export default function IslandList() {
     fetchIfNeeded: fetchPlan,
   } = useClientFetch(planStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
-  const [planData, setPlanData] = useState<Array<planSchemaType> | null>(null);
+  const [planData, setPlanData] = useState<Array<planSchemaType> | null>(fetchPlanData.get || null);
   const [listHeight, setListHeight] = useState('100svh');
   const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
   const [width, height] = useWindowSize();
@@ -46,10 +46,6 @@ export default function IslandList() {
     },
     [width, height]
   );
-
-  useEffect(() => {
-    if (fetchPlanData.get) setPlanData(fetchPlanData.get);
-  }, [fetchPlanData.get]);
 
   useEffect(() => {
     fetchDev({ method: 'GET' });
