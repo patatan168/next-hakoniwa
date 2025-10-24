@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 import path from 'path';
-import TerserPlugin from 'terser-webpack-plugin';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,25 +37,13 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (config, { webpack }) => {
-    // NOTE: node: インポートを通常のモジュール名に置き換える
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
-        resource.request = resource.request.replace(/^node:/, '');
-      })
-    );
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
-    config.optimization.minimize = true;
-    config.optimization.minimizer = [
-      new TerserPlugin({
-        terserOptions: {
-          compress: {
-            passes: 3, // Compress 3times
-          },
-        },
-      }),
-    ];
-    return config;
+  experimental: {
+    // JS の minify を有効化（Terser のような詳細設定は不可）
+    turbopackMinify: true,
+  },
+  compiler: {
+    // SWC による minify を有効化（Turbopack では無視される可能性あり）
+    removeConsole: true,
   },
 };
 
