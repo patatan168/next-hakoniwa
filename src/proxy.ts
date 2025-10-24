@@ -9,7 +9,7 @@ const ipMap = new Map<string, { count: number; timestamp: number }>();
 const rateLimitPaths = ['/api'];
 const sessionPaths = ['/development'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (rateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await rateLimit(request);
