@@ -76,10 +76,6 @@ const nextConfig = {
     // JS の minify を有効化（Terser のような詳細設定は不可）
     turbopackMinify: true,
   },
-  compiler: {
-    // SWC による minify を有効化（Turbopack では無視される可能性あり）
-    removeConsole: true,
-  },
 };
 
 export default nextConfig;
