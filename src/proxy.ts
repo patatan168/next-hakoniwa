@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { extractClientIp } from './global/function/ip';
 import { sessionStore } from './global/store/api/auth/session';
 
 const WINDOW_MS = 1 * 1000;
@@ -10,6 +11,10 @@ const rateLimitPaths = ['/api'];
 const sessionPaths = ['/development'];
 
 export async function proxy(request: NextRequest) {
+  // 不正の疑いがあるIPアドレスは除外
+  const ip = extractClientIp(request);
+  if (!ip) return new Response('', { status: 400 });
+
   const { pathname } = request.nextUrl;
   if (rateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await rateLimit(request);

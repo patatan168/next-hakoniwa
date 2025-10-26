@@ -6,12 +6,37 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'false' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           {
             key: 'Content-Security-Policy',
             value: "img-src 'self'; object-src 'none'; frame-ancestors 'none';",
           },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'false' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value:
+              'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "img-src 'self'; object-src 'none'; frame-ancestors 'none';",
+          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
@@ -32,29 +57,6 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: "img-src 'self'; object-src 'none';frame-ancestors 'none';",
-          },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
-          },
-        ],
-      },
-      {
-        source: '/api/public/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'false' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value:
-              'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "img-src 'self'; object-src 'none'; frame-ancestors 'none';",
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
