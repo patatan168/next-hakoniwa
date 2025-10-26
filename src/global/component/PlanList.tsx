@@ -279,8 +279,18 @@ const useEffectNormalizePlanData = (
   useEffect(() => {
     const isRefresh = prevIsActive.current && !isPlanLoading;
     if (isRefresh) {
+      if (uuid === undefined) return;
       // NOTE: UUIDが存在し、かつ計画データがnullでない場合に処理を実行
-      if (uuid && planData !== null) {
+      if (planData === null) {
+        // 資金繰りで埋めて計画番号順にソート
+        const tmpItems = sortBy(
+          uniqBy([...defaultPlan(uuid)], (item) => item.plan_no),
+          ['plan_no']
+        ).map((item) => ({ ...item, id: item.plan_no }));
+
+        setInitItems(tmpItems);
+        setItems(tmpItems);
+      } else {
         // 資金繰りで埋めて計画番号順にソート
         const tmpItems = sortBy(
           uniqBy([...planData, ...defaultPlan(uuid)], (item) => item.plan_no),
@@ -289,12 +299,9 @@ const useEffectNormalizePlanData = (
 
         setInitItems(tmpItems);
         setItems(tmpItems);
-        // NOTE: 初期化するまでRefreshを維持している
-        prevIsActive.current = isPlanLoading;
       }
-    } else {
-      prevIsActive.current = isPlanLoading;
     }
+    prevIsActive.current = isPlanLoading;
   }, [planData, uuid, isPlanLoading]);
 };
 
