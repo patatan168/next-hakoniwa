@@ -4,7 +4,7 @@ import * as planDevelopment from '../planCategory/planDevelopment';
 import * as planManage from '../planCategory/planManege';
 import * as PlanType from '../planType';
 
-describe('getMapDefine', () => {
+describe('getPlanDefine', () => {
   test('undefined => financing', () => {
     expect(PlanType.getPlanDefine('test')).toEqual(planManage.financing);
   });
