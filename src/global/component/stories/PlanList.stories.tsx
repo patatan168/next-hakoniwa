@@ -4,7 +4,7 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { PlanList } from '@/global/component/PlanList';
 import { omit } from 'es-toolkit';
 import { useState } from 'react';
-import { fn } from 'storybook/internal/test';
+import { fn } from 'storybook/test';
 
 const planTest: Array<planSchemaType> = [
   { from_uuid: 'test', to_uuid: 'test', plan_no: 0, times: 0, x: 0, y: 0, plan: 'afforest' },
