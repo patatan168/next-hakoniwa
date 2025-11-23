@@ -27,7 +27,7 @@ type DataOptions = {
 };
 
 export type Rfc9457 = {
-  type: URL;
+  type: string;
   title: string;
   status: number;
   detail: string;
@@ -55,7 +55,7 @@ class ApiError extends Error {
  */
 function getInternalError(error: unknown, url: string, query?: string): Rfc9457 {
   return {
-    type: new URL(url),
+    type: url,
     title: 'Internal Server Error',
     status: 500,
     detail: error instanceof Error ? error.message : String(error),
@@ -203,7 +203,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
         } catch (err) {
           if (err instanceof ApiError) {
             const rfc9457: Rfc9457 = {
-              type: new URL(url),
+              type: url,
               title: err.statusText,
               status: err.status,
               detail: err.message,
@@ -271,7 +271,7 @@ export class FetchStore<T extends object, U = { result: boolean }> {
     } catch (err) {
       if (err instanceof ApiError) {
         const rfc9457: Rfc9457 = {
-          type: new URL(url),
+          type: url,
           title: err.statusText,
           status: err.status,
           detail: err.message,
