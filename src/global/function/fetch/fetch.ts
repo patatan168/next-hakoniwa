@@ -26,6 +26,43 @@ type DataOptions = {
   refresh?: boolean;
 };
 
+export type Rfc9457 = {
+  type: URL;
+  title: string;
+  status: number;
+  detail: string;
+  instance?: string;
+};
+
+class ApiError extends Error {
+  status: number;
+  statusText: string;
+
+  constructor(message: string, status: number, statusText: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.statusText = statusText;
+  }
+}
+
+/**
+ * 内部エラーをRfc9457形式で取得する
+ * @param error エラーオブジェクト
+ * @param url エンドポイントURL
+ * @param query クエリパラメータ
+ * @returns Rfc9457形式のエラーオブジェクト
+ */
+function getInternalError(error: unknown, url: string, query?: string): Rfc9457 {
+  return {
+    type: new URL(url),
+    title: 'Internal Server Error',
+    status: 500,
+    detail: error instanceof Error ? error.message : String(error),
+    instance: query,
+  };
+}
+
 /**
  * APIメソッドのデフォルト値を作成する
  * @param value デフォルト値
@@ -68,7 +105,7 @@ function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge:
 
 export type FetchState<T, U> = {
   data: ApiMethodType<T | undefined, U | undefined>;
-  error: ApiMethodType<ApiError | undefined>;
+  error: ApiMethodType<Rfc9457 | undefined>;
   isLoading: ApiMethodType<boolean>;
   fetchedAt: ApiMethodType<number>;
   pollingIntervalId: NodeJS.Timeout | null;
@@ -164,10 +201,25 @@ export class FetchStore<T extends object, U = { result: boolean }> {
             await this.refreshFetch(urlWithQuery);
           }
         } catch (err) {
-          set((prev) => ({
-            error: { ...prev.error, [method]: err },
-            isLoading: { ...prev.isLoading, [method]: false },
-          }));
+          if (err instanceof ApiError) {
+            const rfc9457: Rfc9457 = {
+              type: new URL(url),
+              title: err.statusText,
+              status: err.status,
+              detail: err.message,
+              instance: query,
+            };
+            set((prev) => ({
+              error: { ...prev.error, [method]: rfc9457 },
+              isLoading: { ...prev.isLoading, [method]: false },
+            }));
+          } else {
+            const internalError = getInternalError(err, url, query);
+            set((prev) => ({
+              error: { ...prev.error, [method]: internalError },
+              isLoading: { ...prev.isLoading, [method]: false },
+            }));
+          }
         }
       },
       fetchIfNeeded: async (options, dataOptions) => {
@@ -217,23 +269,25 @@ export class FetchStore<T extends object, U = { result: boolean }> {
         isLoading: { ...prev.isLoading, get: false },
       }));
     } catch (err) {
-      set((prev) => ({
-        error: { ...prev.error, get: err as ApiError },
-        isLoading: { ...prev.isLoading, get: false },
-      }));
+      if (err instanceof ApiError) {
+        const rfc9457: Rfc9457 = {
+          type: new URL(url),
+          title: err.statusText,
+          status: err.status,
+          detail: err.message,
+        };
+        set((prev) => ({
+          error: { ...prev.error, get: rfc9457 },
+          isLoading: { ...prev.isLoading, get: false },
+        }));
+      } else {
+        const internalError = getInternalError(err, url);
+        set((prev) => ({
+          error: { ...prev.error, get: internalError },
+          isLoading: { ...prev.isLoading, get: false },
+        }));
+      }
     }
-  }
-}
-
-class ApiError extends Error {
-  status: number;
-  statusText: string;
-
-  constructor(message: string, status: number, statusText: string) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.statusText = statusText;
   }
 }
 
