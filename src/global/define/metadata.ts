@@ -78,6 +78,10 @@ const META_DATA = Object.freeze({
   ISSUER: 'Patatan',
   /** セッション時間(h) */
   EXPIRES_HOUR: 72,
+  /** ログイン失敗許容回数 */
+  LOGIN_FAIL_LIMIT: 5,
+  /** ログインロック時間(分) */
+  LOGIN_LOCK_MINUTE: 10,
 });
 
 export default META_DATA;
