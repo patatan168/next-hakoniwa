@@ -9,6 +9,7 @@ import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
+import { isEqual } from 'es-toolkit';
 import { useCallback, useEffect, useState } from 'react';
 
 const POST_HEADER = {
@@ -31,10 +32,11 @@ export default function IslandList() {
     fetchIfNeeded: fetchPlan,
   } = useClientFetch(planStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
-  const [planData, setPlanData] = useState<Array<planSchemaType> | null>(fetchPlanData.get || null);
+  const [planData, setPlanData] = useState<Array<planSchemaType> | null>(null);
   const [listHeight, setListHeight] = useState('100svh');
   const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
   const [width, height] = useWindowSize();
+  const [refreshKey, setRefreshKey] = useState(true);
   const { fetch: trigger } = useClientFetch(planStore);
   const listCallback = useCallback(
     (node: HTMLDivElement) => {
@@ -66,19 +68,23 @@ export default function IslandList() {
         <div>
           <Button
             type="submit"
-            onClick={() => trigger({ ...POST_HEADER, body: JSON.stringify(planData) })}
-            disabled={!planData || planData.length === 0 || isLoading.get}
+            onClick={() => {
+              trigger({ ...POST_HEADER, body: JSON.stringify(planData) });
+              setRefreshKey((prev) => !prev);
+            }}
+            disabled={isEqual(fetchPlanData.get, planData) || !planData || isLoading.get}
           >
             計画送信
           </Button>
           <PlanList
+            key={String(refreshKey)}
             className="overflow-y-auto"
             ref={listCallback}
             style={{ height: listHeight }}
             islandList={islandList.get}
             turn={turnData.get?.turn}
             isPlanLoading={isPlanLoading.get}
-            planData={planData}
+            initPlanData={fetchPlanData.get}
             setPlanData={setPlanData}
             uuid={developData.get?.uuid}
           />

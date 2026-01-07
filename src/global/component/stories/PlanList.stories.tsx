@@ -33,7 +33,7 @@ const meta = {
   },
   tags: ['autodocs'],
   args: {
-    planData: planTest,
+    initPlanData: planTest,
     setPlanData: fn(),
     turn: 0,
     uuid: 'test',
@@ -41,8 +41,8 @@ const meta = {
     isPlanLoading: false,
   },
   argTypes: {
-    planData: {
-      description: '計画リスト',
+    initPlanData: {
+      description: '初期計画リスト',
       type: { name: 'other', value: '', required: true },
       table: {
         type: { summary: 'Array<planSchemaType>' },
@@ -81,8 +81,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Example: Story = {
   render: (args) => {
-    const [planData, setPlanData] = useState(args.planData || planTest);
-    const props = omit(args, ['planData', 'setPlanData']);
-    return <meta.component planData={planData} setPlanData={setPlanData} {...props} />;
+    const [planData, setPlanData] = useState(args.initPlanData || planTest);
+    const props = omit(args, ['initPlanData', 'setPlanData']);
+    return <meta.component initPlanData={planData} setPlanData={setPlanData} {...props} />;
   },
 };

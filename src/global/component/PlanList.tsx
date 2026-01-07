@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
-import { CSSProperties, memo, Ref, useEffect, useMemo, useRef, useState } from 'react';
+import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { RxDragHandleVertical } from 'react-icons/rx';
 import META_DATA from '../define/metadata';
@@ -38,7 +38,6 @@ const PlanItem = ({
   attributes,
   listeners,
 }: planItemProps) => {
-  const prevItemRef = useRef(item);
   const { x, y, plan, times } = item;
   const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
   const [edit, setEdit] = useState(false);
@@ -51,13 +50,11 @@ const PlanItem = ({
     ),
   });
 
+  const itemRef = useRef(item);
+
   useEffect(() => {
-    const isModifiedExternally = !isEqual(prevItemRef.current, item);
-    if (isModifiedExternally) {
-      // NOTE: 描画を待ってからフォームをリセット
-      setTimeout(() => reset(item), 0);
-      prevItemRef.current = item;
-    }
+    itemRef.current = item;
+    reset(item);
   }, [item, reset]);
 
   useEffect(() => {
@@ -65,12 +62,14 @@ const PlanItem = ({
       formState: { values: true },
       callback: ({ values }) => {
         const data = planInfoZodValid.omit({ from_uuid: true }).parse(values);
-        setItem(data);
+        if (!isEqual(data, itemRef.current)) {
+          setItem(data);
+        }
       },
     });
 
     return () => unsubscribe();
-  }, [subscribe]);
+  }, [subscribe, setItem]);
 
   return (
     <div
@@ -261,50 +260,6 @@ const defaultPlan = (uuid: string): Array<planSchemaType & { id: number }> => {
   return defaultPlan;
 };
 
-/**
- * 計画情報の正規化
- * @param planData 計画データの配列
- * @param uuid ユーザーのUUID
- * @param setInitItems 初期アイテムを設定する関数
- * @param setItems アイテムを設定する関数
- */
-const useEffectNormalizePlanData = (
-  isPlanLoading: boolean,
-  planData: Array<planSchemaType> | null,
-  uuid: string | undefined,
-  setInitItems: (data: Array<planSchemaType & { id: number }>) => void,
-  setItems: (data: Array<planSchemaType & { id: number }>) => void
-) => {
-  const prevIsActive = useRef(isPlanLoading);
-  useEffect(() => {
-    const isRefresh = prevIsActive.current && !isPlanLoading;
-    if (isRefresh) {
-      if (uuid === undefined) return;
-      // NOTE: UUIDが存在し、かつ計画データがnullでない場合に処理を実行
-      if (planData === null) {
-        // 資金繰りで埋めて計画番号順にソート
-        const tmpItems = sortBy(
-          uniqBy([...defaultPlan(uuid)], (item) => item.plan_no),
-          ['plan_no']
-        ).map((item) => ({ ...item, id: item.plan_no }));
-
-        setInitItems(tmpItems);
-        setItems(tmpItems);
-      } else {
-        // 資金繰りで埋めて計画番号順にソート
-        const tmpItems = sortBy(
-          uniqBy([...planData, ...defaultPlan(uuid)], (item) => item.plan_no),
-          ['plan_no']
-        ).map((item) => ({ ...item, id: item.plan_no }));
-
-        setInitItems(tmpItems);
-        setItems(tmpItems);
-      }
-    }
-    prevIsActive.current = isPlanLoading;
-  }, [planData, uuid, isPlanLoading]);
-};
-
 const GetIslandOptions = (
   data: { uuid: string; island_name: string }[] | undefined
 ): { label: string; value: string }[] =>
@@ -322,10 +277,10 @@ type PlanListProps = {
   style?: CSSProperties;
   islandList?: { uuid: string; island_name: string }[];
   isPlanLoading: boolean;
-  planData: Array<planSchemaType> | null;
   setPlanData: (data: Array<planSchemaType>) => void;
   turn?: number;
   uuid?: string;
+  initPlanData?: Array<planSchemaType>;
 };
 
 export const PlanList = memo(
@@ -335,17 +290,54 @@ export const PlanList = memo(
     style,
     islandList,
     isPlanLoading,
-    planData,
     setPlanData,
     turn = 0,
     uuid,
+    initPlanData,
   }: PlanListProps) {
     const [initItems, setInitItems] = useState<Array<planSchemaType & { id: number }>>([]);
     const [items, setItems] = useState<Array<planSchemaType & { id: number }>>(initItems);
     const isChange = useMemo(() => !isEqual(initItems, items), [initItems, items]);
+    const isChangeRef = useRef(isChange);
     const islandOptions = GetIslandOptions(islandList);
+    const prevUuid = useRef(uuid);
+    const prevIsPlanLoading = useRef(isPlanLoading);
+    const timerRef = useRef<NodeJS.Timeout>(null);
 
-    useEffectNormalizePlanData(isPlanLoading, planData, uuid, setInitItems, setItems);
+    useEffect(() => {
+      isChangeRef.current = isChange;
+    }, [isChange]);
+
+    // コンポーネントのアンマウント時にタイマーをクリアする
+    useEffect(() => {
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
+    }, []);
+
+    const newItemsFromProps = useMemo(() => {
+      if (isPlanLoading || !uuid) return [];
+      return sortBy(
+        uniqBy([...(initPlanData ?? []), ...defaultPlan(uuid)], (item) => item.plan_no),
+        ['plan_no']
+      ).map((item) => ({ ...item, id: item.plan_no }));
+    }, [isPlanLoading, uuid, initPlanData]);
+
+    useEffect(() => {
+      if (isPlanLoading || !uuid) return;
+
+      const isUuidChanged = prevUuid.current !== uuid;
+      prevUuid.current = uuid;
+
+      const isLoaded = prevIsPlanLoading.current && !isPlanLoading;
+      prevIsPlanLoading.current = isPlanLoading;
+
+      // isChangeRef.currentがfalse（ユーザによる変更がない）、またはuuidが変更された、またはロード完了時は更新
+      if (!isChangeRef.current || isUuidChanged || isLoaded) {
+        setInitItems(newItemsFromProps);
+        setItems(newItemsFromProps);
+      }
+    }, [isPlanLoading, uuid, newItemsFromProps]);
 
     useEffect(() => {
       if (isChange) {
@@ -364,15 +356,30 @@ export const PlanList = memo(
       setItems(sortedItems);
       // NOTE: 描画後にプラン番号を変更する(アニメーションにバグが出るため)
       const changePlanNo = sortedItems.map((item, index) => ({ ...item, plan_no: index }));
-      setTimeout(() => setItems(changePlanNo), 0);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setItems(changePlanNo), 0);
     };
 
-    const setItem = (data: Omit<planSchemaType, 'from_uuid' | 'id'>) => {
-      const newItems = [...items];
-      newItems[data.plan_no] = { ...newItems[data.plan_no], ...data };
-      const changePlanNo = newItems.map((item, index) => ({ ...item, plan_no: index }));
-      setItems(changePlanNo);
-    };
+    const setItem = useCallback((data: Omit<planSchemaType, 'from_uuid' | 'id'>) => {
+      setItems((prev) => {
+        const newItems = [...prev];
+        newItems[data.plan_no] = { ...newItems[data.plan_no], ...data };
+        const changePlanNo = newItems.map((item, index) => ({ ...item, plan_no: index }));
+        return changePlanNo;
+      });
+    }, []);
+
+    const turnList = useMemo(() => {
+      let currentTurn = turn + 1;
+      return items.map((item) => {
+        const startTurn = currentTurn;
+        const { immediate } = getPlanDefine(item.plan);
+        if (!immediate) {
+          currentTurn += item.times;
+        }
+        return startTurn;
+      });
+    }, [items, turn]);
 
     return (
       <div ref={ref} className={className} style={style}>
@@ -387,11 +394,6 @@ export const PlanList = memo(
         >
           <SortableContext items={items}>
             {items.map((item, index) => {
-              let tmpTurn = turn + 1;
-              for (let i = 0; i < index; i++) {
-                const { immediate } = getPlanDefine(items[i].plan);
-                tmpTurn = immediate ? tmpTurn : tmpTurn + items[i].times;
-              }
               return (
                 <SortableItem
                   key={`item-${item.plan_no}`}
@@ -399,7 +401,7 @@ export const PlanList = memo(
                   islandOptions={islandOptions}
                   item={item}
                   setItem={setItem}
-                  turn={tmpTurn}
+                  turn={turnList[index]}
                 />
               );
             })}
