@@ -1,4 +1,4 @@
-import { isEqual, omit, pick } from 'es-toolkit';
+import { isEqual, omit } from 'es-toolkit';
 import {
   CSSProperties,
   InputHTMLAttributes,
@@ -33,6 +33,25 @@ type RangeSliderRHFProps<
     isBottomSpace?: boolean;
   };
 
+const getTextFieldProps = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>(
+  props: RangeSliderRHFProps<TFieldValues, TName>
+) =>
+  omit(props, [
+    'min',
+    'max',
+    'digits',
+    'className',
+    'control',
+    'rules',
+    'style',
+    'shouldUnregister',
+    'helperText',
+    'isBottomSpace',
+  ]);
+
 const UlStyle = (propsStyle: CSSProperties | undefined) =>
   useMemo(() => {
     const baseWidth = { width: '270px' };
@@ -43,6 +62,9 @@ const UlStyle = (propsStyle: CSSProperties | undefined) =>
 
     return uiStyle;
   }, [propsStyle]);
+
+const plusMinusButtonStyle =
+  'inline-flex items-center justify-center rounded-full hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300';
 
 const UseNormalizeValue = <
   TFieldValues extends FieldValues = FieldValues,
@@ -74,7 +96,7 @@ const UseNormalizeValue = <
         field.onChange(Number(field.value).toFixed(Number(digits)));
       }
     }
-  }, [field, min, max, digits, name, defaultValues]);
+  }, [field.value, field.onChange, min, max, digits, name, defaultValues]);
 
 const UseEffectNormalizeType = (
   value: string | number,
@@ -180,25 +202,6 @@ const HelperText = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-const getTextFieldProps = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(
-  props: RangeSliderRHFProps<TFieldValues, TName>
-) =>
-  omit(props, [
-    'min',
-    'max',
-    'digits',
-    'className',
-    'control',
-    'rules',
-    'style',
-    'shouldUnregister',
-    'helperText',
-    'isBottomSpace',
-  ]);
-
 function _RangeSliderRHF<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -220,8 +223,6 @@ function _RangeSliderRHF<
       }) => {
         const isError = props.disabled || (isTouched && invalid);
         const step = props.step ? Number(props.step) : 1;
-        const plusMinusButtonStyle =
-          'inline-flex items-center justify-center rounded-full hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300';
         const [rangeWidth, setRangeWidth] = useState(0);
         const rangeCallback = (node: HTMLDivElement) => {
           if (node !== null) {
@@ -233,17 +234,20 @@ function _RangeSliderRHF<
 
         const normalizeValue = UseNormalizeValue<TFieldValues, TName>(
           props.name,
-          pick(field, ['value', 'onChange']),
+          field,
           min,
           max,
           digits,
           defaultValues
         );
 
-        const onBlur = (_event: React.FocusEvent<HTMLInputElement>) => {
-          normalizeValue();
-          field.onBlur();
-        };
+        const onBlur = useCallback(
+          (_event: React.FocusEvent<HTMLInputElement>) => {
+            normalizeValue();
+            field.onBlur();
+          },
+          [normalizeValue]
+        );
 
         return (
           <ul style={UlStyle(props.style)} className={`${props.className}`}>
@@ -271,7 +275,6 @@ function _RangeSliderRHF<
                   max={max}
                   {...field}
                   {...textFieldProps}
-                  ref={field.ref}
                 />
                 <button
                   type="button"
