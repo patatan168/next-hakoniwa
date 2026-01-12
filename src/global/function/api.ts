@@ -2,6 +2,7 @@ import 'server-only';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { sanitizeWithSchema } from '../valid/xss';
 import { accessLogger } from './logger';
 
 type statusCode2xx =
@@ -30,7 +31,7 @@ export const asyncRequestValid = async <T extends z.ZodTypeAny>(
 ): Promise<{ response: NextResponse; data: z.infer<T> | null }> => {
   try {
     const requestBody = await request.json();
-    const data = await zodSchema.parseAsync(requestBody);
+    const data = await sanitizeWithSchema<T>(zodSchema, requestBody);
     const response = NextResponse.json({ message: 'OK' }, { status: successCode });
     return { response, data };
   } catch (e) {
