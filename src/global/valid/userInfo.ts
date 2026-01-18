@@ -23,6 +23,11 @@ export const baseUserInfoSchema = z.object({
       error: '英大文字、英小文字、数字を含めて入力してください',
     }),
   passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
+  userName: z.coerce
+    .string()
+    .trim()
+    .min(1, { error: 'お名前を入力してください' })
+    .max(16, { error: '16文字以内で入力してください' }),
   islandName: z.coerce
     .string()
     .trim()
@@ -67,6 +72,7 @@ export const userInfoSchema = z.intersection(
 
 export const signInUserInfoSchema = baseUserInfoSchema.omit({
   passwordConfirm: true,
+  userName: true,
   islandName: true,
 });
 

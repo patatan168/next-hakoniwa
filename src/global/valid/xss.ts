@@ -1,4 +1,3 @@
-// lib/sanitize.ts
 import xss from 'xss';
 import { z } from 'zod';
 

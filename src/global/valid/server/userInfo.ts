@@ -11,7 +11,7 @@ export const userInfoSchema = z.intersection(
       (inputData) => {
         return !existsDbDate({
           dbPath: './src/db/data/main.db',
-          table: 'user',
+          table: 'auth',
           key: 'id',
           data: inputData,
         });
@@ -25,6 +25,7 @@ export const userInfoSchema = z.intersection(
           table: 'user',
           key: 'island_name',
           data: inputData,
+          condition: 'AND inhabited = 1',
         });
       },
       { error: '同じ島名は登録できません' }

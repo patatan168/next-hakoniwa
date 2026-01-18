@@ -53,6 +53,7 @@ type Story = StoryObj<typeof meta>;
 const defaultValues: userInfo = {
   id: '',
   password: '',
+  userName: '',
   islandName: '',
   passwordConfirm: '',
 };

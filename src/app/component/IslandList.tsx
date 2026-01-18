@@ -10,10 +10,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
-  { width: 200, headName: 'Id', key: 'id' },
-  { width: 200, headName: 'Password', key: 'password' },
+  { width: 200, headName: 'ユーザー名', key: 'user_name' },
   { width: 100, headName: '島名', key: 'island_name' },
-  { width: 100, headName: '登録日', key: 'created_at' },
 ];
 
 const tabTest: Array<TabType> = [

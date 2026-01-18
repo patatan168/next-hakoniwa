@@ -3,9 +3,12 @@
  * @note userテーブルは外部キーに使用されているので移行しない
  */
 import { dbConn, migrateDbTable, triggerReset } from '@/global/function/db';
+import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
+import { lastLoginSchema } from './schema/lastLoginTable';
 import { planSchema } from './schema/planTable';
+import { roleSchema } from './schema/roleTable';
 import { sessionSchema } from './schema/sessionTable';
 import { turnLogSchema } from './schema/turnLogTable';
 import { turnStateSchema } from './schema/turnStateTable';
@@ -14,6 +17,12 @@ using db = dbConn('./src/db/data/main.db');
 const migrateTable = migrateDbTable(db.client);
 // トリガーを一旦全て削除してから再作成
 triggerReset(db.client);
+// authテーブルを移行
+migrateTable('auth', authSchema);
+// roleテーブル作成
+migrateTable('role', roleSchema);
+// last_loginテーブル作成
+migrateTable('last_login', lastLoginSchema);
 // islandテーブルを移行
 migrateTable('island', islandSchema);
 // turn_logテーブルを移行

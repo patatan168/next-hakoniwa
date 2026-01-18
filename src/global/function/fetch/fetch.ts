@@ -151,7 +151,7 @@ export type FetchState<T, U> = {
  * 各メソッド（GET, POST, PUT, DELETEなど）に対して、データ、エラー、ローディング状態を保持します
  * また、データのマージや再取得のオプションを提供します
  */
-export class FetchStore<T extends object, U = { result: boolean }> {
+export class FetchStore<T extends object | undefined, U = { result: boolean }> {
   public readonly store: StoreApi<FetchState<T, U>>;
 
   constructor(

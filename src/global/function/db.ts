@@ -3,6 +3,7 @@
  */
 import sqlite from 'better-sqlite3';
 import { isEqual } from 'es-toolkit';
+import xss from 'xss';
 import { getTableInfo } from './dbUtility';
 import { parseDbData } from './utility';
 
@@ -116,6 +117,7 @@ export const existsDbDate = ({
   table,
   key,
   data,
+  condition,
 }: {
   /** DBのFile Path */
   dbPath: string;
@@ -125,11 +127,14 @@ export const existsDbDate = ({
   key: string;
   /** データー */
   data: unknown;
+  /** 追加条件 */
+  condition?: string;
 }) => {
   using db = dbConn(dbPath);
   const dbData = parseDbData(data);
+  const tmpCondition = condition ? ` ${xss(condition)}` : '';
   const countData = db.client
-    .prepare(`SELECT COUNT(*) FROM ${table} WHERE ${key} = ?`)
+    .prepare(`SELECT COUNT(*) FROM ${xss(table)} WHERE ${xss(key)} = ?${tmpCondition}`)
     .get(dbData) as { 'COUNT(*)': unknown };
   if (typeof countData['COUNT(*)'] === 'number') {
     return countData['COUNT(*)'] > 0;

@@ -82,6 +82,8 @@ const META_DATA = Object.freeze({
   LOGIN_FAIL_LIMIT: 5,
   /** ログインロック時間(分) */
   LOGIN_LOCK_MINUTE: 10,
+  /** 最大セッション数 */
+  MAX_SESSIONS: 3,
 });
 
 export default META_DATA;

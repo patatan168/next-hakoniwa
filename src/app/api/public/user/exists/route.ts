@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         const hashId = await sha256Gen(query);
         const result = existsDbDate({
           dbPath: './src/db/data/main.db',
-          table: 'user',
+          table: 'auth',
           key: key,
           data: hashId,
         });
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
           table: 'user',
           key: key,
           data: query,
+          condition: 'AND inhabited = 1',
         });
         return NextResponse.json({ result: result });
       }

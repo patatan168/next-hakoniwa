@@ -3,6 +3,7 @@ import 'server-only';
 import { sessionSchemaType } from '@/db/schema/sessionTable';
 import { default as META, default as META_DATA } from '@/global/define/metadata';
 import sqlite from 'better-sqlite3';
+import { deleteCookie } from 'cookies-next/client';
 import { getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
@@ -47,11 +48,23 @@ export const createJwtToken = (client: sqlite.Database, uuid: string) => {
   //NOTE: UNIX TIMEに合わせるためにミリ秒は丸める
   const express = Math.trunc(now.setHours(now.getHours() + META.EXPIRES_HOUR) / 1000);
 
+  const deleteSession = client.prepare(
+    `DELETE FROM session
+      WHERE rowid IN (
+        SELECT rowid FROM session
+        WHERE uuid = ?
+        ORDER BY expires ASC
+        LIMIT (SELECT COUNT(*) - ${META.MAX_SESSIONS} FROM session WHERE uuid = ?)
+      )`
+  );
   const insertSession = client.prepare(
     `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, ?)`
   );
 
-  insertSession.run(uuid, session_id, publicKey, express);
+  client.transaction(() => {
+    deleteSession.run(uuid, uuid);
+    insertSession.run(uuid, session_id, publicKey, express);
+  })();
 
   return jwt.sign(jwtPayload(session_id), privateKey, jwtOptions(uuid, jwi.toString()));
 };
@@ -109,21 +122,35 @@ export const validAuthCookie = async (
       // Session Error
       const uuid = rawToken.sub;
       const sessionId = rawToken.session_id;
-      const selectSession = client.prepare(
+      if (!uuid || !sessionId) {
+        throw 'JWT Session Error';
+      }
+      const selectSession = client.prepare<[string, string], sessionSchemaType>(
         `SELECT public_key FROM session WHERE uuid = ? AND session_id = ?`
       );
-      const { public_key } = selectSession.get(uuid, sessionId) as sessionSchemaType;
+      const { public_key } = selectSession.get(uuid, sessionId) || {};
       if (public_key === undefined) {
         throw 'Session DB Error';
       }
 
       // Verify
       jwt.verify(jwtToken, public_key, { algorithms: ['ES256'] });
+      // 10分以内にログインしていなければ最終ログイン時間を更新
+      client
+        .prepare(
+          `UPDATE last_login
+           SET last_login_at = unixepoch()
+           WHERE uuid = ?
+             AND last_login_at < unixepoch() - 600`
+        )
+        .run(uuid);
       // Success
       return uuid;
     } catch (error) {
       // Fail
       console.error(error);
+      // Cookie削除
+      await deleteCookie('token');
       return undefined;
     }
   }

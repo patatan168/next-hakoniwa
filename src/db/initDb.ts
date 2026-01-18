@@ -1,7 +1,10 @@
 import { createDbTable, dbConn, triggerReset } from '@/global/function/db';
+import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
+import { lastLoginSchema } from './schema/lastLoginTable';
 import { planSchema } from './schema/planTable';
+import { roleSchema } from './schema/roleTable';
 import { sessionSchema } from './schema/sessionTable';
 import { turnLogSchema } from './schema/turnLogTable';
 import { turnStateSchema } from './schema/turnStateTable';
@@ -11,6 +14,12 @@ using db = dbConn('./src/db/data/main.db');
 const createTable = createDbTable(db.client);
 // トリガーを一旦全て削除してから再作成
 triggerReset(db.client);
+// authテーブル作成
+createTable('auth', authSchema);
+// roleテーブル作成
+createTable('role', roleSchema);
+// last_loginテーブル作成
+createTable('last_login', lastLoginSchema);
 // userテーブル作成
 createTable('user', userSchema);
 // islandテーブル作成

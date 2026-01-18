@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   if (uuid !== null) {
     const islandData = db.client
-      .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
+      .prepare<string, islandSchemaType & userSchemaType>(
         `SELECT
-          user.island_name,
+          ${allDbColumns(db.client, 'user')}
           ${allDbColumns(db.client, 'island')}
         FROM
           user INNER JOIN island 
@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
       )
       .get(uuid);
     if (islandData === undefined) {
-      return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 404 });
+      return NextResponse.json({ error: 'その島は存在しません。' }, { status: 404 });
+    }
+    if (islandData.inhabited === undefined) {
+      return NextResponse.json({ error: 'その島は無人島です。' }, { status: 410 });
     }
     parseJsonIslandData(islandData, true);
     return NextResponse.json(islandData);

@@ -4,7 +4,7 @@ import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { sessionStore } from '@/global/store/api/auth/session';
-import { userSignInStore } from '@/global/store/api/auth/user/sign-in';
+import { signInStore } from '@/global/store/api/auth/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ function SignInForm() {
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch, data } = useClientFetch(userSignInStore);
+  const { fetch, data } = useClientFetch(signInStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });

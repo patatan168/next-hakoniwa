@@ -3,7 +3,7 @@ import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { userStore } from '@/global/store/api/auth/user';
+import { signUpStore } from '@/global/store/api/auth/sign-up';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -19,6 +19,7 @@ const POST_HEADER = {
 const defaultValues: userInfo = {
   id: '',
   password: '',
+  userName: '',
   islandName: '',
   passwordConfirm: '',
 };
@@ -36,7 +37,7 @@ function SignUpForm() {
     resolver: zodResolver(userInfoSchema),
   });
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch } = useClientFetch(userStore);
+  const { fetch } = useClientFetch(signUpStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });
@@ -65,6 +66,16 @@ function SignUpForm() {
           <Button className="mb-4" disabled={!isValid} type="submit">
             新規登録
           </Button>
+        </li>
+        <li>
+          <TextFieldRHF
+            required
+            style={{ width: '600px' }}
+            name="userName"
+            control={control}
+            id="user-name"
+            placeholder="User Name"
+          />
         </li>
         <li>
           <TextFieldRHF
