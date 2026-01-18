@@ -43,7 +43,7 @@ export const randomIntInRange = (min: number, max: number) => {
 export const parseDbData = (data: unknown) => {
   switch (typeof data) {
     case 'string':
-      return `'${data}'`;
+      return `${data}`;
     case 'boolean':
       // NOTE: SQLITEにはBooleanはない
       return data ? '1' : '0';
