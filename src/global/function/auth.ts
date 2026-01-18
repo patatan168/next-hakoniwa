@@ -44,26 +44,23 @@ export const createJwtToken = (client: sqlite.Database, uuid: string) => {
   // SessionIDを作成
   const session_id = randomString(32);
   const { privateKey, publicKey } = es256Gen();
-  const now = new Date();
-  //NOTE: UNIX TIMEに合わせるためにミリ秒は丸める
-  const express = Math.trunc(now.setHours(now.getHours() + META.EXPIRES_HOUR) / 1000);
 
   const deleteSession = client.prepare(
     `DELETE FROM session
-      WHERE rowid IN (
+      WHERE uuid = ? AND rowid NOT IN (
         SELECT rowid FROM session
         WHERE uuid = ?
-        ORDER BY expires ASC
-        LIMIT (SELECT COUNT(*) - ${META.MAX_SESSIONS} FROM session WHERE uuid = ?)
+        ORDER BY expires DESC
+        LIMIT ${META.MAX_SESSIONS}
       )`
   );
   const insertSession = client.prepare(
-    `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, ?)`
+    `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${META.EXPIRES_HOUR} * 3600))`
   );
 
   client.transaction(() => {
     deleteSession.run(uuid, uuid);
-    insertSession.run(uuid, session_id, publicKey, express);
+    insertSession.run(uuid, session_id, publicKey);
   })();
 
   return jwt.sign(jwtPayload(session_id), privateKey, jwtOptions(uuid, jwi.toString()));
