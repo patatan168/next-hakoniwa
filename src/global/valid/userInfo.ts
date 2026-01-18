@@ -58,6 +58,15 @@ export const userInfoSchema = z.intersection(
       }, 150),
       { error: 'そのIDは使用できません。' }
     ),
+    userName: z.string().refine(
+      AwesomeDebouncePromise(async (inputData) => {
+        const data = await fetcher(`/api/public/user/exists?key=user_name&query=${inputData}`, {
+          method: 'GET',
+        });
+        return !data.result;
+      }, 150),
+      { error: 'そのユーザー名は使用できません。' }
+    ),
     islandName: z.string().refine(
       AwesomeDebouncePromise(async (inputData) => {
         const data = await fetcher(`/api/public/user/exists?key=island_name&query=${inputData}`, {

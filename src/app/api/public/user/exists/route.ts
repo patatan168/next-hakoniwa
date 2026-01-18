@@ -22,6 +22,16 @@ export async function GET(request: NextRequest) {
         });
         return NextResponse.json({ result: result });
       }
+      case 'user_name': {
+        const result = existsDbDate({
+          dbPath: './src/db/data/main.db',
+          table: 'user',
+          key: key,
+          data: query,
+          condition: 'AND inhabited = 1',
+        });
+        return NextResponse.json({ result: result });
+      }
       case 'island_name': {
         const result = existsDbDate({
           dbPath: './src/db/data/main.db',

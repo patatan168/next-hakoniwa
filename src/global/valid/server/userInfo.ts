@@ -18,6 +18,18 @@ export const userInfoSchema = z.intersection(
       },
       { error: 'そのIDは使用できません。' }
     ),
+    userName: z.string().refine(
+      (inputData) => {
+        return !existsDbDate({
+          dbPath: './src/db/data/main.db',
+          table: 'auth',
+          key: 'user_name',
+          data: inputData,
+          condition: 'AND inhabited = 1',
+        });
+      },
+      { error: 'そのユーザー名は使用できません。' }
+    ),
     islandName: z.string().refine(
       (inputData) => {
         return !existsDbDate({
