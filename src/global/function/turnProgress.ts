@@ -60,18 +60,13 @@ import {
 } from './utility';
 
 /**
- * 放棄されていない島情報
+ * 全島情報の取得
  * @param db DB接続情報
- * @param inhabited 居住中かどうか
  * @returns 全ユーザー情報
  */
-export function getInhabitedIslands(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
-  inhabited: boolean
-) {
-  const inhabitedNum = inhabited ? 1 : 0;
+export function getAllIslands(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
   const islands = db.client
-    .prepare<number, islandInfoTurnProgress>(
+    .prepare<[], islandInfoTurnProgress>(
       `SELECT 
         user.island_name,
         ${allDbColumns(db.client, 'island')},
@@ -81,11 +76,9 @@ export function getInhabitedIslands(
       INNER JOIN island
         ON user.uuid = island.uuid
       INNER JOIN event_rate
-        ON island.uuid = event_rate.uuid
-      WHERE
-        inhabited= ?`
+        ON island.uuid = event_rate.uuid`
     )
-    .all(inhabitedNum);
+    .all();
   if (islands) {
     islands.forEach((island) => parseJsonIslandDataTurnProgress(island, false));
     return islands;

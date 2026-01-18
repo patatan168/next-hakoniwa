@@ -8,7 +8,7 @@ import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
   eruptionExecute,
-  getInhabitedIslands,
+  getAllIslands,
   getTurnInfo,
   getUserPlanInfo,
   hugeMeteoriteExecute,
@@ -232,7 +232,7 @@ function turnProceed(recursiveCount = 0) {
     updateTurnProgressing(db, true);
   }
   try {
-    let islandList = getInhabitedIslands(db, true);
+    let islandList = getAllIslands(db);
     if (islandList === undefined || islandList.length === 0) return;
     // ランダムに処理する
     const randomArray = arrayRandomInt(islandList.length);
