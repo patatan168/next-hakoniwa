@@ -6,7 +6,7 @@ import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { userStore } from '@/global/store/api/auth/user';
 import { turnLogStore } from '@/global/store/api/public/turnLog';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
@@ -26,6 +26,7 @@ export default function IslandList() {
   const [listHeight, setListHeight] = useState('100svh');
   const [, height] = useWindowSize();
   const [lazyFlag, setLazyFlag] = useState(false);
+  const prevLastUuid = useRef('');
   const listCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
@@ -48,6 +49,8 @@ export default function IslandList() {
   useEffect(() => {
     if (lazyFlag && logData.get && logLoading.get === false) {
       const lastUuid = logData.get.at(-1)?.log_uuid ?? '';
+      if (lastUuid === prevLastUuid.current) return;
+      prevLastUuid.current = lastUuid;
       logFetch({ method: 'GET' }, { query: `log_uuid=${lastUuid}` });
     }
   }, [lazyFlag, logData.get, logLoading.get]);
