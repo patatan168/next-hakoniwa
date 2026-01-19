@@ -1,4 +1,5 @@
 import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
+import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
 import { getMapDefine, getMapName, mapType } from './mapType';
 import META_DATA from './metadata';
@@ -16,7 +17,7 @@ const coordinate = (x: number, y: number, isSecret = false): string => {
   return `<font color="#a06040"><b>${char}</b></font>`;
 };
 
-const islandName = (island: islandSchemaType) => {
+const islandName = (island: islandSchemaType & Pick<userSchemaType, 'island_name'>) => {
   return `<a href="/sight?uuid=${island.uuid}" target="_blank"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
 };
 
@@ -39,7 +40,10 @@ const mapName = (info: islandInfo) => {
  * @param plan 計画情報
  * @returns ログ
  */
-export const logLackCosts = (island: islandSchemaType, plan: planType): string => {
+export const logLackCosts = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  plan: planType
+): string => {
   const lackCost = plan.costType === 'money' ? '資金' : '備蓄食料';
   return `${islandName(island)}で予定されていた${planName(plan)}は、${lackCost}不足のため中止されました。`;
 };
@@ -53,7 +57,7 @@ export const logLackCosts = (island: islandSchemaType, plan: planType): string =
  * @returns ログ
  */
 export const logLandFail = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -73,7 +77,7 @@ export const logLandFail = (
  * @returns ログ
  */
 export const logNoLandAround = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -94,7 +98,7 @@ export const logNoLandAround = (
  * @returns ログ
  */
 export const logCommonDev = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number,
@@ -103,7 +107,10 @@ export const logCommonDev = (
   return `${islandName(island)}${coordinate(x, y, isSecret)}で${planName(plan)}が行われました。`;
 };
 
-export const logNoCoordinateCommonDev = (island: islandSchemaType, plan: planType): string => {
+export const logNoCoordinateCommonDev = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  plan: planType
+): string => {
   return `${islandName(island)}で${planName(plan)}が行われました。`;
 };
 
@@ -117,7 +124,7 @@ export const logNoCoordinateCommonDev = (island: islandSchemaType, plan: planTyp
  * @returns ログ
  */
 export const logAnyTimesDev = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number,
@@ -133,7 +140,9 @@ export const logAnyTimesDev = (
  * @param island 島情報
  * @returns ログ
  */
-export const logForest = (island: islandSchemaType): string => {
+export const logForest = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `こころなしか、${islandName(island)}の森が増えたようです。`;
 };
 
@@ -144,7 +153,11 @@ export const logForest = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns ログ
  */
-export const logSubmersion = (island: islandSchemaType, x: number, y: number): string => {
+export const logSubmersion = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const { baseLand } = getMapDefine(mapInfo.type);
@@ -161,7 +174,11 @@ export const logSubmersion = (island: islandSchemaType, x: number, y: number): s
  * @param y Y座標
  * @returns ログ
  */
-export const logMonsterSubmersion = (island: islandSchemaType, x: number, y: number): string => {
+export const logMonsterSubmersion = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -175,7 +192,11 @@ export const logMonsterSubmersion = (island: islandSchemaType, x: number, y: num
  * @param y Y座標
  * @returns ログ
  */
-export const logDamageWaste = (island: islandSchemaType, x: number, y: number): string => {
+export const logDamageWaste = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -189,7 +210,11 @@ export const logDamageWaste = (island: islandSchemaType, x: number, y: number): 
  * @param y Y座標
  * @returns ログ
  */
-export const logScatterMonster = (island: islandSchemaType, x: number, y: number): string => {
+export const logScatterMonster = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -205,7 +230,7 @@ export const logScatterMonster = (island: islandSchemaType, x: number, y: number
  * @returns ログ
  */
 export const logSetSelfCrash = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -223,7 +248,11 @@ export const logSetSelfCrash = (
  * @param y Y座標
  * @returns ログ
  */
-export const logSelfCrash = (island: islandSchemaType, x: number, y: number): string => {
+export const logSelfCrash = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -239,7 +268,7 @@ export const logSelfCrash = (island: islandSchemaType, x: number, y: number): st
  * @returns ログ
  */
 export const logOilEarned = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number,
   earn: number
@@ -257,7 +286,11 @@ export const logOilEarned = (
  * @param y Y座標
  * @returns ログ
  */
-export const logOilEnd = (island: islandSchemaType, x: number, y: number): string => {
+export const logOilEnd = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -271,7 +304,11 @@ export const logOilEnd = (island: islandSchemaType, x: number, y: number): strin
  * @param y Y座標
  * @returns ログ
  */
-export const logFire = (island: islandSchemaType, x: number, y: number): string => {
+export const logFire = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
   return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}が${disaster('火災')}により壊滅しました。`;
@@ -284,7 +321,9 @@ export const logFire = (island: islandSchemaType, x: number, y: number): string 
  * @param y Y座標
  * @returns ログ
  */
-export const logTyphoon = (island: islandSchemaType): string => {
+export const logTyphoon = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `${islandName(island)}に${disaster('台風')}上陸！！`;
 };
 
@@ -295,7 +334,11 @@ export const logTyphoon = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns ログ
  */
-export const logTyphoonDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logTyphoonDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
   return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}は${disaster('台風')}台風で飛ばされました。`;
@@ -311,7 +354,7 @@ export const logTyphoonDamage = (island: islandSchemaType, x: number, y: number)
  * @returns ログ
  */
 export const logMonsterMove = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number,
   moveX: number,
@@ -338,7 +381,7 @@ export const logMonsterMove = (
  * @returns ログ
  */
 export const logMonsterSuicideBombing = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number,
   moveX: number,
@@ -359,7 +402,9 @@ export const logMonsterSuicideBombing = (
  * @param island 島情報
  * @returns ログ
  */
-export const logEarthquake = (island: islandSchemaType): string => {
+export const logEarthquake = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `${islandName(island)}で大規模な${disaster('地震')}が発生！！`;
 };
 
@@ -370,7 +415,11 @@ export const logEarthquake = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns ログ
  */
-export const logEarthquakeDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logEarthquakeDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -382,7 +431,9 @@ export const logEarthquakeDamage = (island: islandSchemaType, x: number, y: numb
  * @param island 島情報
  * @returns ログ
  */
-export const logLackFoods = (island: islandSchemaType): string => {
+export const logLackFoods = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `${islandName(island)}の${disaster('食料が不足')}しています！！`;
 };
 
@@ -393,7 +444,11 @@ export const logLackFoods = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns ログ
  */
-export const logLackFoodsDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logLackFoodsDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -405,7 +460,9 @@ export const logLackFoodsDamage = (island: islandSchemaType, x: number, y: numbe
  * @param island 島情報
  * @returns ログ
  */
-export const logTsunami = (island: islandSchemaType): string => {
+export const logTsunami = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `${islandName(island)}付近で${disaster('津波')}が発生！！`;
 };
 
@@ -416,7 +473,11 @@ export const logTsunami = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns 津波による被害のログ
  */
-export const logTsunamiDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logTsunamiDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -432,7 +493,7 @@ export const logTsunamiDamage = (island: islandSchemaType, x: number, y: number)
  * @returns モンスター出現のログ
  */
 export const logPopMonster = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   popMonsterType: mapType,
   x: number,
   y: number
@@ -449,7 +510,9 @@ export const logPopMonster = (
  * @param island 島情報
  * @returns 地盤沈下のログ
  */
-export const logLandSubsidence = (island: islandSchemaType): string => {
+export const logLandSubsidence = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
   return `${islandName(island)}で地盤沈下が発生しました！！`;
 };
 
@@ -460,7 +523,11 @@ export const logLandSubsidence = (island: islandSchemaType): string => {
  * @param y Y座標
  * @returns 地盤沈下による被害のログ
  */
-export const logLandSubsidenceDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logLandSubsidenceDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -474,7 +541,11 @@ export const logLandSubsidenceDamage = (island: islandSchemaType, x: number, y: 
  * @param y Y座標
  * @returns 記念碑落下のログ
  */
-export const logFallMonument = (island: islandSchemaType, x: number, y: number): string => {
+export const logFallMonument = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   return `何かとてつもないものが${islandName(island)}${coordinate(x, y)}地点に落下しました！！。`;
 };
 
@@ -485,7 +556,11 @@ export const logFallMonument = (island: islandSchemaType, x: number, y: number):
  * @param y Y座標
  * @returns 隕石落下のログ
  */
-export const logMeteorite = (island: islandSchemaType, x: number, y: number): string => {
+export const logMeteorite = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -499,7 +574,11 @@ export const logMeteorite = (island: islandSchemaType, x: number, y: number): st
  * @param y Y座標
  * @returns 巨大隕石落下のログ
  */
-export const logHugeMeteorite = (island: islandSchemaType, x: number, y: number): string => {
+export const logHugeMeteorite = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   return `${islandName(island)}${coordinate(x, y)}地点に${disaster('巨大隕石')}が落下！！`;
 };
 
@@ -510,7 +589,11 @@ export const logHugeMeteorite = (island: islandSchemaType, x: number, y: number)
  * @param y Y座標
  * @returns 隕石が海に落下したログ
  */
-export const logMeteoriteToSea = (island: islandSchemaType, x: number, y: number): string => {
+export const logMeteoriteToSea = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -524,7 +607,11 @@ export const logMeteoriteToSea = (island: islandSchemaType, x: number, y: number
  * @param y Y座標
  * @returns 隕石が浅瀬に落下したログ
  */
-export const logMeteoriteToShallows = (island: islandSchemaType, x: number, y: number): string => {
+export const logMeteoriteToShallows = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   return `${islandName(island)}${coordinate(x, y)}地点に${disaster('隕石')}が落下、海面がえぐられました。`;
 };
 
@@ -535,7 +622,11 @@ export const logMeteoriteToShallows = (island: islandSchemaType, x: number, y: n
  * @param y Y座標
  * @returns 隕石が山に落下したログ
  */
-export const logMeteoriteToMountain = (island: islandSchemaType, x: number, y: number): string => {
+export const logMeteoriteToMountain = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -550,7 +641,7 @@ export const logMeteoriteToMountain = (island: islandSchemaType, x: number, y: n
  * @returns 隕石が潜水艦ミサイルに落下したログ
  */
 export const logMeteoriteToSubmarineMissile = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -567,7 +658,11 @@ export const logMeteoriteToSubmarineMissile = (
  * @param y Y座標
  * @returns 隕石が怪獣に落下したログ
  */
-export const logMeteoriteToMonster = (island: islandSchemaType, x: number, y: number): string => {
+export const logMeteoriteToMonster = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -581,7 +676,11 @@ export const logMeteoriteToMonster = (island: islandSchemaType, x: number, y: nu
  * @param y Y座標
  * @returns 噴火ログ
  */
-export const logEruption = (island: islandSchemaType, x: number, y: number): string => {
+export const logEruption = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   return `${islandName(island)}${coordinate(x, y)}地点${disaster('で火山が噴火')}、<b>山</b>が出来ました。`;
 };
 
@@ -593,7 +692,7 @@ export const logEruption = (island: islandSchemaType, x: number, y: number): str
  * @returns 噴火ダメージログ
  */
 export const logEruptionDamageToShallows = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -610,7 +709,11 @@ export const logEruptionDamageToShallows = (
  * @param y Y座標
  * @returns 噴火ダメージログ
  */
-export const logEruptionDamage = (island: islandSchemaType, x: number, y: number): string => {
+export const logEruptionDamage = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -624,7 +727,11 @@ export const logEruptionDamage = (island: islandSchemaType, x: number, y: number
  * @param y Y座標
  * @returns 海への噴火ダメージログ
  */
-export const logEruptionDamageToSea = (island: islandSchemaType, x: number, y: number): string => {
+export const logEruptionDamageToSea = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  x: number,
+  y: number
+): string => {
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
@@ -640,7 +747,7 @@ export const logEruptionDamageToSea = (island: islandSchemaType, x: number, y: n
  * @returns 埋蔵金発見ログ
  */
 export const logTreasure = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   x: number,
   y: number,
   earn: number

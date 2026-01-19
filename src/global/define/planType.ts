@@ -6,6 +6,7 @@
 import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
 import { getBaseLog } from '../function/turnProgress';
 import { logLackCosts, logLandFail } from './logType';
@@ -202,7 +203,7 @@ export const validLandType = (
  * @returns コストと地形が有効かどうか
  */
 export const validCostAndLandType = (
-  island: islandSchemaType,
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
   x: number,
   y: number,

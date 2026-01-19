@@ -54,8 +54,6 @@ export type islandData = Array<islandSchemaType>;
 export type islandSchemaType = {
   /** UUID */
   uuid: string;
-  /** 島名 */
-  island_name: string;
   /** 獲得賞 */
   prize: object;
   /** 資金 */
@@ -77,9 +75,7 @@ export type islandSchemaType = {
 };
 
 export interface islandInfoTurnProgress
-  extends islandSchemaType,
-    Omit<eventRateSchemaType, 'uuid'>,
-    Pick<userSchemaType, 'island_name'> {
+  extends islandSchemaType, Omit<eventRateSchemaType, 'uuid'>, Pick<userSchemaType, 'island_name'> {
   /** 人工怪獣出現数 */
   artificialMonster: number;
   /** モノリス落下数 */
