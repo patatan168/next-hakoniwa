@@ -7,6 +7,7 @@ import { sessionStore } from '@/global/store/api/auth/session';
 import { signInStore } from '@/global/store/api/auth/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { getCookie } from 'cookies-next/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -23,7 +24,7 @@ const defaultValues: signInUserInfo = {
   password: '',
 };
 
-function SignInForm() {
+function SignInForm({ open }: { open: boolean }) {
   const {
     subscribe,
     reset,
@@ -61,8 +62,10 @@ function SignInForm() {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    if (data.post?.result) router.push('/development');
-  }, [data.post]);
+    const tmpCookie = getCookie('token');
+    console.log(tmpCookie);
+    if (data.post?.result && open && tmpCookie) router.push('/development');
+  }, [data.post, open]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -122,7 +125,7 @@ export default function SignIn() {
       <Modal
         hidden
         header="島を開発する - サインイン"
-        body={<SignInForm />}
+        body={<SignInForm open={open} />}
         open={open}
         openToggle={openToggle}
       />
