@@ -197,6 +197,11 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
             data: { ...prev.data, [method]: merged },
             isLoading: { ...prev.isLoading, [method]: false },
           }));
+          // エラーをクリア
+          set((prev) => ({
+            error: { ...prev.error, [method]: undefined },
+          }));
+          // GET以外のメソッドの場合、必要に応じてGETを再取得
           if (refreshGet && method !== 'get') {
             await this.refreshFetch(urlWithQuery);
           }
@@ -267,6 +272,10 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
       set((prev) => ({
         data: { ...prev.data, get: refreshed },
         isLoading: { ...prev.isLoading, get: false },
+      }));
+      // エラーをクリア
+      set((prev) => ({
+        error: { ...prev.error, get: undefined },
       }));
     } catch (err) {
       if (err instanceof ApiError) {
