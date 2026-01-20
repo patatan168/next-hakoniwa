@@ -10,7 +10,7 @@ const sessionPaths = ['/development'];
 export async function proxy(request: NextRequest) {
   // 不正の疑いがあるIPアドレスは除外
   const ip = extractClientIp(request);
-  if (!ip) return new Response('', { status: 400 });
+  if (!ip) return NextResponse.redirect(new URL(`/error/400`, request.url));
 
   const { pathname } = request.nextUrl;
   if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
