@@ -158,7 +158,6 @@ export const validAuthCookie = async (client: sqlite.Database, refresh = false) 
       if (refresh && created_at) {
         const now = Math.round(new Date().getTime() / 1000);
         const diffSec = now - created_at;
-        console.log('JWT Token Age (sec):', diffSec);
         if (diffSec > 30) await refreshJwtToken(client, uuid);
       }
 

@@ -9,8 +9,9 @@ const MAX_REQUESTS = 10;
 const STRICT_MAX_REQUESTS = 3;
 const ipMap = new Map<string, { count: number; timestamp: number }>();
 
-const rateLimitPaths = ['/api'];
-const strictRateLimitPaths = ['/sign-in', '/sign-up'];
+const rateLimitPaths = ['/api/public'];
+const strictRateLimitPaths = ['/api/sign-in', '/api/sign-up'];
+const authPaths = ['/api/auth/'];
 const sessionPaths = ['/development'];
 
 export async function proxy(request: NextRequest) {
@@ -24,6 +25,9 @@ export async function proxy(request: NextRequest) {
   }
   if (rateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await rateLimit(request, MAX_REQUESTS);
+  }
+  if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
+    return await authCheck(request);
   }
   if (sessionPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await sessionCheck(request);
@@ -54,6 +58,19 @@ async function rateLimit(request: NextRequest, maxRequests: number) {
   }
 
   return NextResponse.next();
+}
+
+async function authCheck(request: NextRequest) {
+  using db = dbConn('./src/db/data/main.db');
+  const uuid = await validAuthCookie(db.client, true);
+
+  if (uuid) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-verified-uuid', uuid);
+    return NextResponse.next({ headers: requestHeaders });
+  } else {
+    return NextResponse.redirect(new URL(`/error/401`, request.url));
+  }
 }
 
 async function sessionCheck(request: NextRequest) {
