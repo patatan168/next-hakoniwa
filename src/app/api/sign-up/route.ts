@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       insertLastLogin.run(uuid);
     })();
 
-    await setAuthCookie(createJwtToken(db.client, uuid), valid.response, request);
+    await setAuthCookie(createJwtToken(db.client, uuid));
 
     accessLogger(request).info(`Create uuid=${uuid}`);
 

@@ -3,7 +3,7 @@ import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { signUpStore } from '@/global/store/api/auth/sign-up';
+import { signUpStore } from '@/global/store/api/sign-up';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';

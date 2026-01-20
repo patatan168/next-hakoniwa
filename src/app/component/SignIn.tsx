@@ -3,8 +3,7 @@ import Button from '@/global/component/Button';
 import { Modal } from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { sessionStore } from '@/global/store/api/auth/session';
-import { signInStore } from '@/global/store/api/auth/sign-in';
+import { signInStore } from '@/global/store/api/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getCookie } from 'cookies-next/client';
@@ -63,7 +62,6 @@ function SignInForm({ open }: { open: boolean }) {
   // 開発画面へリダイレクト
   useEffect(() => {
     const tmpCookie = getCookie('token');
-    console.log(tmpCookie);
     if (data.post?.result && open && tmpCookie) router.push('/development');
   }, [data.post, open]);
 
@@ -103,15 +101,12 @@ function SignInForm({ open }: { open: boolean }) {
 
 export default function SignIn() {
   const [open, setOpen] = useState(false);
-  const { data, error, fetchIfNeeded } = useClientFetch(sessionStore);
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    if (data.get && !error.get) return router.push('/development');
+    const tmpCookie = getCookie('token');
+    if (tmpCookie) return router.push('/development');
     setOpen(value);
   };
-  useEffect(() => {
-    fetchIfNeeded({});
-  }, []);
   return (
     <>
       <Button

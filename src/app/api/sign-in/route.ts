@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
         updateLoginFailCount(db.client, auth.uuid, failCount, lockedUntil);
 
-        await setAuthCookie(createJwtToken(db.client, auth.uuid), responseOK, request);
+        await setAuthCookie(createJwtToken(db.client, auth.uuid));
         accessLogger(request).info(`Sign In uuid=${auth.uuid}`);
 
         return responseOK;

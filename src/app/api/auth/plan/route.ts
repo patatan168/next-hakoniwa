@@ -12,8 +12,7 @@ export async function OPTIONS() {
 
 export async function GET(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const response = new NextResponse();
-  const uuid = await validAuthCookie(db.client, response, request);
+  const uuid = await validAuthCookie(db.client);
   if (uuid !== undefined) {
     accessLogger(request).info(`Request Plan uuid=${uuid}`);
     const planData = db.client.prepare('SELECT * FROM plan WHERE from_uuid=?').all(uuid);
@@ -26,8 +25,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const response = new NextResponse();
-  const uuid = await validAuthCookie(db.client, response, request);
+  const uuid = await validAuthCookie(db.client);
   const cloned = request.clone();
   const requestBody = await cloned.json();
   if (uuid !== undefined) {

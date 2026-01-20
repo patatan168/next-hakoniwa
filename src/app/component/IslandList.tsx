@@ -4,7 +4,7 @@ import TurnLog from '@/global/component/TurnLog';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
-import { userStore } from '@/global/store/api/auth/user';
+import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnLogStore } from '@/global/store/api/public/turnLog';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -21,7 +21,7 @@ const tabTest: Array<TabType> = [
 
 export default function IslandList() {
   const [tab, setTab] = useState(0);
-  const { data, isLoading, fetch } = useClientFetch(userStore);
+  const { data, isLoading, fetch } = useClientFetch(islandListStore);
   const { data: logData, fetch: logFetch, isLoading: logLoading } = useClientFetch(turnLogStore);
   const [listHeight, setListHeight] = useState('100svh');
   const [, height] = useWindowSize();

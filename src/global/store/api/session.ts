@@ -1,5 +1,5 @@
 import { FetchStore } from '@/global/function/fetch/fetch';
 
-const store = new FetchStore<{ uuid: string }>('/api/auth/session', { waitTime: 3000000 });
+const store = new FetchStore<{ uuid: string }>('/api/session', { waitTime: 300 });
 
 export const sessionStore = store.store;

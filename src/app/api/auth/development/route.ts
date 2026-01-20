@@ -12,8 +12,7 @@ export async function OPTIONS() {
 
 export async function GET(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const response = new NextResponse();
-  const uuid = await validAuthCookie(db.client, response, request);
+  const uuid = await validAuthCookie(db.client);
   if (uuid !== undefined) {
     accessLogger(request).info(`Request Development uuid=${uuid}`);
     const islandData = db.client

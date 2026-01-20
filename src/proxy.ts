@@ -1,13 +1,16 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { validAuthCookie } from './global/function/auth';
+import { dbConn } from './global/function/db';
 import { extractClientIp } from './global/function/ip';
-import { sessionStore } from './global/store/api/auth/session';
 
 const WINDOW_MS = 1 * 1000;
 const MAX_REQUESTS = 10;
+const STRICT_MAX_REQUESTS = 3;
 const ipMap = new Map<string, { count: number; timestamp: number }>();
 
 const rateLimitPaths = ['/api'];
+const strictRateLimitPaths = ['/sign-in', '/sign-up'];
 const sessionPaths = ['/development'];
 
 export async function proxy(request: NextRequest) {
@@ -16,8 +19,11 @@ export async function proxy(request: NextRequest) {
   if (!ip) return new Response('', { status: 400 });
 
   const { pathname } = request.nextUrl;
+  if (strictRateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
+    return await rateLimit(request, STRICT_MAX_REQUESTS);
+  }
   if (rateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
-    return await rateLimit(request);
+    return await rateLimit(request, MAX_REQUESTS);
   }
   if (sessionPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await sessionCheck(request);
@@ -25,7 +31,7 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-async function rateLimit(request: NextRequest) {
+async function rateLimit(request: NextRequest, maxRequests: number) {
   const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
 
   const now = Date.now();
@@ -36,7 +42,7 @@ async function rateLimit(request: NextRequest) {
   if (isResetMap) {
     ipMap.set(ip, { count: 1, timestamp: now });
   } else {
-    if (entry.count >= MAX_REQUESTS) {
+    if (entry.count >= maxRequests) {
       isLimit = false;
     } else {
       entry.count += 1;
@@ -51,15 +57,12 @@ async function rateLimit(request: NextRequest) {
 }
 
 async function sessionCheck(request: NextRequest) {
-  const cookie = request.headers.get('cookie') ?? '';
-  await sessionStore
-    .getState()
-    .fetch({ headers: { cookie }, method: 'GET' }, { urlOrigin: request.nextUrl.origin });
+  using db = dbConn('./src/db/data/main.db');
+  const uuid = await validAuthCookie(db.client, true);
 
-  const errorSession = sessionStore.getState().error.get;
-  if (!errorSession) {
+  if (uuid) {
     return NextResponse.next();
   } else {
-    return NextResponse.redirect(new URL(`/error/${errorSession.status}`, request.url));
+    return NextResponse.redirect(new URL(`/error/401`, request.url));
   }
 }
