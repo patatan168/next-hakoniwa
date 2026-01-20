@@ -4,13 +4,6 @@ import { validAuthCookie } from './global/function/auth';
 import { dbConn } from './global/function/db';
 import { extractClientIp } from './global/function/ip';
 
-const WINDOW_MS = 1 * 1000;
-const MAX_REQUESTS = 10;
-const STRICT_MAX_REQUESTS = 3;
-const ipMap = new Map<string, { count: number; timestamp: number }>();
-
-const rateLimitPaths = ['/api/public'];
-const strictRateLimitPaths = ['/api/sign-in', '/api/sign-up'];
 const authPaths = ['/api/auth/'];
 const sessionPaths = ['/development'];
 
@@ -20,43 +13,12 @@ export async function proxy(request: NextRequest) {
   if (!ip) return new Response('', { status: 400 });
 
   const { pathname } = request.nextUrl;
-  if (strictRateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
-    return await rateLimit(request, STRICT_MAX_REQUESTS);
-  }
-  if (rateLimitPaths.some((prefix) => pathname.startsWith(prefix))) {
-    return await rateLimit(request, MAX_REQUESTS);
-  }
   if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await authCheck(request);
   }
   if (sessionPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await sessionCheck(request);
   }
-  return NextResponse.next();
-}
-
-async function rateLimit(request: NextRequest, maxRequests: number) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
-
-  const now = Date.now();
-  const entry = ipMap.get(ip);
-  const isResetMap = !entry || now - entry.timestamp > WINDOW_MS;
-  let isLimit = true;
-
-  if (isResetMap) {
-    ipMap.set(ip, { count: 1, timestamp: now });
-  } else {
-    if (entry.count >= maxRequests) {
-      isLimit = false;
-    } else {
-      entry.count += 1;
-    }
-  }
-
-  if (!isLimit) {
-    return new NextResponse('Too many requests', { status: 429 });
-  }
-
   return NextResponse.next();
 }
 
