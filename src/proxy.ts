@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
 
 async function authCheck(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db.client);
 
   if (uuid) {
     const requestHeaders = new Headers(request.headers);
@@ -37,7 +37,7 @@ async function authCheck(request: NextRequest) {
 
 async function sessionCheck(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db.client);
 
   if (uuid) {
     return NextResponse.next();

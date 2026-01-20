@@ -121,7 +121,7 @@ export const setAuthCookie = async (token: string) => {
  * @param client DBクライアント
  * @returns UUID
  */
-export const validAuthCookie = async (client: sqlite.Database, refresh = false) => {
+export const validAuthCookie = async (client: sqlite.Database) => {
   const jwtToken = await getCookie('token', { cookies });
 
   if (jwtToken !== undefined) {
@@ -155,10 +155,10 @@ export const validAuthCookie = async (client: sqlite.Database, refresh = false) 
       jwt.verify(jwtToken, public_key, { algorithms: ['ES256'] });
 
       // Token Refresh
-      if (refresh && created_at) {
+      if (created_at) {
         const now = Math.round(new Date().getTime() / 1000);
         const diffSec = now - created_at;
-        if (diffSec > 30) await refreshJwtToken(client, uuid);
+        if (diffSec > 50 * 60) await refreshJwtToken(client, uuid);
       }
 
       // 10分以内にログインしていなければ最終ログイン時間を更新

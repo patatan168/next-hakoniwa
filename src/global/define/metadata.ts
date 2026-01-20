@@ -77,7 +77,7 @@ const META_DATA = Object.freeze({
   /** トークンの発行者 */
   ISSUER: 'Patatan',
   /** セッション時間(h) */
-  EXPIRES_HOUR: 72,
+  EXPIRES_HOUR: 12,
   /** ログイン失敗許容回数 */
   LOGIN_FAIL_LIMIT: 5,
   /** ログインロック時間(分) */
