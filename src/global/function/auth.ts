@@ -192,22 +192,22 @@ export const deleteAuthCookie = async (isAccessToken: boolean) => {
 };
 
 /**
- * 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+ * 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
  * @param client DBクライアント
  */
 async function reCreateRefreshToken(client: sqlite.Database) {
   const refreshToken = await getAuthCookie(false);
   if (refreshToken) {
     const rawRefreshToken = jwt.decode(refreshToken, { json: true });
-    // 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+    // 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
     if (rawRefreshToken?.exp) {
       const nowTime = Math.round(Date.now() / 1000);
       const remainTime = rawRefreshToken.exp - nowTime;
       if (remainTime < 0.8 * META.REFRESH_TOKEN_EXPIRES_HOUR * 3600) {
         const refreshUuid = await validAuthCookie(client, false);
         if (refreshUuid) {
-          // リフレッシュトークンで再認証成功した場合は新しいアクセストークンを発行
-          await reCreateJwtToken(client, refreshUuid, true);
+          // リフレッシュトークンで再認証成功した場合は新しいリフレッシュトークンを発行
+          await reCreateJwtToken(client, refreshUuid, false);
         }
       }
     }
@@ -258,25 +258,31 @@ export const validAuthCookie = async (
       if (!uuid || !sessionId) {
         throw 'JWT Session Error';
       }
-      const selectSession = client.prepare<[string, string], refreshTokenSchemaType>(
+      const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
         `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
       );
-      const { public_key, created_at } = selectSession.get(uuid, sessionId) || {};
-      if (public_key === undefined) {
+      const tokenData = selectTokenTable.get(uuid, sessionId);
+      if (!tokenData) {
         throw `${tableName} Table Error`;
       }
 
       // Verify
-      jwt.verify(jwtToken, public_key, { algorithms: [algorithm] });
+      jwt.verify(jwtToken, tokenData.public_key, { algorithms: [algorithm] });
 
       // Token Refresh
-      if (created_at) {
+      if (tokenData.created_at) {
         const now = Math.round(new Date().getTime() / 1000);
-        const diffSec = now - created_at;
+        const diffSec = now - tokenData.created_at;
         const refreshSec = 0.8 * expiresHour * 3600;
-        if (diffSec > refreshSec) await reCreateJwtToken(client, uuid, isAccessToken);
+        if (diffSec > refreshSec) {
+          if (isAccessToken) {
+            await reCreateAccessToken(client);
+          } else {
+            await reCreateJwtToken(client, uuid, isAccessToken);
+          }
+        }
       }
-      // 期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+      // 期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
       if (isAccessToken) {
         await reCreateRefreshToken(client);
       }
