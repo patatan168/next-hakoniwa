@@ -61,7 +61,7 @@ function SignInForm({ open }: { open: boolean }) {
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    const tmpCookie = getCookie('token');
+    const tmpCookie = getCookie('refresh_token');
     if (data.post?.result && open && tmpCookie) router.push('/development');
   }, [data.post, open]);
 
@@ -103,7 +103,7 @@ export default function SignIn() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    const tmpCookie = getCookie('token');
+    const tmpCookie = getCookie('refresh_token');
     if (tmpCookie) return router.push('/development');
     setOpen(value);
   };

@@ -40,6 +40,19 @@ export const es256Gen = () => {
 };
 
 /**
+ * ES512の秘密鍵と公開鍵を作成
+ * @returns es512Gen.privateKey 秘密鍵
+ * @returns es512Gen.publicKey 公開鍵
+ */
+export const es512Gen = () => {
+  return generateKeyPairSync('ec', {
+    namedCurve: 'P-521',
+    privateKeyEncoding: { format: 'pem', type: 'pkcs8' },
+    publicKeyEncoding: { format: 'pem', type: 'spki' },
+  });
+};
+
+/**
  * 特殊文字を含むランダムな文字列を生成
  * @param length 文字数
  */

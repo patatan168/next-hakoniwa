@@ -1,6 +1,6 @@
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Gen } from '@/global/function/argon2';
-import { createJwtToken, setAuthCookie } from '@/global/function/auth';
+import { createJwtToken } from '@/global/function/auth';
 import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { createUuid25, sha256Gen } from '@/global/function/encrypt';
@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
       insertLastLogin.run(uuid);
     })();
 
-    await setAuthCookie(createJwtToken(db.client, uuid));
+    // アクセストークンとリフレッシュトークンを発行
+    await createJwtToken(db.client, uuid, false);
+    await createJwtToken(db.client, uuid, true);
 
     accessLogger(request).info(`Create uuid=${uuid}`);
 

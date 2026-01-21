@@ -1,12 +1,42 @@
 import 'server-only';
 
-import { sessionSchemaType } from '@/db/schema/sessionTable';
-import { default as META, default as META_DATA } from '@/global/define/metadata';
+import { refreshTokenSchemaType } from '@/db/schema/refreshTokenTable';
+import { default as META } from '@/global/define/metadata';
 import sqlite from 'better-sqlite3';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
-import { es256Gen, randomString } from './encrypt';
+import { es256Gen, es512Gen, randomString } from './encrypt';
+
+/**
+ * トークンオプション取得
+ * @param isAccessToken アクセストークンorリフレッシュトークン
+ */
+const tokenOptions = (
+  isAccessToken: boolean
+): {
+  cookieKey: string;
+  tableName: string;
+  algorithm: 'ES256' | 'ES512';
+  sessionStrNum: number;
+  expiresHour: number;
+} => {
+  return isAccessToken
+    ? {
+        cookieKey: 'access_token',
+        tableName: 'access_token',
+        algorithm: 'ES256',
+        sessionStrNum: 32,
+        expiresHour: META.ACCESS_TOKEN_EXPIRES_HOUR,
+      }
+    : {
+        cookieKey: 'refresh_token',
+        tableName: 'refresh_token',
+        algorithm: 'ES512',
+        sessionStrNum: 128,
+        expiresHour: META.REFRESH_TOKEN_EXPIRES_HOUR,
+      };
+};
 
 /**
  * JWTのペイロード
@@ -19,14 +49,17 @@ const jwtPayload = (session_id: string) => {
  * 予約済みのペイロード
  * @param uuid UUID
  * @param jwi Session Id
+ * @param expiresIn 有効時間(時間)
+ * @param isAccessToken アクセストークンorリフレッシュトークン
  */
-const jwtOptions = (uuid: string, jwi: string) => {
+const jwtOptions = (uuid: string, jwi: string, expiresIn: number, isAccessToken: boolean) => {
+  const algorithm = tokenOptions(isAccessToken).algorithm;
   const options: jwt.SignOptions = {
-    algorithm: 'ES256',
+    algorithm: algorithm,
     issuer: META.ISSUER,
     subject: uuid,
     jwtid: jwi,
-    expiresIn: `${META.EXPIRES_HOUR}hour`,
+    expiresIn: `${expiresIn}hour`,
   };
   return options;
 };
@@ -35,26 +68,32 @@ const jwtOptions = (uuid: string, jwi: string) => {
  * JWTトークンの作成
  * @param client データベース
  * @param uuid UUID
+ * @param isAccessToken アクセストークンorリフレッシュトークン
  * @returns JWTトークン(署名付)
  */
-export const createJwtToken = (client: sqlite.Database, uuid: string) => {
+export const createJwtToken = async (
+  client: sqlite.Database,
+  uuid: string,
+  isAccessToken: boolean
+) => {
+  const { expiresHour, tableName, sessionStrNum } = tokenOptions(isAccessToken);
   // JWIを作成
   const jwi = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
   // SessionIDを作成
-  const session_id = randomString(64);
-  const { privateKey, publicKey } = es256Gen();
+  const session_id = randomString(sessionStrNum);
+  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es512Gen();
 
   const deleteSession = client.prepare(
-    `DELETE FROM session
+    `DELETE FROM ${tableName}
       WHERE uuid = ? AND rowid NOT IN (
-        SELECT rowid FROM session
+        SELECT rowid FROM ${tableName}
         WHERE uuid = ?
         ORDER BY expires DESC
         LIMIT ${META.MAX_SESSIONS} - 1
       )`
   );
   const insertSession = client.prepare(
-    `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${META.EXPIRES_HOUR} * 3600))`
+    `INSERT INTO ${tableName}(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${expiresHour} * 3600))`
   );
 
   client.transaction(() => {
@@ -62,16 +101,29 @@ export const createJwtToken = (client: sqlite.Database, uuid: string) => {
     insertSession.run(uuid, session_id, publicKey);
   })();
 
-  return jwt.sign(jwtPayload(session_id), privateKey, jwtOptions(uuid, jwi.toString()));
+  const newToken = jwt.sign(
+    jwtPayload(session_id),
+    privateKey,
+    jwtOptions(uuid, jwi.toString(), expiresHour, isAccessToken)
+  );
+
+  await setAuthCookie(newToken, isAccessToken);
 };
 
 /**
  * JWTトークンの再生成
  * @param client データベース
+ * @param isAccessToken アクセストークンorリフレッシュトークン
  * @param uuid UUID
  */
-export const refreshJwtToken = async (client: sqlite.Database, uuid: string) => {
-  const oldToken = await getCookie('token', { cookies });
+export const reCreateJwtToken = async (
+  client: sqlite.Database,
+  uuid: string,
+  isAccessToken: boolean
+) => {
+  const { expiresHour, tableName, sessionStrNum } = tokenOptions(isAccessToken);
+
+  const oldToken = await getAuthCookie(isAccessToken);
   if (!oldToken) throw 'No JWT Token';
 
   const rawOldToken = jwt.decode(oldToken, { json: true });
@@ -83,15 +135,15 @@ export const refreshJwtToken = async (client: sqlite.Database, uuid: string) => 
   // JWIを作成
   const jwi = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
   // SessionIDを作成
-  const session_id = randomString(64);
-  const { privateKey, publicKey } = es256Gen();
+  const session_id = randomString(sessionStrNum);
+  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es512Gen();
 
   const deleteSession = client.prepare(
-    `DELETE FROM session
+    `DELETE FROM ${tableName}
       WHERE uuid = ? AND session_id = ?`
   );
   const insertSession = client.prepare(
-    `INSERT INTO session(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${META.EXPIRES_HOUR} * 3600))`
+    `INSERT INTO ${tableName}(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${expiresHour} * 3600))`
   );
 
   client.transaction(() => {
@@ -99,21 +151,81 @@ export const refreshJwtToken = async (client: sqlite.Database, uuid: string) => 
     insertSession.run(uuid, session_id, publicKey);
   })();
 
-  const newToken = jwt.sign(jwtPayload(session_id), privateKey, jwtOptions(uuid, jwi.toString()));
-  await setAuthCookie(newToken);
+  const newToken = jwt.sign(
+    jwtPayload(session_id),
+    privateKey,
+    jwtOptions(uuid, jwi.toString(), expiresHour, isAccessToken)
+  );
+  await setAuthCookie(newToken, isAccessToken);
 };
 
 /**
  * 認証用のJWTトークンをCookieに格納する
  * @param token JWTトークン
+ * @param isAccessToken アクセストークンorリフレッシュトークン
  */
-export const setAuthCookie = async (token: string) => {
-  await setCookie('token', token, {
+export const setAuthCookie = async (token: string, isAccessToken: boolean) => {
+  const { expiresHour, cookieKey } = tokenOptions(isAccessToken);
+  await setCookie(cookieKey, token, {
     cookies,
-    maxAge: META_DATA.EXPIRES_HOUR * 60 * 60,
+    maxAge: expiresHour * 60 * 60,
     sameSite: 'lax',
   });
 };
+
+/**
+ * 認証用のJWTトークンをCookieから取得する
+ * @param isAccessToken アクセストークンorリフレッシュトークン
+ */
+export const getAuthCookie = async (isAccessToken: boolean) => {
+  const { cookieKey } = tokenOptions(isAccessToken);
+  return await getCookie(cookieKey, { cookies });
+};
+
+/**
+ * 認証用のJWTトークンをCookieから削除する
+ * @param isAccessToken アクセストークンorリフレッシュトークン
+ */
+export const deleteAuthCookie = async (isAccessToken: boolean) => {
+  const { cookieKey } = tokenOptions(isAccessToken);
+  await deleteCookie(cookieKey, { cookies });
+};
+
+/**
+ * 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+ * @param client DBクライアント
+ */
+async function reCreateRefreshToken(client: sqlite.Database) {
+  const refreshToken = await getAuthCookie(false);
+  if (refreshToken) {
+    const rawRefreshToken = jwt.decode(refreshToken, { json: true });
+    // 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+    if (rawRefreshToken?.exp) {
+      const nowTime = Math.round(Date.now() / 1000);
+      const remainTime = rawRefreshToken.exp - nowTime;
+      if (remainTime < 0.8 * META.REFRESH_TOKEN_EXPIRES_HOUR * 3600) {
+        const refreshUuid = await validAuthCookie(client, false);
+        if (refreshUuid) {
+          // リフレッシュトークンで再認証成功した場合は新しいアクセストークンを発行
+          await reCreateJwtToken(client, refreshUuid, true);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * アクセストークンがない場合、リフレッシュトークンで再認証
+ * @param client DBクライアント
+ */
+async function reCreateAccessToken(client: sqlite.Database) {
+  const uuid = await validAuthCookie(client, false);
+  if (uuid) {
+    // リフレッシュトークンで再認証成功した場合は新しいアクセストークンを発行
+    await createJwtToken(client, uuid, true);
+    return uuid;
+  }
+}
 
 /**
  * クッキー認証
@@ -121,17 +233,20 @@ export const setAuthCookie = async (token: string) => {
  * @param client DBクライアント
  * @returns UUID
  */
-export const validAuthCookie = async (client: sqlite.Database) => {
-  const jwtToken = await getCookie('token', { cookies });
+export const validAuthCookie = async (
+  client: sqlite.Database,
+  isAccessToken: boolean
+): Promise<string | undefined> => {
+  const jwtToken = await getAuthCookie(isAccessToken);
+  const { tableName, algorithm, expiresHour } = tokenOptions(isAccessToken);
 
-  if (jwtToken !== undefined) {
+  if (jwtToken) {
+    const rawToken = jwt.decode(jwtToken, { json: true });
+    // Decode Error
+    if (rawToken === null) {
+      throw 'JWT Decode Error';
+    }
     try {
-      const rawToken = jwt.decode(jwtToken, { json: true });
-
-      // Decode Error
-      if (rawToken === null) {
-        throw 'JWT Decode Error';
-      }
       // Issuer Error
       const issuer = rawToken.iss;
       if (issuer !== META.ISSUER) {
@@ -143,22 +258,27 @@ export const validAuthCookie = async (client: sqlite.Database) => {
       if (!uuid || !sessionId) {
         throw 'JWT Session Error';
       }
-      const selectSession = client.prepare<[string, string], sessionSchemaType>(
-        `SELECT public_key, created_at FROM session WHERE uuid = ? AND session_id = ?`
+      const selectSession = client.prepare<[string, string], refreshTokenSchemaType>(
+        `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
       );
       const { public_key, created_at } = selectSession.get(uuid, sessionId) || {};
       if (public_key === undefined) {
-        throw 'Session DB Error';
+        throw `${tableName} Table Error`;
       }
 
       // Verify
-      jwt.verify(jwtToken, public_key, { algorithms: ['ES256'] });
+      jwt.verify(jwtToken, public_key, { algorithms: [algorithm] });
 
       // Token Refresh
       if (created_at) {
         const now = Math.round(new Date().getTime() / 1000);
         const diffSec = now - created_at;
-        if (diffSec > 50 * 60) await refreshJwtToken(client, uuid);
+        const refreshSec = 0.8 * expiresHour * 3600;
+        if (diffSec > refreshSec) await reCreateJwtToken(client, uuid, isAccessToken);
+      }
+      // 期限ギリギリのリフレッシュトークンで再認証された場合、新しいアクセストークンを発行
+      if (isAccessToken) {
+        await reCreateRefreshToken(client);
       }
 
       // 10分以内にログインしていなければ最終ログイン時間を更新
@@ -173,11 +293,28 @@ export const validAuthCookie = async (client: sqlite.Database) => {
       // Success
       return uuid;
     } catch (error) {
-      // Fail
       console.error(error);
       // Cookie削除
-      await deleteCookie('token', { cookies });
+      await deleteAuthCookie(isAccessToken);
+      if (error instanceof jwt.TokenExpiredError) {
+        // トークン期限切れの場合はDBからセッション削除
+        client
+          .prepare(
+            `DELETE FROM ${tableName}
+           WHERE uuid = ? AND session_id = ?`
+          )
+          .run(rawToken.sub, rawToken.session_id);
+        if (isAccessToken) {
+          return await reCreateAccessToken(client);
+        }
+      }
+      // Fail
+      console.error(error);
       return undefined;
     }
+  } else if (isAccessToken) {
+    // アクセストークンがない場合、リフレッシュトークンで再認証
+    return await reCreateAccessToken(client);
   }
+  throw 'No JWT Token';
 };

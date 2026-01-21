@@ -1,6 +1,6 @@
 import { DbSchema } from '@/global/function/db';
 
-export const sessionSchema: DbSchema = [
+export const refreshTokenSchema: DbSchema = [
   {
     name: 'uuid',
     type: 'TEXT',
@@ -12,7 +12,7 @@ export const sessionSchema: DbSchema = [
   { name: 'expires', type: 'DATETIME' },
 ];
 
-export type sessionSchemaType = {
+export type refreshTokenSchemaType = {
   uuid: string;
   session_id: string;
   public_key: string;

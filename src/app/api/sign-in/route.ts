@@ -2,7 +2,7 @@ import { authSchemaType } from '@/db/schema/authTable';
 import META_DATA from '@/global/define/metadata';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Verify } from '@/global/function/argon2';
-import { createJwtToken, setAuthCookie } from '@/global/function/auth';
+import { createJwtToken } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
@@ -74,7 +74,9 @@ export async function POST(request: NextRequest) {
 
         updateLoginFailCount(db.client, auth.uuid, failCount, lockedUntil);
 
-        await setAuthCookie(createJwtToken(db.client, auth.uuid));
+        // アクセストークンとリフレッシュトークンを発行
+        await createJwtToken(db.client, auth.uuid, false);
+        await createJwtToken(db.client, auth.uuid, true);
         accessLogger(request).info(`Sign In uuid=${auth.uuid}`);
 
         return responseOK;

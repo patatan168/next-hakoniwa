@@ -1,11 +1,12 @@
 import { createDbTable, dbConn, triggerReset } from '@/global/function/db';
+import { accessTokenSchema } from './schema/accessTokenTable';
 import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { lastLoginSchema } from './schema/lastLoginTable';
 import { planSchema } from './schema/planTable';
+import { refreshTokenSchema } from './schema/refreshTokenTable';
 import { roleSchema } from './schema/roleTable';
-import { sessionSchema } from './schema/sessionTable';
 import { turnLogSchema } from './schema/turnLogTable';
 import { turnStateSchema } from './schema/turnStateTable';
 import { userSchema } from './schema/userTable';
@@ -30,6 +31,10 @@ createTable('turn_log', turnLogSchema);
 createTable('plan', planSchema);
 // event_rateテーブル作成
 createTable('event_rate', eventRateSchema);
+// access_tokenテーブル作成
+createTable('access_token', accessTokenSchema);
+// refresh_tokenテーブル作成
+createTable('refresh_token', refreshTokenSchema);
 // turn_stateテーブル作成
 createTable('turn_state', turnStateSchema);
 // レコードが1つもない場合のみinsert
@@ -37,5 +42,3 @@ const count = db.client.prepare(`SELECT COUNT(*) as cnt FROM turn_state`).get() 
 if (count.cnt === 0) {
   db.client.prepare(`INSERT INTO turn_state (turn, turn_processing) VALUES (0, 0)`).run();
 }
-// sessionテーブル作成
-createTable('session', sessionSchema);

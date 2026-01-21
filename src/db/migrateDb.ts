@@ -3,13 +3,14 @@
  * @note userテーブルは外部キーに使用されているので移行しない
  */
 import { dbConn, migrateDbTable, triggerReset } from '@/global/function/db';
+import { accessTokenSchema } from './schema/accessTokenTable';
 import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { lastLoginSchema } from './schema/lastLoginTable';
 import { planSchema } from './schema/planTable';
+import { refreshTokenSchema } from './schema/refreshTokenTable';
 import { roleSchema } from './schema/roleTable';
-import { sessionSchema } from './schema/sessionTable';
 import { turnLogSchema } from './schema/turnLogTable';
 import { turnStateSchema } from './schema/turnStateTable';
 
@@ -33,10 +34,12 @@ migrateTable('plan', planSchema);
 migrateTable('event_rate', eventRateSchema);
 // turn_stateテーブルを移行
 migrateTable('turn_state', turnStateSchema);
+// access_tokenテーブルを移行
+migrateTable('access_token', accessTokenSchema);
+// refresh_tokenテーブルを移行
+migrateTable('refresh_token', refreshTokenSchema);
 // レコードが1つもない場合のみinsert
 const count = db.client.prepare(`SELECT COUNT(*) as cnt FROM turn_state`).get() as { cnt: number };
 if (count.cnt === 0) {
   db.client.prepare(`INSERT INTO turn_state (turn, turn_processing) VALUES (0, 0)`).run();
 }
-// sessionテーブルを移行
-migrateTable('session', sessionSchema);

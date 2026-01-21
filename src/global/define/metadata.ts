@@ -76,8 +76,10 @@ const META_DATA = Object.freeze({
   },
   /** トークンの発行者 */
   ISSUER: 'Patatan',
-  /** セッション時間(h) */
-  EXPIRES_HOUR: 12,
+  /** リフレッシュトークンの有効時間(h) */
+  REFRESH_TOKEN_EXPIRES_HOUR: 720,
+  /** アクセストークンの有効時間(h) */
+  ACCESS_TOKEN_EXPIRES_HOUR: 1,
   /** ログイン失敗許容回数 */
   LOGIN_FAIL_LIMIT: 5,
   /** ログインロック時間(分) */
