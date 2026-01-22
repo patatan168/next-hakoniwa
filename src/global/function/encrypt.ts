@@ -40,13 +40,13 @@ export const es256Gen = () => {
 };
 
 /**
- * ES512の秘密鍵と公開鍵を作成
- * @returns es512Gen.privateKey 秘密鍵
- * @returns es512Gen.publicKey 公開鍵
+ * ES384の秘密鍵と公開鍵を作成
+ * @returns es384Gen.privateKey 秘密鍵
+ * @returns es384Gen.publicKey 公開鍵
  */
-export const es512Gen = () => {
+export const es384Gen = () => {
   return generateKeyPairSync('ec', {
-    namedCurve: 'P-521',
+    namedCurve: 'P-384',
     privateKeyEncoding: { format: 'pem', type: 'pkcs8' },
     publicKeyEncoding: { format: 'pem', type: 'spki' },
   });

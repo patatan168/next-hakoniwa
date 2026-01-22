@@ -6,7 +6,7 @@ import sqlite from 'better-sqlite3';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
-import { es256Gen, es512Gen, randomString } from './encrypt';
+import { es256Gen, es384Gen, randomString } from './encrypt';
 
 /**
  * トークンオプション取得
@@ -17,7 +17,7 @@ const tokenOptions = (
 ): {
   cookieKey: string;
   tableName: string;
-  algorithm: 'ES256' | 'ES512';
+  algorithm: 'ES256' | 'ES384';
   sessionStrNum: number;
   expiresHour: number;
 } => {
@@ -32,7 +32,7 @@ const tokenOptions = (
     : {
         cookieKey: 'refresh_token',
         tableName: 'refresh_token',
-        algorithm: 'ES512',
+        algorithm: 'ES384',
         sessionStrNum: 128,
         expiresHour: META.REFRESH_TOKEN_EXPIRES_HOUR,
       };
@@ -81,7 +81,7 @@ export const createJwtToken = async (
   const jwi = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
   // SessionIDを作成
   const session_id = randomString(sessionStrNum);
-  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es512Gen();
+  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
   const deleteSession = client.prepare(
     `DELETE FROM ${tableName}
@@ -136,7 +136,7 @@ export const reCreateJwtToken = async (
   const jwi = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
   // SessionIDを作成
   const session_id = randomString(sessionStrNum);
-  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es512Gen();
+  const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
   const deleteSession = client.prepare(
     `DELETE FROM ${tableName}
