@@ -43,7 +43,7 @@ export default function IslandList() {
       if (node !== null) {
         const { x, y } = node.getBoundingClientRect();
         setListHeight(`${height - y}px`);
-        setMapSize(`min(${width - x}px, ${height}px)`);
+        setMapSize(`min(${width - x}px, ${height - y}px)`);
       }
     },
     [width, height]
