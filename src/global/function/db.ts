@@ -174,34 +174,40 @@ export const migrateDbTable =
     const createTable = createDbTable(db);
     const newTableName = `${tableName}_new_${Date.now()}`;
     createTable(newTableName, schema);
+    try {
+      // 新旧テーブルで構造に差異がない場合は新テーブルを破棄してスキップ
+      const newTableInfo = getTableInfo(db, newTableName);
+      const oldTableInfo = getTableInfo(db, tableName);
+      if (isEqual(newTableInfo, oldTableInfo)) {
+        console.log('テーブルの構造に変更がないため、新テーブルを破棄します。');
+        // 新しいテーブルを削除
+        db.prepare(`DROP TABLE ${newTableName}`).run();
+        return;
+      }
 
-    // 新旧テーブルで構造に差異がない場合は新テーブルを破棄してスキップ
-    const newTableInfo = getTableInfo(db, newTableName);
-    const oldTableInfo = getTableInfo(db, tableName);
-    if (isEqual(newTableInfo, oldTableInfo)) {
-      console.log('テーブルの構造に変更がないため、新テーブルを破棄します。');
+      // 既存カラム名を取得
+      const oldColumns = getTableInfo(db, tableName);
+      const oldColumnNames = oldColumns.map((col) => col.name);
+
+      // 新旧で共通するカラムのみコピー
+      const copyColumns = schema
+        .map((col) => col.name)
+        .filter((name) => oldColumnNames.includes(name))
+        .join(', ');
+      if (copyColumns.length > 0) {
+        db.prepare(
+          `INSERT INTO ${newTableName} (${copyColumns}) SELECT ${copyColumns} FROM ${tableName}`
+        ).run();
+      }
+
+      // 古いテーブルを削除
+      db.prepare(`DROP TABLE ${tableName}`).run();
+      // 新しいテーブルの名前を元に戻す
+      db.prepare(`ALTER TABLE ${newTableName} RENAME TO ${tableName}`).run();
+    } catch (error) {
+      console.error('テーブル移行中にエラーが発生しました');
       // 新しいテーブルを削除
       db.prepare(`DROP TABLE ${newTableName}`).run();
-      return;
+      throw error;
     }
-
-    // 既存カラム名を取得
-    const oldColumns = getTableInfo(db, tableName);
-    const oldColumnNames = oldColumns.map((col) => col.name);
-
-    // 新旧で共通するカラムのみコピー
-    const copyColumns = schema
-      .map((col) => col.name)
-      .filter((name) => oldColumnNames.includes(name))
-      .join(', ');
-    if (copyColumns.length > 0) {
-      db.prepare(
-        `INSERT INTO ${newTableName} (${copyColumns}) SELECT ${copyColumns} FROM ${tableName}`
-      ).run();
-    }
-
-    // 古いテーブルを削除
-    db.prepare(`DROP TABLE ${tableName}`).run();
-    // 新しいテーブルの名前を元に戻す
-    db.prepare(`ALTER TABLE ${newTableName} RENAME TO ${tableName}`).run();
   };
