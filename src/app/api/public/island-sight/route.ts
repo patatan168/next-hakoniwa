@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const islandData = db.client
       .prepare<string, islandSchemaType & userSchemaType>(
         `SELECT
-          ${allDbColumns(db.client, 'user')}
+          ${allDbColumns(db.client, 'user')},
           ${allDbColumns(db.client, 'island')}
         FROM
           user INNER JOIN island 
