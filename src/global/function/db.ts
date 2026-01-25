@@ -51,7 +51,8 @@ export type DbSchema = Array<DbColumn>;
  */
 export const dbConn = (dbPath: string) => {
   //try to connect
-  const client = new sqlite(dbPath, { verbose: console.debug });
+  const verbose = process.env.NODE_ENV === 'development' ? console.debug : undefined;
+  const client = new sqlite(dbPath, { verbose });
 
   //return resource as disposable
   return {
