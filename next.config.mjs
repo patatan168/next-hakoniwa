@@ -37,7 +37,7 @@ const nextConfig = {
         source: '/api/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'false' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ORIGIN_URL },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
           {
             key: 'Access-Control-Allow-Headers',
@@ -73,7 +73,7 @@ const nextConfig = {
         source: '/api/auth/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ORIGIN_URL },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
           {
             key: 'Access-Control-Allow-Headers',
