@@ -21,6 +21,9 @@ export const baseUserInfoSchema = z.object({
     })
     .regex(/(?=.*?[a-zA-Z])(?=.*?\d)[!-~]+/, {
       error: '英大文字、英小文字、数字を含めて入力してください',
+    })
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)[\x20-\x7E]+$/, {
+      error: '全角文字は使用できません',
     }),
   passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
   userName: z.coerce
