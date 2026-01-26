@@ -175,7 +175,7 @@ const primaryStyle = (color: TailwindColor) =>
   `${bgColor[color]} text-white font-semibold focus:outline-hidden`;
 
 const outlineStyle = (color: TailwindColor) =>
-  `${textColor[color]} bg-white hover:text-white border ${borderColor[color]} focus:outline-none font-medium text-center disabled:bg-gray-400 disabled:text-white`;
+  `${textColor[color]} bg-white hover:text-white border ${borderColor[color]} focus:outline-none font-semibold text-center disabled:bg-gray-400 disabled:text-white`;
 
 const ButtonClassName = (
   className: string = '',
