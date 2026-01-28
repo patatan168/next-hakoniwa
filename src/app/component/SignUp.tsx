@@ -8,6 +8,7 @@ import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { IoSendSharp } from 'react-icons/io5';
 
 const POST_HEADER = {
   method: 'POST',
@@ -37,7 +38,7 @@ function SignUpForm() {
     resolver: zodResolver(userInfoSchema),
   });
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch } = useClientFetch(signUpStore);
+  const { fetch, error } = useClientFetch(signUpStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });
@@ -61,16 +62,20 @@ function SignUpForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <ul style={{ width: '600px', listStyleType: 'none' }}>
+      <ul style={{ listStyleType: 'none' }} className="w-[500] max-w-[96vw]">
         <li>
-          <Button className="mb-4" disabled={!isValid} type="submit">
+          {error.post && (
+            <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">{error.post.detail}</p>
+          )}
+        </li>
+        <li className="flex justify-end">
+          <Button className="mb-4" disabled={!isValid} type="submit" icons={<IoSendSharp />}>
             新規登録
           </Button>
         </li>
         <li>
           <TextFieldRHF
             required
-            style={{ width: '600px' }}
             name="userName"
             control={control}
             id="user-name"
@@ -80,7 +85,6 @@ function SignUpForm() {
         <li>
           <TextFieldRHF
             required
-            style={{ width: '600px' }}
             name="islandName"
             control={control}
             id="island-name"
@@ -88,19 +92,11 @@ function SignUpForm() {
           />
         </li>
         <li>
-          <TextFieldRHF
-            required
-            style={{ width: '600px' }}
-            name="id"
-            control={control}
-            id="user-id"
-            placeholder="User Id"
-          />
+          <TextFieldRHF required name="id" control={control} id="user-id" placeholder="User Id" />
         </li>
         <li>
           <TextFieldRHF
             required
-            style={{ width: '600px' }}
             name="password"
             control={control}
             type="password"
@@ -111,7 +107,6 @@ function SignUpForm() {
         <li>
           <TextFieldRHF
             required
-            style={{ width: '600px' }}
             name="passwordConfirm"
             control={control}
             type="password"
@@ -133,6 +128,7 @@ export default function SignUp() {
     <>
       <Button
         type="button"
+        category="outline"
         aria-haspopup="dialog"
         aria-expanded="false"
         onClick={() => openToggle(true)}

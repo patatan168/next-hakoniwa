@@ -1,5 +1,6 @@
 // 複数のレイアウトをexportするため
 /* eslint-disable react-refresh/only-export-components */
+import Header from '@/global/component/Header';
 import META from '@/global/define/metadata';
 import '@/global/global.css';
 import type { Metadata } from 'next';
@@ -29,7 +30,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable} pt-12`}>
+        <Header />
+        <main id="main-root" className="isolate">
+          {children}
+        </main>
+        <div id="overlay-root" className="isolate"></div>
+        <div id="modal-root" className="isolate"></div>
+      </body>
     </html>
   );
 }

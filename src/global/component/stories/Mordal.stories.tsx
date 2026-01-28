@@ -68,6 +68,15 @@ const meta = {
         type: { summary: 'boolean' },
       },
     },
+    preRender: {
+      description:
+        '`true`: 初回Openまでレンダリングしない<br/>`false`: 初回Open前からレンダリングする<br/>`true`の場合、初回Open前からモーダルを準備できるが、パフォーマンスは悪化する',
+      control: 'boolean',
+      type: { name: 'boolean', required: false },
+      table: {
+        type: { summary: 'boolean' },
+      },
+    },
   },
 } satisfies Meta<typeof Modal>;
 

@@ -10,6 +10,8 @@ import { getCookie } from 'cookies-next/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { IoSendSharp } from 'react-icons/io5';
+import { PiIslandFill } from 'react-icons/pi';
 
 const POST_HEADER = {
   method: 'POST',
@@ -23,7 +25,7 @@ const defaultValues: signInUserInfo = {
   password: '',
 };
 
-function SignInForm({ open }: { open: boolean }) {
+function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: boolean) => void }) {
   const {
     subscribe,
     reset,
@@ -37,11 +39,10 @@ function SignInForm({ open }: { open: boolean }) {
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch, data } = useClientFetch(signInStore);
+  const { fetch, data, error } = useClientFetch(signInStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });
-    reset();
   };
 
   useEffect(() => {
@@ -62,31 +63,32 @@ function SignInForm({ open }: { open: boolean }) {
   // 開発画面へリダイレクト
   useEffect(() => {
     const tmpCookie = getCookie('refresh_token');
-    if (data.post?.result && open && tmpCookie) router.push('/development');
+    if (data.post?.result && open && tmpCookie) {
+      reset();
+      openToggle(false);
+      router.push('/development');
+    }
   }, [data.post, open]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <ul style={{ width: '600px', listStyleType: 'none' }}>
+      <ul style={{ listStyleType: 'none' }} className="w-[500] max-w-[96vw]">
         <li>
-          <Button className="mb-4" disabled={!isValid} type="submit">
+          {error.post && (
+            <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">{error.post.detail}</p>
+          )}
+        </li>
+        <li className="flex justify-end">
+          <Button className="mb-4" disabled={!isValid} type="submit" icons={<IoSendSharp />}>
             島を開発する
           </Button>
         </li>
         <li>
-          <TextFieldRHF
-            required
-            style={{ width: '600px' }}
-            name="id"
-            control={control}
-            id="user-id"
-            placeholder="User Id"
-          />
+          <TextFieldRHF required name="id" control={control} id="user-id" placeholder="User Id" />
         </li>
         <li>
           <TextFieldRHF
             required
-            style={{ width: '600px' }}
             name="password"
             control={control}
             type="password"
@@ -104,23 +106,26 @@ export default function SignIn() {
   const router = useRouter();
   const openToggle = (value: boolean) => {
     const tmpCookie = getCookie('refresh_token');
-    if (tmpCookie) return router.push('/development');
+    if (tmpCookie && value) return router.push('/development');
     setOpen(value);
   };
   return (
     <>
       <Button
+        className="sm:px-7 md:px-12 md:text-sm lg:px-15 lg:text-base"
         type="button"
+        color="teal"
         aria-haspopup="dialog"
         aria-expanded="false"
         onClick={() => openToggle(true)}
+        icons={<PiIslandFill />}
       >
-        島を開発する
+        島を開発
       </Button>
       <Modal
         hidden
         header="島を開発する - サインイン"
-        body={<SignInForm open={open} />}
+        body={<SignInForm open={open} openToggle={openToggle} />}
         open={open}
         openToggle={openToggle}
       />

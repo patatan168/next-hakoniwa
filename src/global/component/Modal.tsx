@@ -1,9 +1,12 @@
 import { isEqual } from 'es-toolkit';
 import { memo, ReactNode, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { RxCross1 } from 'react-icons/rx';
+import { createPortalIdHook } from '../function/createPortalIdHook';
 import { Card } from './Card';
+import IfComponent from './IfComponent';
 import Overlay from './Overlay';
+
+const Portal = createPortalIdHook('modal-root');
 
 const HeaderModal = memo(
   function HeaderModal({
@@ -39,7 +42,7 @@ const HeaderModal = memo(
 
 const BodyModal = memo(
   function BodyModal({ body }: { body: ReactNode }) {
-    return <div className="space-y-3 p-4">{body}</div>;
+    return <div className="px-0 py-4 md:px-4">{body}</div>;
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
@@ -59,41 +62,56 @@ const FooterModal = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-const HiddenStyle = ({ open, hidden }: { open: boolean; hidden: boolean }) => {
-  if (open || !hidden) return undefined;
-
-  return {
-    display: 'none',
-  };
-};
-
 export const Modal = memo(
   function Modal({
     header,
     body,
     footer,
     hidden = false,
+    preRender = false,
     open,
     openToggle,
   }: {
     header?: string | ReactNode;
     body: ReactNode;
     hidden?: boolean;
+    preRender?: boolean;
     footer?: ReactNode;
     open: boolean;
     openToggle: ((value: boolean) => void) | (() => void);
   }) {
-    const hiddenStyle = HiddenStyle({ open, hidden });
     const [mounted, setMounted] = useState(false);
-    const enterFunction = (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.code === 'Enter') {
+    const [firstOpen, setFirstOpen] = useState(false);
+    const overlayFunction = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.code === 'Enter' || event.key === 'Enter') {
+        openToggle(false);
+      }
+      if (event.code === 'Escape' || event.key === 'Escape') {
         openToggle(false);
       }
     };
+    const modalFunction = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.code === 'Escape' || event.key === 'Escape') {
+        openToggle(false);
+      }
+    };
+    const isContentRendered = hidden ? preRender || firstOpen : (preRender || firstOpen) && open;
 
     useEffect(() => {
-      setMounted(true);
+      const timer = setTimeout(() => {
+        setMounted(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        if (open && !firstOpen) {
+          setFirstOpen(true);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
+    }, [open]);
 
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -107,36 +125,36 @@ export const Modal = memo(
       };
     }, [openToggle]);
 
+    // Prevent SSR issues
     if (!mounted || typeof document === 'undefined') return null;
 
-    if (!open && !hidden) {
-      return <></>;
-    }
-
-    return createPortal(
+    return (
       <>
         <Overlay
-          style={hiddenStyle}
+          className={`${open ? 'visible opacity-100' : 'invisible opacity-0'}`}
           onClick={() => openToggle(false)}
-          onKeyDown={enterFunction}
+          onKeyDown={overlayFunction}
           role="button"
           tabIndex={0}
         />
-        <div
-          style={hiddenStyle}
-          aria-modal="true"
-          role="dialog"
-          tabIndex={-1}
-          className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-700"
-        >
-          <Card>
-            <HeaderModal header={header} openToggle={openToggle} />
-            <BodyModal body={body} />
-            <FooterModal footer={footer} />
-          </Card>
-        </div>
-      </>,
-      document.body
+        <Portal>
+          <div
+            aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
+            onKeyDown={modalFunction}
+            className={`fixed top-1/2 left-1/2 z-999 max-w-[99vw] -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:bg-gray-700 ${open ? 'visible scale-100 opacity-100' : 'invisible scale-95 opacity-0'}`}
+          >
+            <IfComponent isRendered={isContentRendered}>
+              <Card>
+                <HeaderModal header={header} openToggle={openToggle} />
+                <BodyModal body={body} />
+                <FooterModal footer={footer} />
+              </Card>
+            </IfComponent>
+          </div>
+        </Portal>
+      </>
     );
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)

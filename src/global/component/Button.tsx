@@ -169,7 +169,7 @@ const textSize: Record<TailwindSize, string> = {
 };
 
 const commonStyle = (size: TailwindSize) =>
-  `rounded-lg ${textSize[size]} px-5 py-2 cursor-pointer focus:ring-4 disabled:cursor-not-allowed`;
+  `rounded-lg ${textSize[size]} md:px-5 px-3 py-2 cursor-pointer focus:ring-4 disabled:cursor-not-allowed`;
 
 const primaryStyle = (color: TailwindColor) =>
   `${bgColor[color]} text-white font-semibold focus:outline-hidden`;
@@ -192,6 +192,7 @@ const ButtonClassName = (
   }, [category, color, className, size]);
 
 interface ButtonType extends ButtonHTMLAttributes<HTMLButtonElement> {
+  icons?: React.ReactNode;
   color?: TailwindColor;
   category?: 'primary' | 'outline';
   size?: TailwindSize;
@@ -202,8 +203,17 @@ export default memo(
     return (
       <button
         {...props}
-        className={ButtonClassName(props.className, props.color, props.category)}
-      />
+        className={ButtonClassName(props.className, props.color, props.category, props.size)}
+      >
+        {props.icons ? (
+          <div className="flex items-center justify-center">
+            <div className="mr-2">{props.icons}</div>
+            <div>{props.children}</div>
+          </div>
+        ) : (
+          props.children
+        )}
+      </button>
     );
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)

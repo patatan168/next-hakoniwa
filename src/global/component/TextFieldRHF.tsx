@@ -1,5 +1,5 @@
 import { isEqual, omit } from 'es-toolkit';
-import { CSSProperties, InputHTMLAttributes, memo, useMemo, useState } from 'react';
+import { CSSProperties, InputHTMLAttributes, memo, useId, useMemo, useState } from 'react';
 import {
   Controller,
   FieldError,
@@ -30,18 +30,6 @@ type TextFieldRHFProps<
     type?: 'password' | 'text' | 'number' | 'email' | 'tel' | 'search';
     isBottomSpace?: boolean;
   };
-
-const UlStyle = (propsStyle: CSSProperties | undefined) =>
-  useMemo(() => {
-    const baseWidth = { width: '200px' };
-    const uiStyle =
-      propsStyle !== undefined && propsStyle.width !== undefined
-        ? propsStyle
-        : { ...propsStyle, ...baseWidth };
-
-    return uiStyle;
-  }, [propsStyle]);
-
 const InputStyle = (
   error: boolean,
   type: 'number' | 'password' | 'text' | 'email' | 'tel' | 'search' | undefined
@@ -67,24 +55,25 @@ const HelperTextWidth = (inputWidth: number) =>
 
 const HelperText = memo(
   function HelperText({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) {
+    const textSize = 'text-sm';
     if (isError && error !== undefined) {
       // Error Message
       return (
-        <li style={style} className="truncate text-red-600">
+        <li style={style} className={`truncate text-red-600 ${textSize}`}>
           {error.message}
         </li>
       );
     } else if (helperText !== undefined && helperText !== '') {
       // Helper Message
       return (
-        <li style={style} className="truncate">
+        <li style={style} className={`truncate ${textSize}`}>
           {helperText}
         </li>
       );
     } else if (isBottomSpace === undefined || isBottomSpace) {
       // Blank Space
       return (
-        <li style={style} className="select-none">
+        <li style={style} className={`select-none ${textSize}`}>
           &thinsp;
         </li>
       );
@@ -99,7 +88,9 @@ function TextFieldRHFInner<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(props: TextFieldRHFProps<TFieldValues, TName>) {
+  const uniqueId = useId();
   const textFieldProps = omit(props, [
+    'id',
     'className',
     'control',
     'rules',
@@ -131,11 +122,12 @@ function TextFieldRHFInner<
         };
 
         return (
-          <ul style={UlStyle(props.style)} className={props.className}>
+          <ul style={props.style} className={props.className}>
             <li>
               <div className="relative flex items-center">
                 <input
                   className={InputStyle(isError, props.type)}
+                  id={`${uniqueId}-${props.id ?? 'text-field-rhf'}`}
                   {...field}
                   {...textFieldProps}
                   type={viewText ? 'text' : 'password'}
