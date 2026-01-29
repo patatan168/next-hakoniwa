@@ -1,3 +1,4 @@
+import { isEqual, merge } from 'es-toolkit';
 import { createStore, StoreApi } from 'zustand/vanilla';
 
 type ApiMethodType<T, U = T> = Record<'get', T> &
@@ -92,9 +93,11 @@ function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge:
   if (refresh || !shouldMerge) return next;
   // Array or Object
   if (typeof current !== 'object' || typeof next !== 'object') return next;
+  // 一致するなら現在値のまま
+  if (isEqual(current, next)) return current;
 
   if (Array.isArray(current) && Array.isArray(next)) {
-    return [...current, ...next] as T;
+    return merge(current, next) as T;
   }
   if (!Array.isArray(current) && !Array.isArray(next)) {
     return { ...current, ...next } as T;
