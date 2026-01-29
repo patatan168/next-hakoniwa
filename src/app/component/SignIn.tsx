@@ -5,6 +5,7 @@ import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { signInStore } from '@/global/store/api/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
+import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getCookie } from 'cookies-next/client';
 import { useRouter } from 'next/navigation';
@@ -49,7 +50,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
     const unsubscribe = subscribe({
       formState: { values: true },
       callback: ({ values }) => {
-        setBody(JSON.stringify(values));
+        setBody(sanitizeJsonStringify(values));
       },
     });
 
@@ -84,12 +85,22 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
           </Button>
         </li>
         <li>
-          <TextFieldRHF required name="id" control={control} id="user-id" placeholder="User Id" />
+          <TextFieldRHF
+            required
+            name="id"
+            pattern="^[a-zA-Z0-9]+$"
+            autoComplete="off"
+            control={control}
+            id="user-id"
+            placeholder="User Id"
+          />
         </li>
         <li>
           <TextFieldRHF
             required
             name="password"
+            pattern="^[\x00-\x7F]+$"
+            autoComplete="off"
             control={control}
             type="password"
             id="password"

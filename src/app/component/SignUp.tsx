@@ -5,6 +5,7 @@ import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { signUpStore } from '@/global/store/api/sign-up';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
+import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -49,7 +50,7 @@ function SignUpForm() {
     const unsubscribe = subscribe({
       formState: { values: true },
       callback: ({ values }) => {
-        setBody(JSON.stringify(values));
+        setBody(sanitizeJsonStringify(values));
       },
     });
 
@@ -92,12 +93,22 @@ function SignUpForm() {
           />
         </li>
         <li>
-          <TextFieldRHF required name="id" control={control} id="user-id" placeholder="User Id" />
+          <TextFieldRHF
+            required
+            name="id"
+            pattern="^[a-zA-Z0-9]+$"
+            autoComplete="off"
+            control={control}
+            id="user-id"
+            placeholder="User Id"
+          />
         </li>
         <li>
           <TextFieldRHF
             required
             name="password"
+            pattern="^[\x00-\x7F]+$"
+            autoComplete="off"
             control={control}
             type="password"
             id="password"
@@ -108,6 +119,8 @@ function SignUpForm() {
           <TextFieldRHF
             required
             name="passwordConfirm"
+            pattern="^[\x00-\x7F]+$"
+            autoComplete="off"
             control={control}
             type="password"
             id="password-confirm"

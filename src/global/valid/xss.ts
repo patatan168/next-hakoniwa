@@ -1,6 +1,20 @@
 import xss from 'xss';
 import { z } from 'zod';
 
+export function sanitizeJsonStringify(data: object): string {
+  const sanitize = (value: object): object => {
+    if (Array.isArray(value)) {
+      return value.map((v) => sanitize(v));
+    }
+    if (value !== null && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitize(v)]));
+    }
+    return value;
+  };
+  const tmp = sanitize(data);
+  return JSON.stringify(tmp);
+}
+
 export function sanitizeWithSchema<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer<T> {
   const parsed = schema.parse(data);
 

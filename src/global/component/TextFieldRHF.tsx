@@ -102,6 +102,20 @@ function TextFieldRHFInner<
   ]);
   const [viewText, setViewText] = useState(props.type !== 'password');
   const [inputWidth, setInputWidth] = useState(0);
+  const normalizeRegex = useMemo(() => {
+    if (props.pattern) {
+      return props.pattern
+        .replace(/^\^/, '')
+        .replace(/^\^/, '')
+        .replace(/\$$/, '')
+        .replace(/\*$/, '')
+        .replace(/\?$/, '')
+        .replace(/\+/, '')
+        .replace(/\{\d+(,\d+)?\}/g, '');
+    } else {
+      return '';
+    }
+  }, [props.pattern]);
 
   return (
     <Controller
@@ -121,6 +135,36 @@ function TextFieldRHFInner<
           field.ref(node);
         };
 
+        const handleBeforeInput = (e: React.FormEvent<HTMLInputElement> & { data: string }) => {
+          if (!props.pattern) return;
+          const regex = new RegExp(`^${normalizeRegex}*$`, 'g');
+          const input = e.currentTarget;
+          const nextValue =
+            input.value.slice(0, input.selectionStart ?? 0) +
+            e.data +
+            input.value.slice(input.selectionEnd ?? 0);
+
+          if (!regex.test(nextValue)) {
+            e.preventDefault(); // 入力をブロック
+          }
+        };
+
+        const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const tmpEvent = e;
+          // IME 確定後の文字も含めて最終チェック
+          if (props.pattern) {
+            const match = normalizeRegex.match(/\[[^\]]+\]/);
+            if (match) {
+              const deny = `[^${match[0].slice(1, -1)}]`;
+              const regex = new RegExp(deny, 'g');
+              // 不正文字を削除
+              const filtered = e.target.value.replace(regex, '');
+              tmpEvent.target.value = filtered;
+            }
+          }
+          field.onChange(tmpEvent);
+        };
+
         return (
           <ul style={props.style} className={props.className}>
             <li>
@@ -130,6 +174,8 @@ function TextFieldRHFInner<
                   id={`${uniqueId}-${props.id ?? 'text-field-rhf'}`}
                   {...field}
                   {...textFieldProps}
+                  onBeforeInput={handleBeforeInput}
+                  onChange={handleOnChange}
                   type={viewText ? 'text' : 'password'}
                   ref={inputCallback}
                 />
