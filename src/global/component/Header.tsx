@@ -1,11 +1,11 @@
 'use client';
-import SignIn from '@/app/component/SignIn';
-import SignUp from '@/app/component/SignUp';
 import { getCookie } from 'cookies-next/client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp, IoSettingsSharp } from 'react-icons/io5';
 import Button from './Button';
+import SignIn from './SignIn';
+import SignUp from './SignUp';
 
 export default function Header() {
   const [isClient, setIsClient] = useState(false);
