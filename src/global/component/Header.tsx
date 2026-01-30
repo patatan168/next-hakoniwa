@@ -20,31 +20,49 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 w-full bg-emerald-100 text-black">
       <nav>
-        <ul className="grid grid-cols-13 items-center">
+        <ul className="grid grid-cols-16 items-center gap-0">
           {/* 左カラム */}
           <li className="col-span-5 flex justify-start gap-1 md:gap-4">
             <Link href="/">
-              <Button category="primary" color="blue" icons={<IoHomeSharp />}>
+              <Button
+                size="xs"
+                className="sm:text-sm"
+                category="primary"
+                color="blue"
+                icons={<IoHomeSharp />}
+              >
                 ホーム
               </Button>
             </Link>
-            <Link href="/">
-              <Button category="outline" color="sky" icons={<IoBookSharp />}>
+            <Link className="hidden sm:block" href="/">
+              <Button
+                size="xs"
+                className="sm:text-sm"
+                category="outline"
+                color="sky"
+                icons={<IoBookSharp />}
+              >
                 取説
               </Button>
             </Link>
           </li>
 
           {/* 中央カラム */}
-          <li className="col-span-5 flex justify-start">
+          <li className="col-span-5 flex justify-center">
             <SignIn />
           </li>
 
           {/* 右カラム */}
-          <li className="col-span-3 flex justify-end">
+          <li className="col-span-6 flex justify-end">
             {existsToken ? (
               <Link href="/">
-                <Button category="outline" color="orange" icons={<IoSettingsSharp />}>
+                <Button
+                  size="xs"
+                  className="sm:text-sm"
+                  category="outline"
+                  color="orange"
+                  icons={<IoSettingsSharp />}
+                >
                   アカウント
                 </Button>
               </Link>
