@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 w-full bg-emerald-100 text-black">
       <nav>
-        <ul className="grid grid-cols-11 items-center">
+        <ul className="grid grid-cols-13 items-center">
           {/* 左カラム */}
           <li className="col-span-5 flex justify-start gap-1 md:gap-4">
             <Link href="/">
@@ -36,7 +36,7 @@ export default function Header() {
           </li>
 
           {/* 中央カラム */}
-          <li className="col-span-3 flex justify-start">
+          <li className="col-span-5 flex justify-start">
             <SignIn />
           </li>
 
