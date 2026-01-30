@@ -8,14 +8,14 @@ import SignIn from './SignIn';
 import SignUp from './SignUp';
 
 export default function Header() {
-  const [isClient, setIsClient] = useState(false);
+  const [existsToken, setExistsToken] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsClient(true), 0);
-    return () => clearTimeout(timer);
+    const update = () => setExistsToken(!!getCookie('refresh_token'));
+    update(); // 初回
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
   }, []);
-
-  const existsToken = isClient ? !!getCookie('refresh_token') : false;
 
   return (
     <header className="fixed top-0 left-0 w-full bg-emerald-100 text-black">
@@ -23,12 +23,12 @@ export default function Header() {
         <ul className="grid grid-cols-11 items-center">
           {/* 左カラム */}
           <li className="col-span-5 flex justify-start gap-1 md:gap-4">
-            <Link href="/" className="hover:text-gray-300">
+            <Link href="/">
               <Button category="primary" color="blue" icons={<IoHomeSharp />}>
                 ホーム
               </Button>
             </Link>
-            <Link href="/" className="hover:text-gray-300">
+            <Link href="/">
               <Button category="outline" color="sky" icons={<IoBookSharp />}>
                 取説
               </Button>
@@ -42,10 +42,8 @@ export default function Header() {
 
           {/* 右カラム */}
           <li className="col-span-3 flex justify-end">
-            {!isClient ? (
-              <div className="h-10 w-32" />
-            ) : existsToken ? (
-              <Link href="/" className="hover:text-gray-300">
+            {existsToken ? (
+              <Link href="/">
                 <Button category="outline" color="orange" icons={<IoSettingsSharp />}>
                   アカウント
                 </Button>
