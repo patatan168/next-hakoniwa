@@ -54,8 +54,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; img-src 'self'; object-src 'none'; frame-ancestors 'none';  base-uri 'none';",
+            value: "default-src 'none';",
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -86,8 +85,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none';",
+            value: "default-src 'none';",
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
