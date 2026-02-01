@@ -140,6 +140,8 @@ export default function SignUp() {
   return (
     <>
       <Button
+        size="xs"
+        className="sm:text-sm"
         type="button"
         category="outline"
         aria-haspopup="dialog"
