@@ -1,14 +1,16 @@
 'use client';
 import { getCookie } from 'cookies-next/client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { IoBookSharp, IoHomeSharp, IoSettingsSharp } from 'react-icons/io5';
+import { lazy, useEffect, useState } from 'react';
+import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
 import Button from './Button';
 import SignIn from './SignIn';
-import SignUp from './SignUp';
+
+const AccountMenu = lazy(() => import('./AccountMenu'));
+const SignUp = lazy(() => import('./SignUp'));
 
 export default function Header() {
-  const [existsToken, setExistsToken] = useState(false);
+  const [existsToken, setExistsToken] = useState<boolean | null>(null);
 
   useEffect(() => {
     const update = () => setExistsToken(!!getCookie('refresh_token'));
@@ -54,21 +56,7 @@ export default function Header() {
 
           {/* 右カラム */}
           <li className="col-span-6 flex justify-end">
-            {existsToken ? (
-              <Link href="/">
-                <Button
-                  size="xs"
-                  className="sm:text-sm"
-                  category="outline"
-                  color="orange"
-                  icons={<IoSettingsSharp />}
-                >
-                  アカウント
-                </Button>
-              </Link>
-            ) : (
-              <SignUp />
-            )}
+            {existsToken === null ? null : existsToken ? <AccountMenu /> : <SignUp />}
           </li>
         </ul>
       </nav>

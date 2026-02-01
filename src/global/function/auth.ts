@@ -324,3 +324,79 @@ export const validAuthCookie = async (
   }
   throw 'No JWT Token';
 };
+
+/**
+ * サインアウト時にDBとCookieを削除する関数
+ * @param client
+ */
+export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
+  const accessToken = await getAuthCookie(true);
+  const refreshToken = await getAuthCookie(false);
+  // Cookie削除
+  await deleteAuthCookie(true);
+  await deleteAuthCookie(false);
+
+  if (accessToken) {
+    const { tableName: accessTokenTableName, algorithm: accessTokenAlgorithm } = tokenOptions(true);
+    const rawToken = jwt.decode(accessToken, { json: true });
+    // Decode Error
+    if (rawToken === null) {
+      throw 'JWT Decode Error';
+    }
+    // Issuer Error
+    const issuer = rawToken.iss;
+    if (issuer !== META.ISSUER) {
+      throw 'JWT Issuer Error';
+    }
+    // Session Error
+    const uuid = rawToken.sub;
+    const sessionId = rawToken.session_id;
+    if (!uuid || !sessionId) {
+      throw 'JWT Session Error';
+    }
+    const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
+      `SELECT public_key, created_at FROM ${accessTokenTableName} WHERE uuid = ? AND session_id = ?`
+    );
+    const tokenData = selectTokenTable.get(uuid, sessionId);
+    if (tokenData) {
+      // Verify
+      jwt.verify(accessToken, tokenData.public_key, { algorithms: [accessTokenAlgorithm] });
+      // セッション削除
+      client
+        .prepare(`DELETE FROM ${accessTokenTableName} WHERE uuid = ? AND session_id = ?`)
+        .run(uuid, sessionId);
+    }
+  }
+  if (refreshToken) {
+    const { tableName: refreshTokenTableName, algorithm: refreshTokenAlgorithm } =
+      tokenOptions(false);
+    const rawToken = jwt.decode(refreshToken, { json: true });
+    // Decode Error
+    if (rawToken === null) {
+      throw 'JWT Decode Error';
+    }
+    // Issuer Error
+    const issuer = rawToken.iss;
+    if (issuer !== META.ISSUER) {
+      throw 'JWT Issuer Error';
+    }
+    // Session Error
+    const uuid = rawToken.sub;
+    const sessionId = rawToken.session_id;
+    if (!uuid || !sessionId) {
+      throw 'JWT Session Error';
+    }
+    const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
+      `SELECT public_key, created_at FROM ${refreshTokenTableName} WHERE uuid = ? AND session_id = ?`
+    );
+    const tokenData = selectTokenTable.get(uuid, sessionId);
+    if (tokenData) {
+      // Verify
+      jwt.verify(refreshToken, tokenData.public_key, { algorithms: [refreshTokenAlgorithm] });
+      // セッション削除
+      client
+        .prepare(`DELETE FROM ${refreshTokenTableName} WHERE uuid = ? AND session_id = ?`)
+        .run(uuid, sessionId);
+    }
+  }
+};
