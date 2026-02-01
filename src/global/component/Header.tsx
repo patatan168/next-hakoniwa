@@ -18,7 +18,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-emerald-100 text-black">
+    <header className="bg-emerald-100">
       <nav>
         <ul className="grid grid-cols-16 items-center gap-0">
           {/* 左カラム */}

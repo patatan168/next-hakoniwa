@@ -4,18 +4,6 @@ import Header from '@/global/component/Header';
 import META from '@/global/define/metadata';
 import '@/global/global.css';
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
-
-const geistSans = localFont({
-  src: '../global/font/GeistVF.woff',
-  variable: '--font-geist-sans',
-  weight: '100 900',
-});
-const geistMono = localFont({
-  src: '../global/font/GeistMonoVF.woff',
-  variable: '--font-geist-mono',
-  weight: '100 900',
-});
 
 export const metadata: Metadata = {
   formatDetection: { address: false, email: false, telephone: false },
@@ -30,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} pt-12`}>
+      <body>
         <Header />
         <main id="main-root" className="isolate">
           {children}
