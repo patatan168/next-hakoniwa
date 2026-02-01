@@ -23,8 +23,8 @@ export default function RootLayout({
         <main id="main-root" className="isolate">
           {children}
         </main>
-        <div id="overlay-root" className="isolate"></div>
-        <div id="modal-root" className="isolate"></div>
+        <div id="overlay-root"></div>
+        <div id="modal-root"></div>
       </body>
     </html>
   );
