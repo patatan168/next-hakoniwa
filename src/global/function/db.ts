@@ -3,7 +3,7 @@
  */
 import sqlite from 'better-sqlite3';
 import { isEqual } from 'es-toolkit';
-import xss from 'xss';
+import { xss } from '../valid/xss';
 import { getTableInfo } from './dbUtility';
 import { parseDbData } from './utility';
 

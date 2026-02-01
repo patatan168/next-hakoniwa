@@ -1,5 +1,50 @@
-import xss from 'xss';
 import { z } from 'zod';
+
+/**
+ * エスケープ文字列
+ */
+const escapeTable: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  // NOTE: 以下は名前付きが無いので数値参照
+  '^': '&#94;',
+  '`': '&#96;',
+  '=': '&#61;',
+  '{': '&#123;',
+  '}': '&#125;',
+  '(': '&#40;',
+  ')': '&#41;',
+  ':': '&#58;',
+  '%': '&#37;',
+  '\\': '&#92;',
+};
+
+const needEscape = new Set(Object.keys(escapeTable));
+
+/**
+ * XSS対策
+ * @param input 対象の文字列
+ * @returns サニタイズ済み文字列
+ */
+export const xss = (input: string): string => {
+  const out: string[] = [];
+  const len = input.length;
+
+  for (let i = 0; i < len; i++) {
+    const ch = input[i];
+    if (needEscape.has(ch)) {
+      out.push(escapeTable[ch]);
+    } else {
+      out.push(ch);
+    }
+  }
+
+  return out.join('');
+};
 
 export function sanitizeJsonStringify(data: object): string {
   const sanitize = (value: object): object => {

@@ -55,7 +55,6 @@
     "uuidv7": "^1.1.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "xss": "^1.0.15",
     "zod": "^4.3.6",
     "zustand": "^5.0.10"
   },
