@@ -62,7 +62,7 @@ const FooterModal = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-export const Modal = memo(
+export default memo(
   function Modal({
     header,
     body,

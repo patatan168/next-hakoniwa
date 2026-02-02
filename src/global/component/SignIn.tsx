@@ -1,6 +1,6 @@
 'use client';
 import Button from '@/global/component/Button';
-import { Modal } from '@/global/component/Modal';
+import Modal from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { signInStore } from '@/global/store/api/sign-in';

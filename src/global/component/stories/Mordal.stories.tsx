@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useState } from 'react';
 import Button from '../Button';
-import { Modal } from '../Modal';
+import Modal from '../Modal';
 
 const meta = {
   title: 'Global/Modal',
