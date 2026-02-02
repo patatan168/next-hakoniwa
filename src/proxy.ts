@@ -24,6 +24,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({});
   }
 
+  return crateNonceResponse(request);
+}
+
+function getCspHeader(nonce: string) {
+  const baseHeader =
+    "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
+  const scriptStr = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic';`;
+  return `${baseHeader} ${scriptStr}`;
+}
+
+function crateNonceResponse(request: NextRequest) {
   // nonceを生成（base64）
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   // CSPヘッダーを構築
@@ -46,17 +57,6 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-function getCspHeader(nonce: string) {
-  const baseHeader =
-    "default-src 'self'; strict-dynamic'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
-  const scriptStr = `script-src 'self' 'nonce-${nonce}';`;
-  const styleStr =
-    process.env.NODE_ENV === 'development'
-      ? `style-src 'self' 'unsafe-inline';`
-      : `style-src 'self' 'nonce-${nonce}';`;
-  return `${baseHeader} ${scriptStr} ${styleStr}`;
-}
-
 async function authCheck(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   const uuid = await validAuthCookie(db.client, true);
@@ -74,7 +74,9 @@ async function sessionCheck(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   const uuid = await validAuthCookie(db.client, true);
 
-  if (!uuid) {
+  if (uuid) {
+    return crateNonceResponse(request);
+  } else {
     return NextResponse.redirect(new URL(`/error/401`, request.url));
   }
 }
