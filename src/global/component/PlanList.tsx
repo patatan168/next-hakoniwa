@@ -18,8 +18,8 @@ import { SelectRHF } from './SelectRHF';
 type planItemProps = {
   isChange: boolean;
   islandOptions: Array<{ label: string; value: string }>;
-  item: Omit<planSchemaType, 'from_uuid' | 'id'>;
-  setItem: (data: Omit<planSchemaType, 'from_uuid' | 'id'>) => void;
+  item: Omit<planSchemaType, 'from_uuid' | 'id'> & { edit: boolean };
+  setItem: (data: Omit<planSchemaType, 'from_uuid' | 'id'> & { edit: boolean }) => void;
   turn: number;
   setActivator: Ref<HTMLDivElement> | undefined;
   isDragging: boolean;
@@ -40,8 +40,7 @@ const PlanItem = ({
 }: planItemProps) => {
   const { x, y, plan, times } = item;
   const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
-  const [edit, setEdit] = useState(false);
-  const { control, subscribe, reset } = useForm<Omit<planInfoZod, 'from_uuid'>>({
+  const { control, subscribe, reset, setValue } = useForm<Omit<planInfoZod, 'from_uuid'>>({
     defaultValues: item,
     resolver: zodResolver(
       planInfoZodValid.omit({
@@ -76,7 +75,7 @@ const PlanItem = ({
       ref={setActivator}
       className={`card-border mb-0.5 flex items-center ${isChange ? 'bg-orange-50' : 'bg-teal-50'}`}
     >
-      <div className={`flex h-11 items-stretch ${edit ? 'h-32.5' : 'h-11'}`}>
+      <div className={`flex h-11 items-stretch ${item.edit ? 'h-33' : 'h-13'}`}>
         <span
           {...attributes}
           {...listeners}
@@ -89,24 +88,28 @@ const PlanItem = ({
 
       {/* ターン表示 */}
       <span
-        className={`inline-block min-w-12 font-mono ${immediate ? 'text-sky-500' : ''}`}
+        {...attributes}
+        {...listeners}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
       >{`T${turn}`}</span>
-
       <button
-        onClick={() => setEdit(!edit)}
-        className={`mx-2 w-6 bg-sky-700 text-white hover:cursor-pointer hover:bg-sky-600 ${edit ? 'h-32.5' : 'h-11'}`}
+        onClick={() => setValue('edit', !item.edit)}
+        className={`mx-2 bg-sky-700 px-1.5 text-white hover:cursor-pointer hover:bg-sky-600 ${item.edit ? 'h-33' : 'h-13'}`}
       >
         <p className="text-md text-center font-semibold [writing-mode:vertical-rl]">
-          {edit ? 'Close' : 'Edit'}
+          {item.edit ? 'Close' : 'Edit'}
         </p>
       </button>
 
       {/* 座標と名前 */}
       <div className="grid min-w-28 gap-0">
-        {!edit && (
-          <span className={`font-mono text-sm font-bold text-shadow-md`}>{`(${x},${y})`}</span>
+        {!item.edit && (
+          <span
+            className={`font-mono text-base font-extrabold text-shadow-md`}
+          >{`(${x},${y})`}</span>
         )}
-        {edit ? (
+        {item.edit ? (
           <>
             <div className="grid grid-cols-2 gap-0" style={{ gridTemplateColumns: 'auto auto' }}>
               <div>
@@ -178,7 +181,7 @@ const PlanItem = ({
           </>
         ) : (
           <span
-            className={`ml-2 font-medium text-shadow-sm ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+            className={`ml-2 text-xl font-medium text-shadow-xs/30 ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
           >
             {name}
           </span>
@@ -186,7 +189,9 @@ const PlanItem = ({
       </div>
 
       {/* 回数 */}
-      {times > 1 && !edit && <span className="font-mono">{`[${times}回]`}</span>}
+      {times > 1 && !item.edit && (
+        <span className="font-mono text-xl text-shadow-xs/30">{`[${times}回]`}</span>
+      )}
     </div>
   );
 };
@@ -194,8 +199,8 @@ const PlanItem = ({
 type sortedItemProps = {
   isChange: boolean;
   islandOptions: Array<{ label: string; value: string }>;
-  item: planSchemaType & { id: number };
-  setItem: (data: Omit<planSchemaType, 'from_uuid' | 'id'>) => void;
+  item: planSchemaType & { id: number } & { edit: boolean };
+  setItem: (data: Omit<planSchemaType, 'from_uuid' | 'id'> & { edit: boolean }) => void;
   turn: number;
 };
 
@@ -242,12 +247,13 @@ const SortableItem = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
-const defaultPlan = (uuid: string): Array<planSchemaType & { id: number }> => {
-  const defaultPlan: Array<planSchemaType & { id: number }> = [];
+const defaultPlan = (uuid: string): Array<planSchemaType & { id: number; edit: boolean }> => {
+  const defaultPlan: Array<planSchemaType & { id: number; edit: boolean }> = [];
 
   for (let i = 0; i < 20; i++) {
     defaultPlan.push({
       id: i,
+      edit: false,
       from_uuid: uuid,
       to_uuid: uuid,
       plan_no: i,
@@ -295,8 +301,11 @@ export const PlanList = memo(
     uuid,
     initPlanData,
   }: PlanListProps) {
-    const [initItems, setInitItems] = useState<Array<planSchemaType & { id: number }>>([]);
-    const [items, setItems] = useState<Array<planSchemaType & { id: number }>>(initItems);
+    const [initItems, setInitItems] = useState<
+      Array<planSchemaType & { id: number; edit: boolean }>
+    >([]);
+    const [items, setItems] =
+      useState<Array<planSchemaType & { id: number; edit: boolean }>>(initItems);
     const isChange = useMemo(() => !isEqual(initItems, items), [initItems, items]);
     const isChangeRef = useRef(isChange);
     const islandOptions = GetIslandOptions(islandList);
@@ -320,7 +329,7 @@ export const PlanList = memo(
       return sortBy(
         uniqBy([...(initPlanData ?? []), ...defaultPlan(uuid)], (item) => item.plan_no),
         ['plan_no']
-      ).map((item) => ({ ...item, id: item.plan_no }));
+      ).map((item) => ({ ...item, id: item.plan_no, edit: false }));
     }, [isPlanLoading, uuid, initPlanData]);
 
     useEffect(() => {
@@ -342,7 +351,7 @@ export const PlanList = memo(
     useEffect(() => {
       if (isChange) {
         const omitFinancing = items.filter((item) => item.plan !== 'financing');
-        const newPlanData = omitFinancing.map((obj) => omit(obj, ['id']));
+        const newPlanData = omitFinancing.map((obj) => omit(obj, ['id', 'edit']));
         // プランデータを更新
         setPlanData(newPlanData);
       }
@@ -360,14 +369,17 @@ export const PlanList = memo(
       timerRef.current = setTimeout(() => setItems(changePlanNo), 0);
     };
 
-    const setItem = useCallback((data: Omit<planSchemaType, 'from_uuid' | 'id'>) => {
-      setItems((prev) => {
-        const newItems = [...prev];
-        newItems[data.plan_no] = { ...newItems[data.plan_no], ...data };
-        const changePlanNo = newItems.map((item, index) => ({ ...item, plan_no: index }));
-        return changePlanNo;
-      });
-    }, []);
+    const setItem = useCallback(
+      (data: Omit<planSchemaType, 'from_uuid' | 'id'> & { edit: boolean }) => {
+        setItems((prev) => {
+          const newItems = [...prev];
+          newItems[data.plan_no] = { ...newItems[data.plan_no], ...data };
+          const changePlanNo = newItems.map((item, index) => ({ ...item, plan_no: index }));
+          return changePlanNo;
+        });
+      },
+      []
+    );
 
     const turnList = useMemo(() => {
       let currentTurn = turn + 1;

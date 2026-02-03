@@ -25,6 +25,7 @@ export const planInfoZodValid = z.object({
       error: `Y座標${META_DATA.MAP_SIZE}以上は不正です`,
     }),
   plan: z.string().trim(),
+  edit: z.boolean(),
 });
 
 export type planInfoZod = z.input<typeof planInfoZodValid>;

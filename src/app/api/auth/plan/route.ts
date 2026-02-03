@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     const postDataZod = z.array(
       planInfoZodValid.omit({
         from_uuid: true,
+        edit: true,
       })
     );
     const { response, data } = await asyncRequestValid(request, postDataZod);
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
       request,
       planInfoZodValid.omit({
         from_uuid: true,
+        edit: true,
       })
     );
     if (data !== null) {
