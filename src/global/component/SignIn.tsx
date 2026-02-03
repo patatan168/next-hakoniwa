@@ -124,7 +124,7 @@ export default function SignIn() {
     <>
       <Button
         size="xs"
-        className="sm:px-14 sm:text-sm md:px-19 md:text-sm lg:px-28 lg:text-base 2xl:px-48"
+        className="w-full sm:text-sm md:text-sm lg:text-base 2xl:px-48"
         type="button"
         color="teal"
         aria-haspopup="dialog"

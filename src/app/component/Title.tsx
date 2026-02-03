@@ -6,7 +6,6 @@ export default function Title() {
     <>
       <h1 className="title text-5xl">{META.TITLE}</h1>
       <p className="title ml-4">{`Version: ${META.VERSION}`}</p>
-      <h2 className="sub-title text-4xl">{'ターン'}</h2>
     </>
   );
 }

@@ -3,6 +3,8 @@ import { getCookie } from 'cookies-next/client';
 import Link from 'next/link';
 import { lazy, useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
+import { useClientFetch } from '../function/fetch/clientFetch';
+import { turnStore } from '../store/api/public/turn';
 import Button from './Button';
 import SignIn from './SignIn';
 
@@ -11,6 +13,10 @@ const SignUp = lazy(() => import('./SignUp'));
 
 export default function Header() {
   const [existsToken, setExistsToken] = useState<boolean | null>(null);
+  const { data, startPolling } = useClientFetch(turnStore);
+  useEffect(() => {
+    startPolling();
+  }, []);
 
   useEffect(() => {
     const update = () => setExistsToken(!!getCookie('refresh_token'));
@@ -22,40 +28,46 @@ export default function Header() {
   return (
     <header className="bg-emerald-100">
       <nav>
-        <ul className="grid grid-cols-16 items-center gap-0">
+        <ul className="grid grid-cols-3 grid-rows-none items-center gap-0">
           {/* 左カラム */}
-          <li className="col-span-5 flex justify-start gap-1 md:gap-4">
-            <Link href="/">
-              <Button
-                size="xs"
-                className="sm:text-sm"
-                category="primary"
-                color="blue"
-                icons={<IoHomeSharp />}
-              >
-                ホーム
-              </Button>
-            </Link>
-            <Link className="hidden sm:block" href="/">
-              <Button
-                size="xs"
-                className="sm:text-sm"
-                category="outline"
-                color="sky"
-                icons={<IoBookSharp />}
-              >
-                取説
-              </Button>
-            </Link>
+          <li>
+            <div className="flex items-center justify-start gap-1">
+              <Link href="/">
+                <Button
+                  size="xs"
+                  className="sm:text-sm"
+                  category="primary"
+                  color="blue"
+                  icons={<IoHomeSharp />}
+                >
+                  ホーム
+                </Button>
+              </Link>
+              <Link className="hidden sm:block" href="/">
+                <Button
+                  size="xs"
+                  className="sm:text-sm"
+                  category="outline"
+                  color="sky"
+                  icons={<IoBookSharp />}
+                >
+                  取説
+                </Button>
+              </Link>
+            </div>
           </li>
+          <div className="sub-title col-span-3 col-start-1 row-start-2 mx-1 min-w-[3em] text-base font-semibold text-shadow-xs/10">
+            {`ターン${data.get ? data.get.turn : ''}`}
+            <span className="ml-[0.5em]">{`(次回の更新まであと)`}</span>
+          </div>
 
           {/* 中央カラム */}
-          <li className="col-span-5 flex justify-center">
+          <li className="flex justify-center">
             <SignIn />
           </li>
 
           {/* 右カラム */}
-          <li className="col-span-6 flex justify-end">
+          <li className="flex justify-end">
             {existsToken === null ? null : existsToken ? <AccountMenu /> : <SignUp />}
           </li>
         </ul>

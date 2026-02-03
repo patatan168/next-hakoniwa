@@ -8,6 +8,8 @@ export function useClientFetch<T, U>(store: StoreApi<FetchState<T, U>>) {
   const error = useStore(store, (s) => s.error);
   const fetch = useStore(store, (s) => s.fetch);
   const fetchIfNeeded = useStore(store, (s) => s.fetchIfNeeded);
+  const startPolling = useStore(store, (s) => s.startPolling);
+  const stopPolling = useStore(store, (s) => s.stopPolling);
 
-  return { data, isLoading, error, fetch, fetchIfNeeded };
+  return { data, isLoading, error, fetch, fetchIfNeeded, startPolling, stopPolling };
 }

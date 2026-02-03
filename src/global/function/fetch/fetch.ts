@@ -242,6 +242,9 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
         if (state.pollingIntervalId) return;
         let isRunning = false;
 
+        // 初回取得
+        state.fetch({ method: 'GET' }, { query, refresh: true });
+        // ポーリング開始
         const intervalId = setInterval(() => {
           if (isRunning) return;
           isRunning = true;
