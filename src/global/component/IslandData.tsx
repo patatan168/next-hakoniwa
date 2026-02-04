@@ -34,10 +34,12 @@ export default memo(
         <div className={`${title} col-span-2 col-start-2 row-start-1`}>人口</div>
         <div className={`${value} col-span-2 col-start-2 row-start-2`}>{`${population}人`}</div>
         {/* 資金 */}
-        <div className={`${title} col-span-2 col-start-4 row-start-1`}>資金</div>
+        <div
+          className={`${title} col-span-2 col-start-4 row-start-1`}
+        >{`資金 ${IslandDataProps.mode === 'sight' ? '(推定)' : ''}`}</div>
         <div
           className={`${value} col-span-2 col-start-4 row-start-2`}
-        >{`${IslandDataProps.mode === 'sight' ? '推定' : ''}${money}${META_DATA.UNIT_MONEY}`}</div>
+        >{`${money}${META_DATA.UNIT_MONEY}`}</div>
         {/* 食糧 */}
         <div className={`${title} col-span-2 col-start-6 row-start-1`}>食糧</div>
         <div
