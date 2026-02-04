@@ -13,7 +13,7 @@ const title =
 const value =
   'border-1 text-xs sm:text-base border-gray-400 bg-cyan-100 text-center text-shadow-xs/30';
 const rankStyle =
-  'flex items-center text-xl justify-center border-1 border-gray-400 bg-green-200 text-center font-semibold text-red-900';
+  'flex items-center text-sm sm:text-lg justify-center border-1 border-gray-400 bg-green-200 text-center font-semibold text-red-900';
 
 export default memo(
   forwardRef<HTMLDivElement, IslandDataProps>(function IslandData(
