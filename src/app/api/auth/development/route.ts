@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
       `SELECT
           user.island_name,
-          ${allDbColumns(db.client, 'island')}
+          ${allDbColumns(db.client, 'island')},
+          RANK() OVER (ORDER BY island.population DESC) AS rank
         FROM
           user INNER JOIN island 
         ON

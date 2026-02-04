@@ -38,12 +38,20 @@ export default function IslandList() {
   const [width, height] = useWindowSize();
   const [refreshKey, setRefreshKey] = useState(true);
   const { fetch: trigger } = useClientFetch(planStore);
-  const listCallback = useCallback(
+  const mapCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { x, y } = node.getBoundingClientRect();
-        setListHeight(`${height - y}px`);
         setMapSize(`min(${width - x}px, ${height - y}px)`);
+      }
+    },
+    [width, height]
+  );
+  const listCallback = useCallback(
+    (node: HTMLDivElement) => {
+      if (node !== null) {
+        const { y } = node.getBoundingClientRect();
+        setListHeight(`${height - y}px`);
       }
     },
     [width, height]
@@ -54,12 +62,13 @@ export default function IslandList() {
     fetchTurn({ method: 'GET' });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
-  });
+  }, []);
 
   return (
     <>
-      <div className="grid gap-x-4" style={{ gridTemplateColumns: 'auto 1fr' }}>
+      <div className="grid" style={{ gridTemplateColumns: 'auto 1fr' }}>
         <HakoniwaMap
+          ref={mapCallback}
           style={{ width: mapSize, height: mapSize }}
           isLoading={isLoading.get}
           islandName={developData.get?.island_name}

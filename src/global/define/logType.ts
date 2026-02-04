@@ -18,7 +18,7 @@ const coordinate = (x: number, y: number, isSecret = false): string => {
 };
 
 const islandName = (island: islandSchemaType & Pick<userSchemaType, 'island_name'>) => {
-  return `<a href="/sight?uuid=${island.uuid}" target="_blank"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
+  return `<a href="/sight?uuid=${island.uuid}"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
 };
 
 const planName = (plan: planType) => {

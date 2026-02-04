@@ -2,7 +2,7 @@ import { islandInfoData } from '@/db/schema/islandTable';
 import { default as META } from '@/global/define/metadata';
 import { isEqual } from 'es-toolkit';
 import Image from 'next/image';
-import { CSSProperties, Fragment, memo, useState } from 'react';
+import { CSSProperties, forwardRef, Fragment, memo, useState } from 'react';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
 import Loading from './Loading';
 import Tooltip from './Tooltip';
@@ -28,21 +28,11 @@ const Spacer = memo(
 
     return (
       <>
-        <li
+        <div
           style={{ width: (mapWidth * cols) / 2, height: (mapHeight * rows) / 2 }}
           className={`col-span-${cols} row-span-${rows} relative`}
         >
-          <Image
-            style={{
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
-            src={'/img/land/sea.gif'}
-            alt={'海'}
-            sizes={`${mapWidth}px`}
-            fill
-            priority
-          />
+          <Image src={'/img/land/sea.gif'} alt={'海'} sizes={`${mapWidth}px`} fill priority />
           {num !== undefined && (
             <p
               className="map-overlay font-mono"
@@ -51,7 +41,7 @@ const Spacer = memo(
               {num}
             </p>
           )}
-        </li>
+        </div>
       </>
     );
   },
@@ -69,13 +59,13 @@ const MapInfoTips = memo(
   function MapInfoTips({ islandName, mapPixel, mapInfoText, src, alt }: mapInfoTipsProps) {
     return (
       <>
-        <ul
+        <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, min-content)',
           }}
         >
-          <li style={{ width: mapPixel, height: mapPixel }}>
+          <div style={{ width: mapPixel, height: mapPixel }}>
             <Image
               style={{ outline: '1px solid rgb(125, 125, 125)' }}
               src={src}
@@ -84,15 +74,15 @@ const MapInfoTips = memo(
               height={mapPixel}
               loading="lazy"
             />
-          </li>
-          <li className="ml-1">
+          </div>
+          <div className="ml-1">
             <p className="leading-tight">
               {`${islandName}島`}
               <br />
               {mapInfoText}
             </p>
-          </li>
-        </ul>
+          </div>
+        </div>
       </>
     );
   },
@@ -110,16 +100,17 @@ const getToolTipPosition = (x: number, y: number) => {
   }
 };
 
-const ulStyle = (propsStyle: CSSProperties | undefined) => {
+const divStyle = (propsStyle: CSSProperties | undefined) => {
   const baseStyle = {
     display: 'grid',
-    gridTemplateColumns: `repeat(${2 * (META.MAP_SIZE + 1)}, min-content)`,
-    gridTemplateRows: `repeat(${2 * (META.MAP_SIZE + 1)}, min-content)`,
+    gridTemplateColumns: `repeat(${2 * (META.MAP_SIZE + 1)}, minmax(0, 1fr))`,
+    gridTemplateRows: `repeat(${2 * (META.MAP_SIZE + 1) - 1}, minmax(0, 1fr))`,
     gap: 0,
+    items: 'stretch',
   };
-  const ulStyle = { ...propsStyle, ...baseStyle };
+  const divStyle = { ...propsStyle, ...baseStyle };
 
-  return ulStyle;
+  return divStyle;
 };
 
 type HakoniwaMapProps = {
@@ -134,27 +125,21 @@ type HakoniwaMapProps = {
 const baseMapPixel = 32;
 
 export default memo(
-  function HakoniwaMap({ style, className, isLoading, islandName, data }: HakoniwaMapProps) {
+  forwardRef<HTMLDivElement, HakoniwaMapProps>(function HakoniwaMap(
+    { style, className, isLoading, islandName, data }: HakoniwaMapProps,
+    ref
+  ) {
     /* 座標表示用のデータを用意する[0,..,X] */
     const coordinate = Array.from({ length: META.MAP_SIZE }, (_, i) => i);
     const [mapWidth, setMapWidth] = useState<number>(baseMapPixel);
     const [mapHeight, setMapHeight] = useState<number>(baseMapPixel);
-
-    const ulCallback = (node: HTMLUListElement) => {
-      if (node !== null) {
-        const { width, height } = node.getBoundingClientRect();
-        const size = Math.min(width, height);
-        setMapWidth(Math.ceil(size / (META.MAP_SIZE + 1)));
-        setMapHeight(Math.ceil(size / (META.MAP_SIZE + 1)));
-      }
-    };
 
     if (isLoading || !islandName || !data) {
       return <Loading />;
     }
 
     return (
-      <ul style={ulStyle(style)} className={className} ref={ulCallback}>
+      <div ref={ref} style={divStyle(style)} className={className}>
         <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={1} cols={2} />
         {coordinate.map((x) => (
           <Spacer
@@ -173,6 +158,14 @@ export default memo(
           const src = getMapImpPath(type, landValue, imgPath);
           const mapInfoText = getMapInfoText(x, y, type, landValue);
           const tooltipPosition = getToolTipPosition(x, y);
+          const divCallback = (node: HTMLDivElement) => {
+            if (x !== 0 || y !== 0) return;
+            if (node !== null) {
+              const { width, height } = node.getBoundingClientRect();
+              setMapWidth(width);
+              setMapHeight(height);
+            }
+          };
           return (
             <Fragment key={`map-${x}-${y}`}>
               {x === 0 && y % 2 === 0 && (
@@ -188,14 +181,7 @@ export default memo(
               {x === 0 && y % 2 === 1 && (
                 <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={2} cols={1} num={y} />
               )}
-              <li
-                style={{
-                  margin: 0,
-                  padding: 0,
-                  boxSizing: 'border-box',
-                }}
-                className="col-span-2 row-span-2"
-              >
+              <div ref={divCallback} className="col-span-2 row-span-2">
                 <Tooltip
                   position={tooltipPosition}
                   tooltipComp={
@@ -219,15 +205,15 @@ export default memo(
                     />
                   </div>
                 </Tooltip>
-              </li>
+              </div>
               {x === META.MAP_SIZE - 1 && y % 2 === 1 && (
                 <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={2} cols={1} />
               )}
             </Fragment>
           );
         })}
-      </ul>
+      </div>
     );
-  },
+  }),
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );

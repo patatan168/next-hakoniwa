@@ -96,6 +96,9 @@ export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPub
       ? getPublicIslandInfo(JSON.parse(island.island_info))
       : JSON.parse(island.island_info);
   }
+  if (isPublic) {
+    island.money = Math.round(island.money / 1000) * 1000;
+  }
 };
 
 /**

@@ -25,7 +25,7 @@ const GetPosition = (position?: string) =>
 
 const Children = memo(
   function Children({ children }: { children: ReactNode }) {
-    return <div className="flex justify-center">{children}</div>;
+    return <>{children}</>;
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
@@ -57,7 +57,7 @@ export const Tooltip = memo(
   }) {
     const positionStyle = GetPosition(position);
     return (
-      <div className="group relative flex flex-col items-center [&>span]:hidden [&>span]:hover:block">
+      <div className="group relative [&>span]:hidden [&>span]:hover:block">
         <Children>{children}</Children>
         <Tips positionStyle={positionStyle}>{tooltipComp}</Tips>
       </div>
