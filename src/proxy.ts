@@ -9,11 +9,17 @@ const sessionPaths = ['/development'];
 const excludeNoncePaths = ['/api'];
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (
+    pathname === '/error/400' ||
+    ['/_next/static/', '/favicon.ico'].some((prefix) => pathname.startsWith(prefix))
+  ) {
+    return NextResponse.next({});
+  }
   // 不正の疑いがあるIPアドレスは除外
   const ip = extractClientIp(request);
   if (!ip) return NextResponse.redirect(new URL(`/error/400`, request.url));
 
-  const { pathname } = request.nextUrl;
   if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await authCheck(request);
   }
@@ -30,7 +36,10 @@ export async function proxy(request: NextRequest) {
 function getCspHeader(nonce: string) {
   const baseHeader =
     "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
-  const scriptStr = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic';`;
+  const scriptStr =
+    process.env.NODE_ENV === 'development'
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "
+      : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic';`;
   return `${baseHeader} ${scriptStr}`;
 }
 
