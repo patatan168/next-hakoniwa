@@ -1,11 +1,12 @@
 'use client';
-import HakoniwaMap from '@/global/component/HakoniwaMap';
 import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { islandSightStore } from '@/global/store/api/public/islandSight';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
 
 export default function MapSight({ uuid }: { uuid: string | string[] | undefined }) {
   const {

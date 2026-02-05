@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import { planSchemaType } from '@/db/schema/planTable';
-import { PlanList } from '@/global/component/PlanList';
+import PlanList from '@/global/component/PlanList';
 import { omit } from 'es-toolkit';
 import { useState } from 'react';
 import { fn } from 'storybook/test';

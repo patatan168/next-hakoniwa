@@ -1,8 +1,6 @@
 'use client';
 import { planSchemaType } from '@/db/schema/planTable';
 import Button from '@/global/component/Button';
-import HakoniwaMap from '@/global/component/HakoniwaMap';
-import { PlanList } from '@/global/component/PlanList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
@@ -10,7 +8,10 @@ import { planStore } from '@/global/store/api/auth/plan';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
 import { isEqual } from 'es-toolkit';
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
+const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
+const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
 
 const POST_HEADER = {
   method: 'POST',

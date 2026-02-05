@@ -289,7 +289,7 @@ type PlanListProps = {
   initPlanData?: Array<planSchemaType>;
 };
 
-export const PlanList = memo(
+export default memo(
   function PlanList({
     ref,
     className,
