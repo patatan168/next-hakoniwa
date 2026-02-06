@@ -10,8 +10,6 @@ const publicEnv = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
 );
 
-console.log(publicEnv);
-
 const config: StorybookConfig = {
   staticDirs: ['../public'],
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],

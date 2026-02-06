@@ -1,0 +1,25 @@
+$mapSize: $NEXT_PUBLIC_MAP_SIZE;
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(calc(2 * (#{$mapSize} + 1)), minmax(0, 1fr));
+  grid-template-rows: repeat(calc(2 * (#{$mapSize} + 1) - 1), minmax(0, 1fr));
+  gap: 0;
+  align-items: stretch;
+}
+
+.map-overlay {
+  position: absolute;
+  top: 50%;
+  -ms-transform: translate(-50%, -45%);
+  -webkit-transform: translate(-50%, -45%);
+  transform: translate(-50%, -45%);
+  color: #ffd676;
+  font-weight: 600;
+  text-shadow: 2px 1px 1px #653c00;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}

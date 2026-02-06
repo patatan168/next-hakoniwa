@@ -19,6 +19,7 @@ import {
   UseControllerProps,
 } from 'react-hook-form';
 import { FaMinus, FaPlus } from 'react-icons/fa6';
+import styleCss from './style/RangeSliderRHF.module.scss';
 
 type RangeSliderRHFProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -139,9 +140,9 @@ const InputStyle = (error: boolean) =>
 const RangeStyle = (error: boolean) =>
   useMemo(() => {
     if (error) {
-      return 'range-slider-error';
+      return styleCss['range-slider-error'];
     } else {
-      return 'range-slider';
+      return styleCss['range-slider'];
     }
   }, [error]);
 

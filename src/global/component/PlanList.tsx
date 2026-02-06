@@ -79,8 +79,7 @@ const PlanItem = ({
         <span
           {...attributes}
           {...listeners}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-          className="inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400"
+          className={`inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           <RxDragHandleVertical />
         </span>
@@ -90,8 +89,7 @@ const PlanItem = ({
       <span
         {...attributes}
         {...listeners}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+        className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       >{`T${turn}`}</span>
       <button
         onClick={() => setValue('edit', !item.edit)}
@@ -111,7 +109,7 @@ const PlanItem = ({
         )}
         {item.edit ? (
           <>
-            <div className="grid grid-cols-2 gap-0" style={{ gridTemplateColumns: 'auto auto' }}>
+            <div className="grid grid-cols-2 grid-cols-[auto_auto] gap-0">
               <div>
                 <SelectRHF
                   className="mt-2"

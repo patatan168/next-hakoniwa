@@ -67,7 +67,7 @@ export default function IslandList() {
 
   return (
     <>
-      <div className="grid" style={{ gridTemplateColumns: 'auto 1fr' }}>
+      <div className="grid grid-cols-[auto_1fr]">
         <HakoniwaMap
           ref={mapCallback}
           style={{ width: mapSize, height: mapSize }}

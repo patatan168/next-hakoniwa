@@ -43,7 +43,7 @@ export const TransformHTML = ({ html }: { html: string }) => {
             width={parseInt(width)}
             height={parseInt(height)}
             loading="lazy"
-            style={{ maxWidth: '100%', height: 'auto' }}
+            className="h-auto max-w-full"
           />
         );
       }

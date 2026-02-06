@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
+import dotenvFlow from 'dotenv-flow';
+dotenvFlow.config({ silent: true });
 const nextConfig = {
   typedRoutes: true,
+  sassOptions: {
+    additionalData: Object.entries(process.env)
+      .filter(([key, value]) => key.startsWith('NEXT_PUBLIC_') && value !== undefined)
+      .map(([key, value]) => `$${key}: "${value}";`)
+      .join('\n'),
+  },
   async headers() {
     if (process.env.NODE_ENV === 'development') return [];
     return [

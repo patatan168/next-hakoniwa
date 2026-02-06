@@ -6,6 +6,7 @@ import { CSSProperties, forwardRef, Fragment, memo, useState } from 'react';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
 import Loading from './Loading';
 import Tooltip from './Tooltip';
+import scssStyle from './style/HakoniwaMap.module.scss';
 
 type SpacerProps = {
   mapWidth: number;
@@ -35,7 +36,7 @@ const Spacer = memo(
           <Image src={'/img/land/sea.gif'} alt={'海'} sizes={`${mapWidth}px`} fill priority />
           {num !== undefined && (
             <p
-              className="map-overlay font-mono"
+              className={scssStyle['map-overlay']}
               style={{ left: `${left}%`, fontSize: (13 * mapWidth) / baseMapPixel }}
             >
               {num}
@@ -100,19 +101,6 @@ const getToolTipPosition = (x: number, y: number) => {
   }
 };
 
-const divStyle = (propsStyle: CSSProperties | undefined) => {
-  const baseStyle = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${2 * (META.MAP_SIZE + 1)}, minmax(0, 1fr))`,
-    gridTemplateRows: `repeat(${2 * (META.MAP_SIZE + 1) - 1}, minmax(0, 1fr))`,
-    gap: 0,
-    items: 'stretch',
-  };
-  const divStyle = { ...propsStyle, ...baseStyle };
-
-  return divStyle;
-};
-
 type HakoniwaMapProps = {
   style?: CSSProperties;
   className?: string;
@@ -139,7 +127,7 @@ export default memo(
     }
 
     return (
-      <div ref={ref} style={divStyle(style)} className={className}>
+      <div ref={ref} style={style} className={`${scssStyle['map-grid']} ${className}`}>
         <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={1} cols={2} />
         {coordinate.map((x) => (
           <Spacer
