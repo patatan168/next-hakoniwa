@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import META_DATA from '../define/metadata';
 
 export const planInfoZodValid = z.object({

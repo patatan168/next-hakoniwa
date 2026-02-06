@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { existsDbDate } from '@/global/function/db';
-import { z } from 'zod';
+import * as z from 'zod';
 import { baseSignUpUserInfoSchema } from '../userInfo';
 
 export const userInfoSchema = z.intersection(
