@@ -1,15 +1,16 @@
 'use client';
 import { getCookie } from 'cookies-next/client';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { lazy, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
 import { useClientFetch } from '../function/fetch/clientFetch';
 import { turnStore } from '../store/api/public/turn';
 import Button from './Button';
 import SignIn from './SignIn';
 
-const AccountMenu = lazy(() => import('./AccountMenu'));
-const SignUp = lazy(() => import('./SignUp'));
+const AccountMenu = dynamic(() => import('./AccountMenu'), { ssr: false });
+const SignUp = dynamic(() => import('./SignUp'), { ssr: false });
 
 export default function Header() {
   const [existsToken, setExistsToken] = useState<boolean | null>(null);
