@@ -128,12 +128,12 @@ export const existsDbDate = ({
   key: string;
   /** データー */
   data: unknown;
-  /** 追加条件 */
+  /** 追加条件(NOTE:XSS対策は意図的にしていない) */
   condition?: string;
 }) => {
   using db = dbConn(dbPath);
   const dbData = parseDbData(data);
-  const tmpCondition = condition ? ` ${xss(condition)}` : '';
+  const tmpCondition = condition ? condition : '';
   const countData = db.client
     .prepare(`SELECT COUNT(*) FROM ${xss(table)} WHERE ${xss(key)} = ?${tmpCondition}`)
     .get(dbData) as { 'COUNT(*)': unknown };
