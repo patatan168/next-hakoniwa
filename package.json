@@ -34,7 +34,6 @@
     "@types/mdx": "^2.0.13",
     "@types/unist": "^3.0.3",
     "argon2": "^0.44.0",
-    "awesome-debounce-promise": "^2.1.0",
     "better-sqlite3": "^12.6.2",
     "cookies-next": "^6.1.1",
     "dotenv-flow": "^4.1.0",

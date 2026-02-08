@@ -1,6 +1,6 @@
-import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import * as z from 'zod';
 import { fetcher } from '../function/fetch/fetch';
+import { reactDebounce } from '../function/reactDebounce';
 
 export const baseUserInfoSchema = z.object({
   id: z.coerce
@@ -65,27 +65,30 @@ export const userInfoSchema = z.intersection(
   baseSignUpUserInfoSchema,
   z.object({
     id: z.coerce.string().refine(
-      AwesomeDebouncePromise(async (inputData) => {
+      reactDebounce(async (signal: AbortSignal, inputData: string) => {
         const data = await fetcher(`/api/public/user/exists?key=id&query=${inputData}`, {
           method: 'GET',
+          signal,
         });
         return !data.result;
       }, 150),
       { error: 'そのIDは使用できません。' }
     ),
     userName: z.string().refine(
-      AwesomeDebouncePromise(async (inputData) => {
+      reactDebounce(async (signal: AbortSignal, inputData: string) => {
         const data = await fetcher(`/api/public/user/exists?key=user_name&query=${inputData}`, {
           method: 'GET',
+          signal,
         });
         return !data.result;
       }, 150),
       { error: 'そのユーザー名は使用できません。' }
     ),
     islandName: z.string().refine(
-      AwesomeDebouncePromise(async (inputData) => {
+      reactDebounce(async (signal: AbortSignal, inputData: string) => {
         const data = await fetcher(`/api/public/user/exists?key=island_name&query=${inputData}`, {
           method: 'GET',
+          signal,
         });
         return !data.result;
       }, 150),
