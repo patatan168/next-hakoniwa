@@ -22,7 +22,7 @@ export const userInfoSchema = z.intersection(
       (inputData) => {
         return !existsDbDate({
           dbPath: './src/db/data/main.db',
-          table: 'auth',
+          table: 'user',
           key: 'user_name',
           data: inputData,
           condition: 'AND inhabited = 1',
