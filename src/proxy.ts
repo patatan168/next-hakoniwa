@@ -2,7 +2,6 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { validAuthCookie } from './global/function/auth';
 import { dbConn } from './global/function/db';
-import { extractClientIp } from './global/function/ip';
 
 const authPaths = ['/api/auth/'];
 const sessionPaths = ['/development'];
@@ -10,16 +9,6 @@ const excludeNoncePaths = ['/api'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (
-    pathname === '/error/400' ||
-    ['/_next/static/', '/favicon.ico'].some((prefix) => pathname.startsWith(prefix))
-  ) {
-    return NextResponse.next({});
-  }
-  // 不正の疑いがあるIPアドレスは除外
-  const ip = extractClientIp(request);
-  if (!ip) return NextResponse.redirect(new URL(`/error/400`, request.url));
-
   if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
     return await authCheck(request);
   }
