@@ -42,10 +42,9 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 
 | Library                   | Version | Copyright                                            |
 | ------------------------- | ------- | ---------------------------------------------------- |
-| Node.js                   | 22.11.0 | Copyright Node.js contributors. All rights reserved. |
+| Node.js                   | 22.22.0 | Copyright Node.js contributors. All rights reserved. |
 | React                     | 19.X.X  | Copyright (c) Meta Platforms, Inc. and affiliates.   |
-| Next.js                   | 15.X.X  | Copyright (c) 2024 Vercel, Inc.                      |
-| swr                       | 2.X.X   | Copyright (c) 2023 Vercel, Inc.                      |
+| Next.js                   | 16.X.X  | Copyright (c) 2024 Vercel, Inc.                      |
 | React Icons               | 5.X.X   | Copyright 2018 kamijin_fanta                         |
 | react-virtuoso            | 4.XX.X  | Copyright (c) 2020 Petyo Ivanov                      |
 | better-sqlite3            | 11.X.X  | Copyright (c) 2017 Joshua Wise                       |
@@ -56,5 +55,6 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | cookies-next              | 5.X.X   | Copyright (c) 2019 Андрей Зановский                  |
 | winston                   | 3.XX.X  | Copyright (c) 2010 Charlie Robbins                   |
 | winston-daily-rotate-file | 5.X.X   | Copyright (c) 2015-2024 winstonjs                    |
-| awesome-debounce-promise  | 2.1.0   | Copyright (c) Sébastien Lorber (slorber)             |
 | argon2                    | 0.43.0  | Copyright (c) 2015 Ranieri Althoff                   |
+| dnd kit                   | 6.3.1   | Copyright (c) 2021, Claudéric Demers                 |
+| zustand                   | 5.X.X   | Copyright (c) 2019 Paul Henschel                     |
