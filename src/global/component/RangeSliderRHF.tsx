@@ -225,12 +225,13 @@ function _RangeSliderRHF<
         const isError = props.disabled || (isTouched && invalid);
         const step = props.step ? Number(props.step) : 1;
         const [rangeWidth, setRangeWidth] = useState(0);
-        const rangeCallback = (node: HTMLDivElement) => {
-          if (node !== null) {
-            const { width } = node.getBoundingClientRect();
-            setRangeWidth(width);
+        const rangeCallback = useCallback((node: HTMLDivElement | null) => {
+          if (node) {
+            const width = node.getBoundingClientRect().width;
+            setRangeWidth((prev) => (prev !== width ? width : prev));
           }
-        };
+          field.ref(node);
+        }, []);
         UseEffectNormalizeType(field.value, field.onChange, props.defaultValue);
 
         const normalizeValue = UseNormalizeValue<TFieldValues, TName>(

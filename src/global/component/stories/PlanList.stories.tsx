@@ -2,9 +2,6 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import { planSchemaType } from '@/db/schema/planTable';
 import PlanList from '@/global/component/PlanList';
-import { omit } from 'es-toolkit';
-import { useState } from 'react';
-import { fn } from 'storybook/test';
 
 const planTest: Array<planSchemaType> = [
   { from_uuid: 'test', to_uuid: 'test', plan_no: 0, times: 0, x: 0, y: 0, plan: 'afforest' },
@@ -34,7 +31,6 @@ const meta = {
   tags: ['autodocs'],
   args: {
     initPlanData: planTest,
-    setPlanData: fn(),
     turn: 0,
     uuid: 'test',
     islandList: islandList,
@@ -47,10 +43,6 @@ const meta = {
       table: {
         type: { summary: 'Array<planSchemaType>' },
       },
-    },
-    setPlanData: {
-      description: '計画リストを更新する関数',
-      type: { name: 'other', value: '', required: true },
     },
     uuid: {
       description: '島のUUID',
@@ -81,8 +73,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Example: Story = {
   render: (args) => {
-    const [planData, setPlanData] = useState(args.initPlanData || planTest);
-    const props = omit(args, ['initPlanData', 'setPlanData']);
-    return <meta.component initPlanData={planData} setPlanData={setPlanData} {...props} />;
+    return <meta.component {...args} />;
   },
 };

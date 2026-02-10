@@ -200,13 +200,13 @@ function _SelectRHF<
         formState: { defaultValues },
       }) => {
         const [selectWidth, setSelectWidth] = useState(0);
-        const selectCallback = (node: HTMLSelectElement) => {
-          if (node !== null) {
-            const { width } = node.getBoundingClientRect();
-            setSelectWidth(width);
+        const selectCallback = useCallback((node: HTMLSelectElement | null) => {
+          if (node) {
+            const width = node.getBoundingClientRect().width;
+            setSelectWidth((prev) => (prev !== width ? width : prev));
           }
           field.ref(node);
-        };
+        }, []);
         const isError = props.disabled || ((isTouched || isDirty) && invalid);
         const selectedOption = useMemo(
           () => props.options.find((option) => option.value === field.value),
