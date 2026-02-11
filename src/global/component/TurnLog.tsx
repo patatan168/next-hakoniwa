@@ -34,9 +34,9 @@ function TurnLog({
             {index > 0 && log.turn !== logs?.[index - 1].turn && (
               <hr className="my-2 border-gray-300 dark:border-gray-600" />
             )}
-            <div className="grid auto-cols-max grid-flow-col gap-0">
-              <div>{`ターン ${log.turn} : `}</div>
-              <div>
+            <div className="flex gap-1">
+              <div className="whitespace-nowrap">{`ターン ${log.turn} : `}</div>
+              <div className="min-w-0 break-words">
                 <TransformHTML html={log.log} />
               </div>
             </div>
