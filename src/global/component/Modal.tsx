@@ -69,6 +69,7 @@ export default memo(
     footer,
     hidden = false,
     preRender = false,
+    portal = true,
     open,
     openToggle,
   }: {
@@ -76,6 +77,7 @@ export default memo(
     body: ReactNode;
     hidden?: boolean;
     preRender?: boolean;
+    portal?: boolean;
     footer?: ReactNode;
     open: boolean;
     openToggle: ((value: boolean) => void) | (() => void);
@@ -128,6 +130,24 @@ export default memo(
     // Prevent SSR issues
     if (!mounted || typeof document === 'undefined') return null;
 
+    const modalContent = (
+      <div
+        aria-modal="true"
+        role="dialog"
+        tabIndex={-1}
+        onKeyDown={modalFunction}
+        className={`${portal ? 'fixed' : 'absolute'} top-1/2 left-1/2 z-999 max-w-[99vw] -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:bg-gray-700 ${open ? 'visible scale-100 opacity-100' : 'invisible scale-95 opacity-0'}`}
+      >
+        <IfComponent isRendered={isContentRendered}>
+          <Card>
+            <HeaderModal header={header} openToggle={openToggle} />
+            <BodyModal body={body} />
+            <FooterModal footer={footer} />
+          </Card>
+        </IfComponent>
+      </div>
+    );
+
     return (
       <>
         <Overlay
@@ -136,24 +156,9 @@ export default memo(
           onKeyDown={overlayFunction}
           role="button"
           tabIndex={0}
+          portal={portal}
         />
-        <Portal>
-          <div
-            aria-modal="true"
-            role="dialog"
-            tabIndex={-1}
-            onKeyDown={modalFunction}
-            className={`fixed top-1/2 left-1/2 z-999 max-w-[99vw] -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:bg-gray-700 ${open ? 'visible scale-100 opacity-100' : 'invisible scale-95 opacity-0'}`}
-          >
-            <IfComponent isRendered={isContentRendered}>
-              <Card>
-                <HeaderModal header={header} openToggle={openToggle} />
-                <BodyModal body={body} />
-                <FooterModal footer={footer} />
-              </Card>
-            </IfComponent>
-          </div>
-        </Portal>
+        {portal ? <Portal>{modalContent}</Portal> : modalContent}
       </>
     );
   },

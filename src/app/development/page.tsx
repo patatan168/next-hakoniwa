@@ -61,6 +61,8 @@ export default function IslandList() {
           isLoading={isLoading.get}
           islandName={developData.get?.island_name}
           data={developData.get?.island_info}
+          isDevelop={true}
+          uuid={developData.get?.uuid}
         />
         <div>
           <PlanList
