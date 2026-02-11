@@ -137,6 +137,7 @@ const PlanItem = memo(
                   id={`plan-${item.id}`}
                   options={getPlanSelect()}
                   isBottomSpace={false}
+                  style={{ width: 'fit-content' }}
                 />
                 <div className="flex items-center gap-0">
                   <label className="text-sm" htmlFor={`x-${item.id}`}>
@@ -177,6 +178,7 @@ const PlanItem = memo(
                     options={islandOptions}
                     isBottomSpace={false}
                     disabled={!otherIsland}
+                    style={{ width: 'fit-content' }}
                   />
                 </div>
                 <div className="flex items-center gap-0">
