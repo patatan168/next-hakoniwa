@@ -153,7 +153,7 @@ const InputWidth = (min: number | string, max: number | string, digits: number |
     const digitsNumber = typeof digits === 'number' ? digits : parseInt(digits, 10);
     const digitsLength = digitsNumber > 0 ? digitsNumber + 1 : 0;
     const length = Math.max(minLength, maxLength);
-    return `${length + digitsLength + 2}em`;
+    return `${length + digitsLength + 2.5}em`;
   }, [min, max, digits]);
 
 const HelperTextWidth = (rangeWidth: number) =>
