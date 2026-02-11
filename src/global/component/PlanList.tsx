@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
-import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoArrowRedo, IoArrowUndo } from 'react-icons/io5';
 import { RxDragHandleVertical } from 'react-icons/rx';
@@ -316,11 +316,15 @@ const PlanList = memo(
 
     const planListData = usePlanDataStore((state) => state.planListData);
     const setPostData = usePlanDataStore((state) => state.setPostData);
-    const addPlanListData = usePlanDataStore((state) => state.addPlanListData);
     const resetStore = usePlanDataStore((state) => state.reset);
     const setInitData = usePlanDataStore((state) => state.setInitData);
     const postData = usePlanDataStore((state) => state.postData);
     const isChange = usePlanDataStore((state) => state.isChange);
+    const items = usePlanDataStore((state) => state.items);
+    const historyIndex = usePlanDataStore((state) => state.historyIndex);
+    const setItems = usePlanDataStore((state) => state.setItems);
+    const undo = usePlanDataStore((state) => state.undo);
+    const redo = usePlanDataStore((state) => state.redo);
 
     // propsを元に、あるべき初期状態を計算
     const computedItems = useMemo(() => {
@@ -331,27 +335,14 @@ const PlanList = memo(
       ).map((item, index) => ({ ...item, id: index, edit: false }));
     }, [uuid, isPlanLoading, initPlanData]);
 
-    // 表示用のローカルState
-    const [items, setItems] = useState<LocalPlanItem[]>(computedItems);
-    const [historyIndex, setHistoryIndex] = useState(0);
-
-    // NOTE: 算出した初期値（computedItems）が変わったら、Stateに同期させる
-    // これにより、読み込み完了時に items が空から実データへ正しく更新される
-    const [prevComputed, setPrevComputed] = useState(computedItems);
-    if (computedItems !== prevComputed) {
-      setPrevComputed(computedItems);
-      setItems(computedItems);
-      setHistoryIndex(0);
-    }
-
     // 外部Storeへの同期（副作用）
     useEffect(() => {
       if (!isPlanLoading && uuid) {
         resetStore();
         setInitData(initPlanData);
-        addPlanListData(computedItems);
+        setItems(computedItems);
       }
-    }, [uuid, isPlanLoading, initPlanData, resetStore, setInitData]);
+    }, [uuid, isPlanLoading, initPlanData, resetStore, setInitData, setItems, computedItems]);
 
     useEffect(() => {
       const cleanData = items
@@ -363,14 +354,11 @@ const PlanList = memo(
     // アイテム更新
     const handleUpdateItem = useCallback(
       (id: number, data: Partial<LocalPlanItem>) => {
-        setItems((prev) => {
-          const next = prev.map((item) => (item.id === id ? { ...item, ...data } : item));
-          addPlanListData(next);
-          setHistoryIndex(0);
-          return next;
-        });
+        const prev = usePlanDataStore.getState().items;
+        const next = prev.map((item) => (item.id === id ? { ...item, ...data } : item));
+        setItems(next);
       },
-      [addPlanListData]
+      [setItems]
     );
 
     // 並び替え
@@ -378,46 +366,26 @@ const PlanList = memo(
       (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
-          setItems((prev) => {
-            const oldIndex = prev.findIndex((item) => item.id === active.id);
-            const newIndex = prev.findIndex((item) => item.id === over.id);
-            const sorted = arrayMove(prev, oldIndex, newIndex);
-            const reindexed = sorted.map((item, index) => ({ ...item, plan_no: index }));
-            addPlanListData(reindexed);
-            setHistoryIndex(0);
-            return reindexed;
-          });
+          const prev = usePlanDataStore.getState().items;
+          const oldIndex = prev.findIndex((item) => item.id === active.id);
+          const newIndex = prev.findIndex((item) => item.id === over.id);
+          const sorted = arrayMove(prev, oldIndex, newIndex);
+          const reindexed = sorted.map((item, index) => ({ ...item, plan_no: index }));
+
+          setItems(reindexed);
         }
       },
-      [addPlanListData]
+      [setItems]
     );
 
     // Undo
     const handleUndo = useCallback(() => {
-      if (planListData.length > historyIndex) {
-        const nextIdx = historyIndex + 1;
-        const targetData = planListData[nextIdx];
-        if (targetData) {
-          setItems(targetData);
-          setHistoryIndex(nextIdx);
-        }
-      } else if (planListData.length === 0 && items !== computedItems) {
-        setItems(computedItems);
-      }
-    }, [planListData, historyIndex, items, computedItems]);
+      undo();
+    }, [undo]);
 
     const handleRedo = useCallback(() => {
-      if (historyIndex !== 0 && historyIndex !== planListData.length) {
-        const nextIdx = historyIndex - 1;
-        const targetData = planListData[nextIdx];
-        if (targetData) {
-          setItems(targetData);
-          setHistoryIndex(nextIdx);
-        }
-      } else if (planListData.length === 0 && items !== computedItems) {
-        setItems(computedItems);
-      }
-    }, [planListData, historyIndex, items, computedItems]);
+      redo();
+    }, [redo]);
 
     const islandOptions = useMemo(() => {
       if (!islandList) return [{ label: 'Loading...', value: '' }];
@@ -441,7 +409,6 @@ const PlanList = memo(
                 body: JSON.stringify(postData),
               });
               resetStore();
-              setHistoryIndex(0);
             }}
             disabled={!isChange || isPlanLoading}
           >

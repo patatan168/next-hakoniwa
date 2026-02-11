@@ -5,10 +5,18 @@ type newPlanDataStoreType = {
   initData: planSchemaType[];
   postData: planSchemaType[];
   planListData: Array<Array<planSchemaType & { id: number; edit: boolean }>>;
+  items: Array<planSchemaType & { id: number; edit: boolean }>;
+  historyIndex: number;
   isChange: boolean;
   setInitData: (initData?: planSchemaType[]) => void;
   addPlanListData: (planListData: Array<planSchemaType & { id: number; edit: boolean }>) => void;
   setPostData: (postData: planSchemaType[]) => void;
+  setItems: (
+    items: Array<planSchemaType & { id: number; edit: boolean }>,
+    saveHistory?: boolean
+  ) => void;
+  undo: () => void;
+  redo: () => void;
   reset: () => void;
 };
 
@@ -26,11 +34,13 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
   initData: [],
   postData: [],
   planListData: [],
+  items: [],
+  historyIndex: 0,
   isChange: false,
 
   addPlanListData: (data) => {
     if (!data) return;
-    const addData = data.map((item) => ({ ...item, data: false }));
+    const addData = data.map((item) => ({ ...item, edit: false }));
 
     const current = get().planListData[0];
     if (current && fastEqual(current, addData)) return;
@@ -38,7 +48,7 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
     set((state) => {
       const next = [addData, ...state.planListData];
       if (next.length > planLogNum) next.length = planLogNum;
-      return { planListData: next };
+      return { planListData: next, historyIndex: 0 };
     });
   },
 
@@ -59,11 +69,43 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
       isChange: !fastEqual(initData, data),
     });
   },
+
+  setItems: (items, saveHistory = true) => {
+    set({ items });
+    if (saveHistory) {
+      get().addPlanListData(items);
+    }
+  },
+
+  undo: () => {
+    const { planListData, historyIndex } = get();
+    if (planListData.length > historyIndex + 1) {
+      const nextIdx = historyIndex + 1;
+      const targetData = planListData[nextIdx];
+      if (targetData) {
+        set({ items: targetData, historyIndex: nextIdx });
+      }
+    }
+  },
+
+  redo: () => {
+    const { planListData, historyIndex } = get();
+    if (historyIndex > 0) {
+      const nextIdx = historyIndex - 1;
+      const targetData = planListData[nextIdx];
+      if (targetData) {
+        set({ items: targetData, historyIndex: nextIdx });
+      }
+    }
+  },
+
   reset: () =>
     set({
       initData: [],
       postData: [],
       planListData: [],
+      items: [],
+      historyIndex: 0,
       isChange: false,
     }),
 }));
