@@ -23,6 +23,7 @@ export default memo(
     if (!IslandDataProps.data) return null;
 
     const { rank, population, money, food, area, farm, factory, mining } = IslandDataProps.data;
+    const unemploymentRate = (Math.max(population - farm - factory - mining, 0) / population) * 100;
     return (
       <div ref={ref} className="my-2 grid w-[98vw] max-w-3xl grid-cols-9 items-stretch gap-0.5">
         {/* 順位 */}
@@ -54,7 +55,7 @@ export default memo(
         <div className={`${title} col-span-2 col-start-2 row-start-3`}>失業率</div>
         <div
           className={`${value} col-span-2 col-start-2 row-start-4`}
-        >{`${Math.max(population / (population - farm - factory - mining), 0) * 100}%`}</div>
+        >{`${Math.round(unemploymentRate * 100) / 100}%`}</div>
         {/* 農場規模 */}
         <div className={`${title} col-span-2 col-start-4 row-start-3`}>農場規模</div>
         <div className={`${value} col-span-2 col-start-4 row-start-4`}>{`${farm}人`}</div>

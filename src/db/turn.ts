@@ -201,18 +201,21 @@ function wideIslandEventPhase(
 }
 
 function calcPhase(fromIsland: islandSchemaType) {
-  fromIsland.area = countArea(fromIsland.island_info);
-  fromIsland.factory = calcAllTypeNum(fromIsland.island_info, 'factory');
-  fromIsland.mining = calcAllTypeNum(fromIsland.island_info, 'mining');
-  fromIsland.farm = calcAllTypeNum(fromIsland.island_info, 'farm');
-  fromIsland.population = calcAllTypeNum(fromIsland.island_info, 'people');
+  using fromIslandGetSet = islandDataGetSet(fromIsland.uuid);
+  const islandInfo = fromIslandGetSet.islandData;
+  if (!islandInfo) throw new Error(`島情報が見つかりません。uuid=${fromIsland.uuid}`);
+  islandInfo.area = countArea(islandInfo.island_info);
+  islandInfo.factory = calcAllTypeNum(islandInfo.island_info, 'factory');
+  islandInfo.mining = calcAllTypeNum(islandInfo.island_info, 'mining');
+  islandInfo.farm = calcAllTypeNum(islandInfo.island_info, 'farm');
+  islandInfo.population = calcAllTypeNum(islandInfo.island_info, 'people');
 
   // 食料と資金の処理
-  if (fromIsland.food > META_DATA.MAX_FOOD) {
-    fromIsland.money += Math.trunc((fromIsland.food - META_DATA.MAX_FOOD) / 1000);
-    fromIsland.food = Math.min(fromIsland.money, META_DATA.MAX_FOOD);
+  if (islandInfo.food > META_DATA.MAX_FOOD) {
+    islandInfo.money += Math.trunc((islandInfo.food - META_DATA.MAX_FOOD) / 1000);
+    islandInfo.food = Math.min(islandInfo.money, META_DATA.MAX_FOOD);
   }
-  fromIsland.money = Math.min(fromIsland.money, META_DATA.MAX_MONEY);
+  islandInfo.money = Math.min(islandInfo.money, META_DATA.MAX_MONEY);
 }
 
 function turnProceed(recursiveCount = 0) {
