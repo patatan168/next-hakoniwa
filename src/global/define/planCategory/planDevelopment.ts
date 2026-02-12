@@ -8,7 +8,7 @@ import META_DATA from '../metadata';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
 export const leveling: planType = {
-  planNo: 0,
+  planNo: 100,
   type: 'leveling',
   coordinate: true,
   category: '開発',
@@ -80,7 +80,7 @@ export const leveling: planType = {
   },
 };
 export const immediateLeveling: planType = {
-  planNo: 1,
+  planNo: 101,
   type: 'immediate_leveling',
   coordinate: true,
   category: '開発',
@@ -131,7 +131,7 @@ export const immediateLeveling: planType = {
 };
 
 export const landfill: planType = {
-  planNo: 2,
+  planNo: 102,
   type: 'landfill',
   coordinate: true,
   category: '開発',
@@ -203,7 +203,7 @@ export const landfill: planType = {
   },
 };
 export const immediateLandfill: planType = {
-  planNo: 3,
+  planNo: 103,
   type: 'immediate_landfill',
   coordinate: true,
   category: '開発',
@@ -271,7 +271,7 @@ export const immediateLandfill: planType = {
 };
 
 export const drilling: planType = {
-  planNo: 4,
+  planNo: 104,
   type: 'drilling',
   coordinate: true,
   category: '開発',
@@ -376,7 +376,7 @@ export const drilling: planType = {
   },
 };
 export const immediateDrilling: planType = {
-  planNo: 5,
+  planNo: 105,
   type: 'immediate_drilling',
   coordinate: true,
   category: '開発',
@@ -481,7 +481,7 @@ export const immediateDrilling: planType = {
 };
 
 export const logging: planType = {
-  planNo: 6,
+  planNo: 106,
   type: 'logging',
   coordinate: true,
   category: '開発',
@@ -521,7 +521,7 @@ export const logging: planType = {
   },
 };
 export const immediateLogging: planType = {
-  planNo: 7,
+  planNo: 107,
   type: 'immediate_logging',
   coordinate: true,
   category: '開発',

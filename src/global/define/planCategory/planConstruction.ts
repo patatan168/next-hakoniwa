@@ -6,7 +6,7 @@ import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
 export const afforest: planType = {
-  planNo: 100,
+  planNo: 0,
   type: 'afforest',
   coordinate: true,
   category: '建設',
@@ -47,7 +47,7 @@ export const afforest: planType = {
   },
 };
 export const immediateAfforest: planType = {
-  planNo: 101,
+  planNo: 1,
   type: 'immediate_afforest',
   coordinate: true,
   category: '建設',
@@ -89,7 +89,7 @@ export const immediateAfforest: planType = {
 };
 
 export const farmDev: planType = {
-  planNo: 102,
+  planNo: 2,
   type: 'farm_dev',
   coordinate: true,
   category: '建設',
@@ -148,7 +148,7 @@ export const farmDev: planType = {
   },
 };
 export const immediateFarmDev: planType = {
-  planNo: 103,
+  planNo: 3,
   type: 'immediate_farm_dev',
   coordinate: true,
   category: '建設',
@@ -219,7 +219,7 @@ export const immediateFarmDev: planType = {
 };
 
 export const factoryDev: planType = {
-  planNo: 104,
+  planNo: 4,
   type: 'factory_dev',
   coordinate: true,
   category: '建設',
@@ -278,7 +278,7 @@ export const factoryDev: planType = {
   },
 };
 export const immediateFactoryDev: planType = {
-  planNo: 105,
+  planNo: 5,
   type: 'immediate_factory_dev',
   coordinate: true,
   category: '建設',
@@ -349,7 +349,7 @@ export const immediateFactoryDev: planType = {
 };
 
 export const miningDev: planType = {
-  planNo: 106,
+  planNo: 6,
   type: 'mining_dev',
   coordinate: true,
   category: '建設',
@@ -408,7 +408,7 @@ export const miningDev: planType = {
   },
 };
 export const immediateMiningDev: planType = {
-  planNo: 107,
+  planNo: 7,
   type: 'immediate_mining_dev',
   coordinate: true,
   category: '建設',
@@ -479,7 +479,7 @@ export const immediateMiningDev: planType = {
 };
 
 export const missileDev: planType = {
-  planNo: 109,
+  planNo: 9,
   type: 'missile_dev',
   coordinate: true,
   category: '建設',
@@ -521,7 +521,7 @@ export const missileDev: planType = {
   },
 };
 export const immediateMissileDev: planType = {
-  planNo: 110,
+  planNo: 10,
   type: 'immediate_missile_dev',
   coordinate: true,
   category: '建設',
@@ -564,7 +564,7 @@ export const immediateMissileDev: planType = {
 };
 
 export const defenseBaseDev: planType = {
-  planNo: 111,
+  planNo: 11,
   type: 'defense_base_dev',
   coordinate: true,
   category: '建設',
@@ -621,7 +621,7 @@ export const defenseBaseDev: planType = {
   },
 };
 export const immediateDefenseBaseDev: planType = {
-  planNo: 112,
+  planNo: 12,
   type: 'immediate_defense_base_dev',
   coordinate: true,
   category: '建設',
@@ -680,7 +680,7 @@ export const immediateDefenseBaseDev: planType = {
 };
 
 export const submarineMissileDev: planType = {
-  planNo: 113,
+  planNo: 13,
   type: 'submarine_missile_dev',
   coordinate: true,
   category: '建設',
