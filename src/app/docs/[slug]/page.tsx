@@ -1,8 +1,7 @@
 import fs from 'fs';
-import { serialize } from 'next-mdx-remote/serialize';
+import { MDXRemote } from 'next-mdx-remote-client/rsc';
 import { notFound } from 'next/navigation';
 import path from 'path';
-import DocPageCsr from '../DocPageCsr';
 import remarkMermaidAuto from '../remarkMermaidAuto';
 
 export default async function Page({ params }: PageProps<'/docs/[slug]'>) {
@@ -16,11 +15,13 @@ export default async function Page({ params }: PageProps<'/docs/[slug]'>) {
   }
 
   const raw = fs.readFileSync(filePath, 'utf8');
-  const mdxSource = await serialize(raw, {
-    mdxOptions: {
-      remarkPlugins: [remarkMermaidAuto],
-    },
-  });
 
-  return <DocPageCsr {...mdxSource} />;
+  return (
+    <MDXRemote
+      source={raw}
+      options={{
+        mdxOptions: { remarkPlugins: [remarkMermaidAuto] },
+      }}
+    />
+  );
 }

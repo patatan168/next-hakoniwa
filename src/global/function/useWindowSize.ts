@@ -21,9 +21,10 @@ const subscribe = (callback: () => void) => {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const updateSnapshot = () => {
+    const footerHeight = document.querySelector('footer')?.clientHeight ?? 0;
     cachedClientSnapshot = [
       document.documentElement.clientWidth,
-      document.documentElement.clientHeight,
+      document.documentElement.clientHeight - footerHeight - 6.5,
     ];
     callback();
   };

@@ -9,11 +9,11 @@ interface IslandDataProps {
 }
 
 const title =
-  'border-1 text-xs sm:text-base border-gray-400 bg-green-200 text-center font-semibold text-red-700';
+  'border-1 text-xs md:text-sm xl:text-base border-gray-400 bg-green-200 text-center font-semibold text-red-700';
 const value =
-  'border-1 text-xs sm:text-base border-gray-400 bg-cyan-100 text-center text-shadow-xs/30';
+  'border-1 text-xs md:text-sm xl:text-base border-gray-400 bg-cyan-100 text-center text-shadow-xs/30';
 const rankStyle =
-  'flex items-center text-sm sm:text-lg justify-center border-1 border-gray-400 bg-green-200 text-center font-semibold text-red-900';
+  'flex items-center text-sm xl:text-lg justify-center border-1 border-gray-400 bg-green-200 text-center font-semibold text-red-900';
 
 export default memo(
   forwardRef<HTMLDivElement, IslandDataProps>(function IslandData(
@@ -25,7 +25,7 @@ export default memo(
     const { rank, population, money, food, area, farm, factory, mining } = IslandDataProps.data;
     const unemploymentRate = (Math.max(population - farm - factory - mining, 0) / population) * 100;
     return (
-      <div ref={ref} className="my-2 grid w-[98vw] max-w-3xl grid-cols-9 items-stretch gap-0.5">
+      <div ref={ref} className="my-2 grid w-[98vw] max-w-xl grid-cols-9 items-stretch gap-0.5">
         {/* 順位 */}
         <div className={`${title} col-start-1 row-start-1`}>順位</div>
         <div className={`${rankStyle} col-start-1 row-span-4 row-start-2`}>

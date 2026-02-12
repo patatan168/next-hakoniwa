@@ -1,5 +1,6 @@
 // 複数のレイアウトをexportするため
 /* eslint-disable react-refresh/only-export-components */
+import Footer from '@/global/component/Footer';
 import Header from '@/global/component/Header';
 import META from '@/global/define/metadata';
 import '@/global/global.css';
@@ -31,6 +32,7 @@ export default async function RootLayout({
         </main>
         <div id="overlay-root"></div>
         <div id="modal-root"></div>
+        <Footer />
       </body>
     </html>
   );
