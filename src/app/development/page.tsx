@@ -1,4 +1,5 @@
 'use client';
+import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
@@ -54,16 +55,19 @@ export default function IslandList() {
 
   return (
     <>
-      <div className="grid grid-cols-[auto_1fr]">
-        <HakoniwaMap
-          ref={mapCallback}
-          style={{ width: mapSize, height: mapSize }}
-          isLoading={isLoading.get}
-          islandName={developData.get?.island_name}
-          data={developData.get?.island_info}
-          isDevelop={true}
-          uuid={developData.get?.uuid}
-        />
+      <div className="grid grid-cols-[auto_1fr] gap-2">
+        <div className="grid justify-items-center">
+          <IslandData mode="development" data={developData.get} />
+          <HakoniwaMap
+            ref={mapCallback}
+            style={{ width: mapSize, height: mapSize }}
+            isLoading={isLoading.get}
+            islandName={developData.get?.island_name}
+            data={developData.get?.island_info}
+            isDevelop={true}
+            uuid={developData.get?.uuid}
+          />
+        </div>
         <div>
           <PlanList
             className="overflow-y-auto"

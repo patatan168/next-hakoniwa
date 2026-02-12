@@ -33,7 +33,7 @@ export default function MapSight({ uuid }: { uuid: string | string[] | undefined
 
   return (
     <div className="grid justify-items-center">
-      <span className="text-bold text-3xl text-red-700">
+      <span className="text-bold text-3xl text-red-900">
         {`「${islandData.get ? islandData.get.island_name : 'Loading'}島」`}{' '}
         <span className="text-black">{`へようこそ！！`}</span>
       </span>

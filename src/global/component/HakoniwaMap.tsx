@@ -6,14 +6,13 @@ import Image from 'next/image';
 import { CSSProperties, forwardRef, Fragment, memo, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
-import Loading from './Loading';
-import Tooltip from './Tooltip';
-import scssStyle from './style/HakoniwaMap.module.scss';
-
 import { usePlanDataStore } from '../store/usePlanDataStore';
 import Button from './Button';
+import Loading from './Loading';
 import Modal from './Modal';
 import { RangeSliderRHF } from './RangeSliderRHF';
+import Tooltip from './Tooltip';
+import scssStyle from './style/HakoniwaMap.module.scss';
 
 type SpacerProps = {
   mapWidth: number;
@@ -40,7 +39,7 @@ const Spacer = memo(
           style={{ width: (mapWidth * cols) / 2, height: (mapHeight * rows) / 2 }}
           className={`col-span-${cols} row-span-${rows} relative`}
         >
-          <Image src={'/img/land/sea.gif'} alt={'海'} sizes={`${mapWidth}px`} fill priority />
+          <Image src={'/img/land/sea.gif'} alt={'外海'} sizes={`${mapWidth}px`} fill priority />
           {num !== undefined && (
             <p
               className={scssStyle['map-overlay']}
@@ -209,15 +208,27 @@ const MapClickModal = ({
 
   const renderCell = (cx: number, cy: number, isCenter = false) => {
     const cell = data.find((d) => d.x === cx && d.y === cy);
-    if (!cell)
-      return <div className="bg-blue-200" style={{ width: mapWidth, height: mapHeight }} />;
-    const { imgPath } = getMapDefine(cell.type);
+    if (!cell) {
+      return (
+        <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
+          <Image src={'/img/land/sea.gif'} alt={'外海'} fill sizes={`${mapWidth}px`} />
+          <p
+            className={scssStyle['map-overlay']}
+            style={{ left: `50%`, fontSize: (13 * mapWidth) / baseMapPixel }}
+          >
+            外
+          </p>
+        </div>
+      );
+    }
+    const { imgPath, name } = getMapDefine(cell.type);
     const src = getMapImpPath(cell.type, cell.landValue, imgPath);
+    const alt = getMapName(cell.type, cell.landValue, name);
     return (
       <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
         <Image
           src={src}
-          alt=""
+          alt={alt}
           fill
           className={isCenter ? 'brightness-150 contrast-115' : ''}
           sizes={`${mapWidth}px`}
@@ -419,8 +430,8 @@ export default memo(
             if (x !== 0 || y !== 0) return;
             if (node !== null) {
               const { width, height } = node.getBoundingClientRect();
-              setMapWidth(width);
-              setMapHeight(height);
+              setMapWidth(Math.ceil(width * 100) / 100);
+              setMapHeight(Math.ceil(height * 100) / 100);
             }
           };
           return (
