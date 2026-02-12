@@ -4,6 +4,7 @@ import { CSSProperties, memo } from 'react';
 export type TabType = {
   value: unknown;
   label: string;
+  icons?: React.ReactNode;
   disabled?: boolean;
 };
 
@@ -29,12 +30,19 @@ export default memo(
         className="flex flex-wrap border-b border-gray-200 text-center font-semibold text-gray-500"
       >
         {tabContents.map((tab: TabType) => {
-          const { value: tabVal, label, disabled } = tab;
+          const { value: tabVal, label, disabled, icons } = tab;
           const tabStyle = tabVal === value ? selected : defStyle;
           return (
             <li key={`${label}-${tabVal}`}>
               <button disabled={disabled} onClick={() => onChange(tabVal)} className={tabStyle}>
-                {label}
+                {icons ? (
+                  <div className="flex items-center justify-center">
+                    <div className="mr-2">{icons}</div>
+                    <div>{label}</div>
+                  </div>
+                ) : (
+                  <>{label}</>
+                )}
               </button>
             </li>
           );

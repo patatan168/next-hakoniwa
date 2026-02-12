@@ -7,6 +7,8 @@ import { useWindowSize } from '@/global/function/useWindowSize';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnLogStore } from '@/global/store/api/public/turnLog';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { FaList } from 'react-icons/fa6';
+import { IoDocumentTextOutline } from 'react-icons/io5';
 
 const header: ColumnInfo = [
   { width: 100, headName: 'UUID', key: 'uuid' },
@@ -15,8 +17,8 @@ const header: ColumnInfo = [
 ];
 
 const tabTest: Array<TabType> = [
-  { value: 0, label: '諸島の状況' },
-  { value: 1, label: '近況を見る' },
+  { value: 0, label: '諸島の状況', icons: <FaList /> },
+  { value: 1, label: '近況を見る', icons: <IoDocumentTextOutline /> },
 ];
 
 export default function IslandList() {
