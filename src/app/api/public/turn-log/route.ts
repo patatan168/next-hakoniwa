@@ -9,7 +9,7 @@ export async function OPTIONS() {
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const logUuid = searchParams.get('log_uuid') ?? 'zzzzzzzzzzzzzzzzzzzzzzzzz';
+  const logUuid = searchParams.get('log_uuid') ?? 'ZZZZZZZZZZZZZZZZZZZZZZZZZ';
   if (!uuid25Regex.test(logUuid)) {
     const response = NextResponse.json(
       { error: 'Invalid Input' },
