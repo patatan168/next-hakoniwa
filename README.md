@@ -40,21 +40,23 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 
 ## Dependency
 
-| Library                   | Version | Copyright                                            |
-| ------------------------- | ------- | ---------------------------------------------------- |
-| Node.js                   | 22.22.0 | Copyright Node.js contributors. All rights reserved. |
-| React                     | 19.X.X  | Copyright (c) Meta Platforms, Inc. and affiliates.   |
-| Next.js                   | 16.X.X  | Copyright (c) 2024 Vercel, Inc.                      |
-| React Icons               | 5.X.X   | Copyright 2018 kamijin_fanta                         |
-| react-virtuoso            | 4.XX.X  | Copyright (c) 2020 Petyo Ivanov                      |
-| better-sqlite3            | 11.X.X  | Copyright (c) 2017 Joshua Wise                       |
-| react-hook-form           | 7.XX.X  | Copyright (c) 2019-present Beier(Bill) Luo           |
-| zod                       | 3.XX.X  | Copyright (c) 2020 Colin McDonnell                   |
-| es-toolkit                | 1.XX.X  | Copyright (c) 2024 Viva Republica, Inc               |
-| jsonwebtoken              | 9.X.X   | Copyright (c) 2015 Auth0, Inc.                       |
-| cookies-next              | 5.X.X   | Copyright (c) 2019 Андрей Зановский                  |
-| winston                   | 3.XX.X  | Copyright (c) 2010 Charlie Robbins                   |
-| winston-daily-rotate-file | 5.X.X   | Copyright (c) 2015-2024 winstonjs                    |
-| argon2                    | 0.43.0  | Copyright (c) 2015 Ranieri Althoff                   |
-| dnd kit                   | 6.3.1   | Copyright (c) 2021, Claudéric Demers                 |
-| zustand                   | 5.X.X   | Copyright (c) 2019 Paul Henschel                     |
+| Library                   | Version |
+| ------------------------- | ------- |
+| Node.js                   | 22.22.0 |
+| React                     | 19.2.4  |
+| Next.js                   | 16.1.6  |
+| Tailwind CSS              | 4.1.18  |
+| sass                      | 1.97.3  |
+| React Icons               | 5.5.0   |
+| react-virtuoso            | 4.18.1  |
+| better-sqlite3            | 12.6.2  |
+| react-hook-form           | 7.71.1  |
+| zod                       | 4.3.6   |
+| es-toolkit                | 1.44.0  |
+| jsonwebtoken              | 9.0.3   |
+| cookies-next              | 6.1.1   |
+| winston                   | 3.19.0  |
+| winston-daily-rotate-file | 5.0.0   |
+| argon2                    | 0.44.0  |
+| dnd kit                   | 6.3.1   |
+| zustand                   | 5.0.11  |

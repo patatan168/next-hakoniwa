@@ -20,6 +20,7 @@ export const LicenseMenu = () => {
       <LinkList href="/license/reactHookForm">React Hook Form</LinkList>
       <LinkList href="/license/nextJs">Next.js</LinkList>
       <LinkList href="/license/tailwindcss">Tailwind CSS</LinkList>
+      <LinkList href="/license/sass">sass</LinkList>
       <LinkList href="/license/nextMdxRemoteClient">next-mdx-remote-client</LinkList>
       <LinkList href="/license/reactIcons">React Icons</LinkList>
       <LinkList href="/license/dndKit">dnd-kit</LinkList>
