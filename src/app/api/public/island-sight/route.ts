@@ -25,16 +25,17 @@ export async function GET(request: NextRequest) {
   if (uuid !== null) {
     const islandData = db.client
       .prepare<string, islandSchemaType & userSchemaType>(
-        `SELECT
-          ${allDbColumns(db.client, 'user')},
-          ${allDbColumns(db.client, 'island')},
-          RANK() OVER (ORDER BY island.population DESC) AS rank
-        FROM
-          user INNER JOIN island 
-        ON
-          user.uuid = island.uuid
-        WHERE
-          island.uuid = ? AND user.inhabited = 1;`
+        `SELECT * FROM (
+          SELECT
+            ${allDbColumns(db.client, 'user')},
+            ${allDbColumns(db.client, 'island')},
+            RANK() OVER (ORDER BY island.population DESC) AS rank
+          FROM user
+          INNER JOIN island
+            ON user.uuid = island.uuid
+          WHERE user.inhabited = 1
+        ) AS ranked
+        WHERE ranked.uuid = ?;`
       )
       .get(uuid);
     if (islandData === undefined) {

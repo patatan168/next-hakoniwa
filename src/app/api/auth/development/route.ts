@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
   accessLogger(request).info(`Request Development uuid=${uuid}`);
   const islandData = db.client
     .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
-      `SELECT
+      `SELECT * FROM (
+        SELECT
           user.island_name,
           ${allDbColumns(db.client, 'island')},
           RANK() OVER (ORDER BY island.population DESC) AS rank
@@ -30,8 +31,8 @@ export async function GET(request: NextRequest) {
           user INNER JOIN island 
         ON
           user.uuid = island.uuid
-        WHERE
-          island.uuid=?`
+          ) AS ranked
+        WHERE ranked.uuid = ?;`
     )
     .get(uuid);
   if (islandData === undefined) {
