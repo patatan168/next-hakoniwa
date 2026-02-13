@@ -29,9 +29,9 @@ export default function Header() {
   return (
     <header className="bg-emerald-100">
       <nav>
-        <ul className="grid grid-cols-3 grid-rows-none items-center gap-0">
+        <div className="grid grid-cols-3 grid-rows-none items-center gap-0">
           {/* 左カラム */}
-          <li>
+          <div>
             <div className="flex items-center justify-start gap-1">
               <Link href="/">
                 <Button
@@ -56,22 +56,22 @@ export default function Header() {
                 </Button>
               </Link>
             </div>
-          </li>
+          </div>
           <div className="sub-title col-span-3 col-start-1 row-start-2 mx-1 min-w-[3em] text-base font-semibold text-shadow-xs/10">
             {`ターン${data.get ? data.get.turn : ''}`}
             <span className="ml-[0.5em]">{`(次回の更新まであと)`}</span>
           </div>
 
           {/* 中央カラム */}
-          <li className="flex justify-center">
+          <div className="flex justify-center">
             <SignIn />
-          </li>
+          </div>
 
           {/* 右カラム */}
-          <li className="flex justify-end">
+          <div className="flex justify-end">
             {existsToken === null ? null : existsToken ? <AccountMenu /> : <SignUp />}
-          </li>
-        </ul>
+          </div>
+        </div>
       </nav>
     </header>
   );
