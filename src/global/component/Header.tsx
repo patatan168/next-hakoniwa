@@ -29,7 +29,7 @@ export default function Header() {
   return (
     <header className="bg-emerald-100">
       <nav>
-        <div className="grid grid-cols-3 grid-rows-none items-center gap-0">
+        <div className="grid grid-cols-3 grid-rows-none items-start gap-0">
           {/* 左カラム */}
           <div>
             <div className="flex items-center justify-start gap-1">
