@@ -32,7 +32,7 @@ export default function Header() {
         <div className="grid grid-cols-3 grid-rows-none items-start gap-0">
           {/* 左カラム */}
           <div>
-            <div className="flex items-center justify-start gap-1">
+            <div className="flex justify-start gap-1">
               <Link href="/">
                 <Button
                   size="xs"
