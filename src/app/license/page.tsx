@@ -4,10 +4,6 @@ import { notFound } from 'next/navigation';
 import path from 'path';
 
 export default async function Page() {
-  if (process.env.NODE_ENV === 'production') {
-    notFound();
-  }
-
   const filePath = path.join(process.cwd(), 'src', 'app', 'license', 'md', 'hako.mdx');
   if (!fs.existsSync(filePath)) {
     notFound();
