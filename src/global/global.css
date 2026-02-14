@@ -26,23 +26,15 @@
   --table-border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #002d3f;
-    --foreground: #ededed;
-    --title: rgb(199, 255, 255);
-    --sub-title: rgb(255, 255, 255);
-    --border: 1px solid rgba(255, 255, 255, 0.88);
-  }
-}
-
 body {
   display: flex;
   flex-direction: column;
   min-height: 99.8dvh;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -68,14 +60,9 @@ footer {
   background: var(--background);
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
 .title {
   color: var(--title);
+  text-shadow: 1px 1px 1px;
 }
 
 .sub-title {
