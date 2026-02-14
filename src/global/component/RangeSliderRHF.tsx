@@ -1,6 +1,6 @@
 import { isEqual, omit } from 'es-toolkit';
+import dynamic from 'next/dynamic';
 import {
-  CSSProperties,
   InputHTMLAttributes,
   memo,
   useCallback,
@@ -13,13 +13,13 @@ import {
   Controller,
   ControllerRenderProps,
   DeepPartial,
-  FieldError,
   FieldPath,
   FieldValues,
   UseControllerProps,
 } from 'react-hook-form';
 import { FaMinus, FaPlus } from 'react-icons/fa6';
 import styleCss from './style/RangeSliderRHF.module.scss';
+const HelperText = dynamic(() => import('./HelperText'), { ssr: false });
 
 type RangeSliderRHFProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -52,17 +52,6 @@ const getTextFieldProps = <
     'helperText',
     'isBottomSpace',
   ]);
-
-const UlStyle = (propsStyle: CSSProperties | undefined) =>
-  useMemo(() => {
-    const baseWidth = { width: '270px' };
-    const uiStyle =
-      propsStyle !== undefined && propsStyle.width !== undefined
-        ? propsStyle
-        : { ...propsStyle, ...baseWidth };
-
-    return uiStyle;
-  }, [propsStyle]);
 
 const plusMinusButtonStyle =
   'inline-flex items-center justify-center rounded-full hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300';
@@ -123,28 +112,11 @@ const UseEffectNormalizeType = (
   }, [value, defaultValue, onChange]);
 };
 
-const InputStyle = (error: boolean) =>
-  useMemo(() => {
-    const baseStyle =
-      'rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
-    const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
-    const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
-
-    if (error) {
-      return errorStyle;
-    } else {
-      return defStyle;
-    }
-  }, [error]);
-
-const RangeStyle = (error: boolean) =>
-  useMemo(() => {
-    if (error) {
-      return styleCss['range-slider-error'];
-    } else {
-      return styleCss['range-slider'];
-    }
-  }, [error]);
+const baseWidth = { width: '270px' };
+const baseStyle =
+  'rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
+const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
+const errorStyle = `${baseStyle} border-red-300 bg-red-50/70 text-red-900 hover:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-300`;
 
 const InputWidth = (min: number | string, max: number | string, digits: number | string) =>
   useMemo(() => {
@@ -155,53 +127,6 @@ const InputWidth = (min: number | string, max: number | string, digits: number |
     const length = Math.max(minLength, maxLength);
     return `${length + digitsLength + 2.5}em`;
   }, [min, max, digits]);
-
-const HelperTextWidth = (rangeWidth: number) =>
-  useMemo(() => {
-    return { maxWidth: `${rangeWidth}px` };
-  }, [rangeWidth]);
-
-const HelperText = memo(
-  function HelperText({
-    style,
-    isError,
-    error,
-    helperText,
-    isBottomSpace,
-  }: {
-    style?: CSSProperties;
-    isError: boolean;
-    error?: FieldError;
-    helperText?: string;
-    isBottomSpace?: boolean;
-  }) {
-    if (isError && error !== undefined) {
-      // Error Message
-      return (
-        <li style={style} className="truncate text-red-600">
-          {error.message}
-        </li>
-      );
-    } else if (helperText !== undefined && helperText !== '') {
-      // Helper Message
-      return (
-        <li style={style} className="truncate">
-          {helperText}
-        </li>
-      );
-    } else if (isBottomSpace === undefined || isBottomSpace) {
-      // Blank Space
-      return (
-        <li style={style} className="select-none">
-          &thinsp;
-        </li>
-      );
-    } else {
-      return <></>;
-    }
-  },
-  (oldProps, newProps) => isEqual(oldProps, newProps)
-);
 
 function _RangeSliderRHF<
   TFieldValues extends FieldValues = FieldValues,
@@ -225,6 +150,14 @@ function _RangeSliderRHF<
         const isError = props.disabled || (isTouched && invalid);
         const step = props.step ? Number(props.step) : 1;
         const [rangeWidth, setRangeWidth] = useState(0);
+        const ulStyle = useMemo(() => {
+          const ulStyle =
+            props.style !== undefined && props.style.width !== undefined
+              ? props.style
+              : { ...props.style, ...baseWidth };
+
+          return ulStyle;
+        }, [props.style]);
         const rangeCallback = useCallback((node: HTMLDivElement | null) => {
           if (node) {
             const width = node.getBoundingClientRect().width;
@@ -252,7 +185,7 @@ function _RangeSliderRHF<
         );
 
         return (
-          <ul style={UlStyle(props.style)} className={`${props.className}`}>
+          <ul style={ulStyle} className={`${props.className}`}>
             <li>
               <div
                 className="grid place-items-center gap-1.5"
@@ -272,7 +205,7 @@ function _RangeSliderRHF<
                 </button>
                 <input
                   type="range"
-                  className={RangeStyle(isError)}
+                  className={isError ? styleCss['range-slider-error'] : styleCss['range-slider']}
                   min={min}
                   max={max}
                   {...field}
@@ -292,7 +225,7 @@ function _RangeSliderRHF<
                   style={{
                     maxWidth: InputWidth(min, max, digits),
                   }}
-                  className={InputStyle(isError)}
+                  className={isError ? errorStyle : defStyle}
                   min={min}
                   max={max}
                   {...field}
@@ -302,13 +235,15 @@ function _RangeSliderRHF<
                 />
               </div>
             </li>
-            <HelperText
-              style={HelperTextWidth(rangeWidth)}
-              isError={isError}
-              error={error}
-              helperText={props.helperText}
-              isBottomSpace={props.isBottomSpace}
-            />
+            {(props.helperText || props.isBottomSpace || isError) && (
+              <HelperText
+                style={{ maxWidth: `${rangeWidth}px` }}
+                isError={isError}
+                error={error}
+                helperText={props.helperText}
+                isBottomSpace={props.isBottomSpace}
+              />
+            )}
           </ul>
         );
       }}

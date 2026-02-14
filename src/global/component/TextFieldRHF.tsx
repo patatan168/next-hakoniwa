@@ -1,21 +1,9 @@
 import { isEqual, omit } from 'es-toolkit';
+import dynamic from 'next/dynamic';
 import { CSSProperties, InputHTMLAttributes, memo, useId, useMemo, useState } from 'react';
-import {
-  Controller,
-  FieldError,
-  FieldPath,
-  FieldValues,
-  UseControllerProps,
-} from 'react-hook-form';
+import { Controller, FieldPath, FieldValues, UseControllerProps } from 'react-hook-form';
 import { FaEye, FaEyeSlash } from 'react-icons/fa6';
-
-type HelperTextProps = {
-  style?: CSSProperties;
-  isError: boolean;
-  error?: FieldError;
-  helperText?: string;
-  isBottomSpace?: boolean;
-};
+const HelperText = dynamic(() => import('./HelperText'), { ssr: false });
 
 type TextFieldRHFProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -47,42 +35,6 @@ const InputStyle = (
       return defStyle + typeStyle;
     }
   }, [error]);
-
-const HelperTextWidth = (inputWidth: number) =>
-  useMemo(() => {
-    return { maxWidth: `${inputWidth}px` };
-  }, [inputWidth]);
-
-const HelperText = memo(
-  function HelperText({ style, isError, error, helperText, isBottomSpace }: HelperTextProps) {
-    const textSize = 'text-sm';
-    if (isError && error !== undefined) {
-      // Error Message
-      return (
-        <li style={style} className={`truncate text-red-600 ${textSize}`}>
-          {error.message}
-        </li>
-      );
-    } else if (helperText !== undefined && helperText !== '') {
-      // Helper Message
-      return (
-        <li style={style} className={`truncate ${textSize}`}>
-          {helperText}
-        </li>
-      );
-    } else if (isBottomSpace === undefined || isBottomSpace) {
-      // Blank Space
-      return (
-        <li style={style} className={`select-none ${textSize}`}>
-          &thinsp;
-        </li>
-      );
-    } else {
-      return <></>;
-    }
-  },
-  (oldProps, newProps) => isEqual(oldProps, newProps)
-);
 
 function TextFieldRHFInner<
   TFieldValues extends FieldValues = FieldValues,
@@ -192,13 +144,15 @@ function TextFieldRHFInner<
                 )}
               </div>
             </li>
-            <HelperText
-              style={HelperTextWidth(inputWidth)}
-              isError={isError}
-              error={error}
-              helperText={props.helperText}
-              isBottomSpace={props.isBottomSpace}
-            />
+            {(props.helperText || props.isBottomSpace || isError) && (
+              <HelperText
+                style={{ maxWidth: `${inputWidth}px` }}
+                isError={isError}
+                error={error}
+                helperText={props.helperText}
+                isBottomSpace={props.isBottomSpace}
+              />
+            )}
           </ul>
         );
       }}

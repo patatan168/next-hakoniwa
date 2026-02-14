@@ -81,6 +81,7 @@ function SignUpForm() {
             control={control}
             id="user-name"
             placeholder="User Name"
+            isBottomSpace={true}
           />
         </li>
         <li>
@@ -90,6 +91,7 @@ function SignUpForm() {
             control={control}
             id="island-name"
             placeholder="Island Name"
+            isBottomSpace={true}
           />
         </li>
         <li>
@@ -101,6 +103,7 @@ function SignUpForm() {
             control={control}
             id="user-id"
             placeholder="User Id"
+            isBottomSpace={true}
           />
         </li>
         <li>
@@ -113,6 +116,7 @@ function SignUpForm() {
             type="password"
             id="password"
             placeholder="Password"
+            isBottomSpace={true}
           />
         </li>
         <li>
@@ -125,6 +129,7 @@ function SignUpForm() {
             type="password"
             id="password-confirm"
             placeholder="Password (Confirm)"
+            isBottomSpace={true}
           />
         </li>
       </ul>

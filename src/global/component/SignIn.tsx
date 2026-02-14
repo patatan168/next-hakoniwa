@@ -93,6 +93,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
             control={control}
             id="user-id"
             placeholder="User Id"
+            isBottomSpace={true}
           />
         </li>
         <li>
@@ -105,6 +106,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
             type="password"
             id="password"
             placeholder="Password"
+            isBottomSpace={true}
           />
         </li>
       </ul>
