@@ -92,15 +92,6 @@ function _SelectRHF<
           field.ref(node);
         }, []);
         const isError = props.disabled || ((isTouched || isDirty) && invalid);
-        const ulStyle = useMemo(() => {
-          const baseWidth = { width: '200px' };
-          const uiStyle =
-            props.style !== undefined && props.style.width !== undefined
-              ? props.style
-              : { ...props.style, ...baseWidth };
-
-          return uiStyle;
-        }, [props.style]);
         const selectedOption = useMemo(
           () => props.options.find((option) => option.value === field.value),
           [props.options, field.value]
@@ -131,7 +122,7 @@ function _SelectRHF<
         }, [defaultValues]);
 
         return (
-          <ul style={ulStyle} className={props.className}>
+          <ul style={props.style} className={`w-fit min-w-[200px] ${props.className}`}>
             <li>
               <select
                 className={selectClassName}

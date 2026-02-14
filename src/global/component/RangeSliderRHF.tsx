@@ -112,7 +112,6 @@ const UseEffectNormalizeType = (
   }, [value, defaultValue, onChange]);
 };
 
-const baseWidth = { width: '270px' };
 const baseStyle =
   'rounded-lg border p-2.5 text-sm disabled:border-gray-300 disabled:bg-gray-400/50 disabled:text-black disabled:cursor-not-allowed';
 const defStyle = `${baseStyle} border-gray-300 bg-gray-50/50 text-gray-900 hover:border-green-500 focus:outline-hidden focus:ring-2 focus:ring-green-300`;
@@ -150,14 +149,6 @@ function _RangeSliderRHF<
         const isError = props.disabled || (isTouched && invalid);
         const step = props.step ? Number(props.step) : 1;
         const [rangeWidth, setRangeWidth] = useState(0);
-        const ulStyle = useMemo(() => {
-          const ulStyle =
-            props.style !== undefined && props.style.width !== undefined
-              ? props.style
-              : { ...props.style, ...baseWidth };
-
-          return ulStyle;
-        }, [props.style]);
         const rangeCallback = useCallback((node: HTMLDivElement | null) => {
           if (node) {
             const width = node.getBoundingClientRect().width;
@@ -185,7 +176,7 @@ function _RangeSliderRHF<
         );
 
         return (
-          <ul style={ulStyle} className={`${props.className}`}>
+          <ul style={props.style} className={`w-fit min-w-[270px] ${props.className}`}>
             <li>
               <div
                 className="grid place-items-center gap-1.5"
