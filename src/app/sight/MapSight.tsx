@@ -12,15 +12,15 @@ export default function MapSight({ uuid }: { uuid: string | string[] | undefined
   const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
 
   const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
-  const [width, height] = useWindowSize();
+  const { width, minusFooterHeight } = useWindowSize();
   const mapCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { y } = node.getBoundingClientRect();
-        setMapSize(`min(${width}px, ${height - y}px)`);
+        setMapSize(`min(${width}px, ${minusFooterHeight - y}px)`);
       }
     },
-    [width, height]
+    [width, minusFooterHeight]
   );
 
   useEffect(() => {

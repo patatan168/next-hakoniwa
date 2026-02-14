@@ -2,30 +2,38 @@
 
 import { useSyncExternalStore } from 'react';
 
-const initSnapshot: [number, number] = [0, 0];
-let cachedClientSnapshot: [number, number] = [0, 0];
+type WindowSize = {
+  width: number;
+  height: number;
+  minusFooterHeight: number;
+};
+
+const initSnapshot: WindowSize = { width: 0, height: 0, minusFooterHeight: 0 };
+let cachedClientSnapshot: WindowSize = { width: 0, height: 0, minusFooterHeight: 0 };
 const debounceDelay = 100;
 
 /**
  * ウィンドウサイズを取得するカスタムフック（ResizeObserver + window resize）
- * @returns [width, height]
+ * @returns {WindowSize}
  */
 export const useWindowSize = () => {
-  const size = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const size = useSyncExternalStore(subscribe(), getSnapshot, getServerSnapshot);
   return size;
 };
 
-const subscribe = (callback: () => void) => {
+const subscribe = () => (callback: () => void) => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
 
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const updateSnapshot = () => {
     const footerHeight = document.querySelector('footer')?.clientHeight ?? 0;
-    cachedClientSnapshot = [
-      document.documentElement.clientWidth,
-      document.documentElement.clientHeight - footerHeight - 6.5,
-    ];
+    const height = document.documentElement.clientHeight;
+    cachedClientSnapshot = {
+      width: Math.round(document.documentElement.clientWidth * 1000) / 1000,
+      height: Math.round(height * 1000) / 1000,
+      minusFooterHeight: Math.round((height - footerHeight - 7) * 1000) / 1000,
+    };
     callback();
   };
 
@@ -49,9 +57,9 @@ const subscribe = (callback: () => void) => {
   };
 };
 
-const getSnapshot = (): [number, number] => {
+const getSnapshot = (): WindowSize => {
   if (typeof document === 'undefined') return initSnapshot;
   return cachedClientSnapshot;
 };
 
-const getServerSnapshot = (): [number, number] => initSnapshot;
+const getServerSnapshot = (): WindowSize => initSnapshot;

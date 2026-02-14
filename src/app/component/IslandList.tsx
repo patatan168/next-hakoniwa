@@ -26,17 +26,17 @@ export default function IslandList() {
   const { data, isLoading, fetch } = useClientFetch(islandListStore);
   const { data: logData, fetch: logFetch, isLoading: logLoading } = useClientFetch(turnLogStore);
   const [listHeight, setListHeight] = useState('100svh');
-  const [, height] = useWindowSize();
+  const { minusFooterHeight } = useWindowSize();
   const [lazyFlag, setLazyFlag] = useState(false);
   const prevLastUuid = useRef('');
   const listCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { y } = node.getBoundingClientRect();
-        setListHeight(`${height - y}px`);
+        setListHeight(`${minusFooterHeight - y}px`);
       }
     },
-    [height]
+    [minusFooterHeight]
   );
 
   const handleChange = (newValue: number) => {

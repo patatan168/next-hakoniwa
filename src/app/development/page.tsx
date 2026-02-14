@@ -26,24 +26,24 @@ export default function IslandList() {
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
   const [listHeight, setListHeight] = useState('100svh');
   const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
-  const [width, height] = useWindowSize();
+  const { width, minusFooterHeight } = useWindowSize();
   const mapCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { x, y } = node.getBoundingClientRect();
-        setMapSize(`min(${width - x}px, ${height - y}px)`);
+        setMapSize(`min(${width - x}px, ${minusFooterHeight - y}px)`);
       }
     },
-    [width, height]
+    [width, minusFooterHeight]
   );
   const listCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { y } = node.getBoundingClientRect();
-        setListHeight(`${height - y}px`);
+        setListHeight(`${minusFooterHeight - y}px`);
       }
     },
-    [width, height]
+    [minusFooterHeight]
   );
 
   useEffect(() => {

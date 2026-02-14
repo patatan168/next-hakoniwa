@@ -24,12 +24,14 @@
   --title: rgb(136, 136, 255);
   --sub-title: rgb(68, 68, 255);
   --table-border: 1px solid rgba(0, 0, 0, 0.12);
+  --real-vh: 99.8dvh;
+  --real-vw: 99.8dvw;
 }
 
 body {
   display: flex;
   flex-direction: column;
-  min-height: 99.8dvh;
+  min-height: var(--real-vh);
   color: var(--foreground);
   background: var(--background);
   font-family:
@@ -41,13 +43,14 @@ body {
 
 main {
   flex: 1;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 header {
   position: sticky;
   top: 0;
   z-index: 1;
-  margin-bottom: 4px;
   border-bottom: var(--table-border);
 }
 
@@ -55,9 +58,12 @@ footer {
   position: sticky;
   bottom: 0;
   z-index: 1;
-  margin-top: 4px;
   border-top: var(--table-border);
   background: var(--background);
+}
+
+.max-w-screen {
+  max-width: var(--real-vw);
 }
 
 .title {

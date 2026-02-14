@@ -2,6 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import Footer from '@/global/component/Footer';
 import Header from '@/global/component/Header';
+import MainRoot from '@/global/component/MainRoot';
 import META from '@/global/define/metadata';
 import '@/global/global.css';
 import type { Metadata } from 'next';
@@ -27,9 +28,7 @@ export default async function RootLayout({
       </head>
       <body>
         <Header />
-        <main id="main-root" className="isolate">
-          {children}
-        </main>
+        <MainRoot>{children}</MainRoot>
         <div id="overlay-root"></div>
         <div id="modal-root"></div>
         <Footer />
