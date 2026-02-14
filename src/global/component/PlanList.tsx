@@ -94,23 +94,22 @@ const PlanItem = memo(
         ref={setActivator}
         className={`card-border mb-0.5 flex items-center ${isChange ? 'bg-orange-50' : 'bg-teal-50'}`}
       >
-        <div className={`flex h-11 items-stretch ${edit ? 'h-33' : 'h-13'}`}>
-          <span
-            {...attributes}
-            {...listeners}
-            className={`inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-          >
-            <RxDragHandleVertical />
-          </span>
-        </div>
-
-        <span
+        <div
           {...attributes}
           {...listeners}
-          className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
-          {`T${turn}`}
-        </span>
+          <div className={`flex h-11 items-stretch ${edit ? 'h-33' : 'h-13'}`}>
+            <span className="inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400">
+              <RxDragHandleVertical />
+            </span>
+          </div>
+          <span
+            className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+          >
+            {`T${turn}`}
+          </span>
+        </div>
 
         <button
           onClick={toggleEdit}
