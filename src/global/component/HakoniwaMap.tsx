@@ -3,7 +3,7 @@ import { default as META } from '@/global/define/metadata';
 import { getPlanDefine, getPlanSelect, validLandType } from '@/global/define/planType';
 import { isEqual } from 'es-toolkit';
 import Image from 'next/image';
-import { CSSProperties, forwardRef, Fragment, memo, useMemo, useState } from 'react';
+import { CSSProperties, forwardRef, Fragment, memo, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
 import { usePlanDataStore } from '../store/usePlanDataStore';
@@ -11,6 +11,7 @@ import Button from './Button';
 import Loading from './Loading';
 import Modal from './Modal';
 import { RangeSliderRHF } from './RangeSliderRHF';
+import { SelectRHF } from './SelectRHF';
 import Tooltip from './Tooltip';
 import scssStyle from './style/HakoniwaMap.module.scss';
 
@@ -153,33 +154,34 @@ const MapClickModal = ({
     });
   }, [x, y, data]);
 
-  const [selectedPlan, setSelectedPlan] = useState<string>(
-    planOptions.length > 0 ? planOptions[0].value : ''
-  );
-
-  const { control, setValue } = useForm<{ times: number; position: number }>({
-    defaultValues: { times: 1, position: 1 },
+  const { control, setValue } = useForm<{ plan: string; times: number; position: number }>({
+    defaultValues: {
+      plan: planOptions.length > 0 ? planOptions[0].value : '',
+      times: 1,
+      position: 1,
+    },
   });
+  const plan = useWatch({ control, name: 'plan' });
   const times = useWatch({ control, name: 'times' });
   const position = useWatch({ control, name: 'position' });
 
   // 選択中の計画のmaxTimesを取得
   const maxTimes = useMemo(() => {
-    if (!selectedPlan) return 1;
-    const planDefine = getPlanDefine(selectedPlan);
+    if (!planOptions.length || plan === '') return 1;
+    const planDefine = getPlanDefine(plan);
     return planDefine.maxTimes;
-  }, [selectedPlan]);
+  }, [plan]);
 
-  const handlePlanChange = (value: string) => {
-    setSelectedPlan(value);
-    setValue('times', 1); // 計画変更時にリセット
-  };
+  useEffect(() => {
+    // planが変更された場合はtimesを1に戻す
+    setValue('times', 1);
+  }, [plan]);
 
   const currentItems = usePlanDataStore((state) => state.items);
   const setItems = usePlanDataStore((state) => state.setItems);
 
   const handleInsertPlan = () => {
-    if (!selectedPlan) return;
+    if (!planOptions.length || plan === '') return;
 
     const newPlan = {
       id: -1, // 一時的なID
@@ -190,7 +192,7 @@ const MapClickModal = ({
       times: times,
       x: x,
       y: y,
-      plan: selectedPlan,
+      plan: plan,
     };
 
     // 指定位置に挿入し、IDとNoを振り直す
@@ -299,17 +301,7 @@ const MapClickModal = ({
         <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
           計画を選択
         </label>
-        <select
-          className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-          value={selectedPlan}
-          onChange={(e) => handlePlanChange(e.target.value)}
-        >
-          {planOptions.map((option) => (
-            <option key={option.value} value={option.value} className={option.className}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
       </div>
       {maxTimes > 1 && (
         <div className="flex items-center gap-2">
