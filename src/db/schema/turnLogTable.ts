@@ -5,6 +5,7 @@ export const turnLogSchema: DbSchema = [
     name: 'log_uuid',
     type: 'string',
     primary: true,
+    index: { query: ['DESC'] },
   },
   {
     name: 'from_uuid',

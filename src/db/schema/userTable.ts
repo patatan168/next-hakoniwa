@@ -4,7 +4,7 @@ export const userSchema: DbSchema = [
   { name: 'uuid', type: 'TEXT', primary: true, unique: true },
   { name: 'user_name', type: 'TEXT' },
   { name: 'island_name', type: 'TEXT' },
-  { name: 'inhabited', type: 'INTEGER', defVal: '1' },
+  { name: 'inhabited', type: 'INTEGER', defVal: '1', index: { query: [] } },
 ];
 
 export type userSchemaType = {

@@ -39,6 +39,8 @@ type DbColumn = {
   foreign?: DbForeign;
   /** トリガー */
   trigger?: string;
+  /** インデックス */
+  index?: { query: string[] };
 };
 
 /** データベースのスキーマ */
@@ -78,36 +80,53 @@ export const createDbTable =
   (tableName: string, schema: DbSchema, overwrite = false) => {
     const overWriteTable = overwrite ? '' : ' if not exists';
     const createTable = `create table${overWriteTable} ${tableName}`;
+    const indexColumn: { name: string; query: string[] }[] = [];
 
     // 外部キーを使用するか
     let isForeign = false;
 
     let column = '';
-    schema.forEach(({ name, type, nullable, primary, unique, defVal, check, foreign, trigger }) => {
-      // NOTE: 安全のためにdefaultではnullを許容しない
-      const nullableKey = nullable ? '' : ' NOT NULL';
-      const primaryKey = primary ? ' PRIMARY KEY' : '';
-      const uniqueKey = unique ? ' UNIQUE' : '';
-      const defaultKey = defVal !== undefined ? ` DEFAULT (${defVal})` : '';
-      const checkKey = check !== undefined ? ` CHECK (${check})` : '';
-      const foreignKey =
-        foreign !== undefined ? ` REFERENCES ${foreign.table}(${foreign.name})` : '';
+    schema.forEach(
+      ({ name, type, nullable, primary, unique, defVal, check, foreign, trigger, index }) => {
+        // NOTE: 安全のためにdefaultではnullを許容しない
+        const nullableKey = nullable ? '' : ' NOT NULL';
+        const primaryKey = primary ? ' PRIMARY KEY' : '';
+        const uniqueKey = unique ? ' UNIQUE' : '';
+        const defaultKey = defVal !== undefined ? ` DEFAULT (${defVal})` : '';
+        const checkKey = check !== undefined ? ` CHECK (${check})` : '';
+        const foreignKey =
+          foreign !== undefined ? ` REFERENCES ${foreign.table}(${foreign.name})` : '';
 
-      // 外部キーを使用するテーブルかを判定
-      isForeign = isForeign || foreign !== undefined;
+        // 外部キーを使用するテーブルかを判定
+        isForeign = isForeign || foreign !== undefined;
 
-      column =
-        column +
-        `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${foreignKey}, `;
-      if (trigger !== undefined) {
-        db.exec(trigger);
+        column =
+          column +
+          `${name} ${type}${nullableKey}${primaryKey}${uniqueKey}${defaultKey}${checkKey}${foreignKey}, `;
+        if (trigger !== undefined) {
+          db.exec(trigger);
+        }
+        if (index) {
+          indexColumn.push({ name, query: index.query });
+        }
       }
-    });
+    );
     // 末尾の空白とカンマをトリム
     column = column.trim().slice(0, -1);
 
     if (isForeign) db.pragma('foreign_keys = ON');
-    db.prepare(`${createTable}(${column})`).run();
+    db.transaction(() => {
+      db.prepare(`${createTable}(${column})`).run();
+      indexColumn.forEach(({ name, query }) => {
+        // マイグレーションの際、新しいテーブル名から"_new_"以降を削除
+        const table = tableName.replace(/_new_.*$/, '');
+        query.forEach((q) => {
+          db.prepare(
+            `CREATE INDEX IF NOT EXISTS ${name}_index ON ${table}(${name}${q ? ` ${q}` : ''})`
+          ).run();
+        });
+      });
+    })();
   };
 
 /**

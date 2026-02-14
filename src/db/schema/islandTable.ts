@@ -26,6 +26,7 @@ export const islandSchema: DbSchema = [
   {
     name: 'population',
     type: 'INTEGER',
+    index: { query: ['DESC'] },
   },
   {
     name: 'food',
