@@ -44,3 +44,6 @@ storybook-static
 
 # log
 /log
+
+# prompt
+/.agent

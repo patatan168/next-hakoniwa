@@ -74,3 +74,61 @@ export const Example: Story = {
     return <meta.component value={tab} onChange={handleChange} {...props} />;
   },
 };
+
+export const VerticalLeft: Story = {
+  render: (args) => {
+    const [tab, setTab] = useState(0);
+    const handleChange = (newValue: number) => {
+      setTab(newValue);
+    };
+    const props = omit(args, ['value', 'onChange']);
+
+    return (
+      <div className="flex">
+        <meta.component
+          value={tab}
+          onChange={handleChange}
+          {...props}
+          orientation="vertical-left"
+          tabContents={[
+            { value: 0, label: 'Settings' },
+            { value: 1, label: 'Profile' },
+            { value: 2, label: '設定 (JP)' },
+          ]}
+        />
+        <div className="h-96 w-64 border border-l-0 border-gray-200 p-4">
+          Content on the Right (Tabs on Left)
+        </div>
+      </div>
+    );
+  },
+};
+
+export const VerticalRight: Story = {
+  render: (args) => {
+    const [tab, setTab] = useState(0);
+    const handleChange = (newValue: number) => {
+      setTab(newValue);
+    };
+    const props = omit(args, ['value', 'onChange']);
+
+    return (
+      <div className="flex">
+        <div className="h-96 w-64 border border-r-0 border-gray-200 p-4">
+          Content on the Left (Tabs on Right)
+        </div>
+        <meta.component
+          value={tab}
+          onChange={handleChange}
+          {...props}
+          orientation="vertical-right"
+          tabContents={[
+            { value: 0, label: 'Settings' },
+            { value: 1, label: 'Profile' },
+            { value: 2, label: '設定 (JP)' },
+          ]}
+        />
+      </div>
+    );
+  },
+};
