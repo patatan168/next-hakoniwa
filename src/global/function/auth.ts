@@ -107,6 +107,9 @@ export const createJwtToken = async (
   );
 
   await setAuthCookie(newToken, isAccessToken);
+  if (!isAccessToken) {
+    await setExistsRefreshToken();
+  }
 };
 
 /**
@@ -115,11 +118,7 @@ export const createJwtToken = async (
  * @param isAccessToken アクセストークンorリフレッシュトークン
  * @param uuid UUID
  */
-export const reCreateJwtToken = async (
-  client: sqlite.Database,
-  uuid: string,
-  isAccessToken: boolean
-) => {
+async function reCreateJwtToken(client: sqlite.Database, uuid: string, isAccessToken: boolean) {
   const { expiresHour, tableName, sessionStrNum } = tokenOptions(isAccessToken);
 
   const oldToken = await getAuthCookie(isAccessToken);
@@ -156,23 +155,24 @@ export const reCreateJwtToken = async (
     jwtOptions(uuid, jwi.toString(), expiresHour, isAccessToken)
   );
   await setAuthCookie(newToken, isAccessToken);
-};
+}
 
 /**
  * 認証用のJWTトークンをCookieに格納する
  * @param token JWTトークン
  * @param isAccessToken アクセストークンorリフレッシュトークン
  */
-export const setAuthCookie = async (token: string, isAccessToken: boolean) => {
+async function setAuthCookie(token: string, isAccessToken: boolean) {
   const { expiresHour, cookieKey } = tokenOptions(isAccessToken);
   const cookieStore = await cookies();
   cookieStore.set(cookieKey, token, {
     maxAge: expiresHour * 60 * 60,
     sameSite: 'strict',
+    httpOnly: true,
     secure: true,
     path: '/',
   });
-};
+}
 
 /**
  * 認証用のJWTトークンをCookieから取得する
@@ -188,16 +188,38 @@ export const getAuthCookie = async (isAccessToken: boolean) => {
  * 認証用のJWTトークンをCookieから削除する
  * @param isAccessToken アクセストークンorリフレッシュトークン
  */
-export const deleteAuthCookie = async (isAccessToken: boolean) => {
+async function deleteAuthCookie(isAccessToken: boolean) {
   const { cookieKey } = tokenOptions(isAccessToken);
   const cookieStore = await cookies();
   cookieStore.set(cookieKey, '', {
     maxAge: 0,
     sameSite: 'strict',
+    httpOnly: true,
     secure: true,
     path: '/',
   });
-};
+}
+
+async function setExistsRefreshToken() {
+  const maxAge = tokenOptions(false).expiresHour * 60 * 60;
+  const cookieStore = await cookies();
+  cookieStore.set('__Host-exists_refresh_token', 'true', {
+    maxAge,
+    sameSite: 'strict',
+    secure: true,
+    path: '/',
+  });
+}
+
+async function deleteExistsRefreshToken() {
+  const cookieStore = await cookies();
+  cookieStore.set('__Host-exists_refresh_token', '', {
+    maxAge: 0,
+    sameSite: 'strict',
+    secure: true,
+    path: '/',
+  });
+}
 
 /**
  * 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
@@ -285,6 +307,7 @@ export const validAuthCookie = async (
         if (diffSec > refreshSec) {
           if (isAccessToken) {
             await reCreateAccessToken(client);
+            await setExistsRefreshToken();
           } else {
             await reCreateJwtToken(client, uuid, isAccessToken);
           }
@@ -323,7 +346,7 @@ export const validAuthCookie = async (
         }
       }
       // Fail
-      console.error(error);
+      await deleteExistsRefreshToken();
       return undefined;
     }
   } else if (isAccessToken) {
@@ -343,6 +366,7 @@ export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
   // Cookie削除
   await deleteAuthCookie(true);
   await deleteAuthCookie(false);
+  await deleteExistsRefreshToken();
 
   if (accessToken) {
     const { tableName: accessTokenTableName, algorithm: accessTokenAlgorithm } = tokenOptions(true);
