@@ -16,6 +16,8 @@ if (
 const META_DATA = Object.freeze({
   TITLE: process.env.NEXT_PUBLIC_TITLE!,
   VERSION: process.env.NEXT_PUBLIC_VERSION!,
+  /** 計画の最大数 */
+  PLAN_LENGTH: Number(process.env.NEXT_PUBLIC_PLAN_LENGTH!),
   /** マップサイズ */
   MAP_SIZE: Number(process.env.NEXT_PUBLIC_MAP_SIZE!),
   /** 資金の単位 */

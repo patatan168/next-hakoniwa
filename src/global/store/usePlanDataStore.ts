@@ -100,11 +100,29 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
     }
   },
   deleteItem: (id) => {
-    const { items } = get();
-    const nextItems = items
-      .filter((item) => item.id !== id)
-      .map((item, index) => ({ ...item, plan_no: index }));
-    get().setItems(nextItems);
+    const { items, addPlanListData } = get();
+    // 削除対象を除外
+    const filtered = items.filter((item) => item.id !== id);
+    // 足りない分をfinancingで埋める
+    const uuid = items[0]?.from_uuid ?? '';
+    const padded = [
+      ...filtered,
+      ...Array.from({ length: items.length - filtered.length }, (_, i) => ({
+        id: Math.max(0, ...items.map((it) => it.id)) + 1 + i,
+        plan_no: 0, // あとで振り直す
+        edit: false,
+        from_uuid: uuid,
+        to_uuid: uuid,
+        times: 1,
+        x: 0,
+        y: 0,
+        plan: 'financing' as const,
+      })),
+    ];
+    // plan_noを振り直す
+    const nextItems = padded.map((item, index) => ({ ...item, plan_no: index }));
+    set({ items: nextItems });
+    addPlanListData(nextItems);
   },
 
   reset: () =>

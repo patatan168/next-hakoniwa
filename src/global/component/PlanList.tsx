@@ -288,7 +288,7 @@ type SortableItemProps = {
 // -----------------------------------------------------------------------------
 
 const createDefaultPlan = (uuid: string): LocalPlanItem[] =>
-  Array.from({ length: 20 }, (_, i) => ({
+  Array.from({ length: META_DATA.PLAN_LENGTH }, (_, i) => ({
     id: i,
     plan_no: i,
     edit: false,
@@ -343,10 +343,25 @@ const PlanList = memo(
     // propsを元に、あるべき初期状態を計算
     const computedItems = useMemo(() => {
       if (isPlanLoading || !uuid) return [];
-      return sortBy(
+
+      const baseItems = sortBy(
         uniqBy([...(initPlanData ?? []), ...createDefaultPlan(uuid)], (item) => item.plan_no),
         ['plan_no']
-      ).map((item, index) => ({ ...item, id: index, edit: false }));
+      );
+
+      // PLAN_LENGTH に合わせる
+      const lengthAdjusted = baseItems.slice(0, META_DATA.PLAN_LENGTH);
+      if (lengthAdjusted.length < META_DATA.PLAN_LENGTH) {
+        const padding = createDefaultPlan(uuid).slice(lengthAdjusted.length);
+        lengthAdjusted.push(...padding);
+      }
+
+      return lengthAdjusted.map((item, index) => ({
+        ...item,
+        id: index,
+        plan_no: index,
+        edit: false,
+      }));
     }, [uuid, isPlanLoading, initPlanData]);
 
     const myIslandName = useMemo(() => {

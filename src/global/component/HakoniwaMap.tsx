@@ -187,10 +187,12 @@ const MapClickModal = ({
       plan: plan,
     };
 
-    // 指定位置に挿入し、IDとNoを振り直す
+    // 指定位置に挿入
     const newItems = [...currentItems];
     newItems.splice(position - 1, 0, newPlan);
-    const reindexed = newItems.map((item, index) => ({
+
+    // PLAN_LENGTH に収めて、IDとNoを振り直す
+    const reindexed = newItems.slice(0, META.PLAN_LENGTH).map((item, index) => ({
       ...item,
       id: index,
       plan_no: index,
