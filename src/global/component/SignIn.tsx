@@ -118,7 +118,7 @@ export default function SignIn() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const openToggle = (value: boolean) => {
-    const tmpCookie = getCookie('refresh_token');
+    const tmpCookie = getCookie('__Host-refresh_token');
     if (tmpCookie && value) return router.push('/development');
     setOpen(value);
   };
