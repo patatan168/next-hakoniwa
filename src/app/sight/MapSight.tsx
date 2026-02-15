@@ -16,8 +16,8 @@ export default function MapSight({ uuid }: { uuid: string | string[] | undefined
   const mapCallback = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
-        const { y } = node.getBoundingClientRect();
-        setMapSize(`min(${width}px, ${minusFooterHeight - y}px)`);
+        const { x, y } = node.getBoundingClientRect();
+        setMapSize(`min(${width - x}px, ${minusFooterHeight - y}px)`);
       }
     },
     [width, minusFooterHeight]
