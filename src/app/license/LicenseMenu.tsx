@@ -22,6 +22,7 @@ export const LicenseMenu = () => {
       <LinkList href="/license/tailwindcss">Tailwind CSS</LinkList>
       <LinkList href="/license/sass">sass</LinkList>
       <LinkList href="/license/nextMdxRemoteClient">next-mdx-remote-client</LinkList>
+      <LinkList href="/license/reactVirtuoso">react-virtuoso</LinkList>
       <LinkList href="/license/reactIcons">React Icons</LinkList>
       <LinkList href="/license/dndKit">dnd-kit</LinkList>
       <LinkList href="/license/jsonwebtoken">jsonwebtoken</LinkList>
