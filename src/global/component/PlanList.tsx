@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
 import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { IoArrowRedo, IoArrowUndo } from 'react-icons/io5';
+import { IoArrowRedo, IoArrowUndo, IoTrash } from 'react-icons/io5';
 import { RxDragHandleVertical } from 'react-icons/rx';
 import META_DATA from '../define/metadata';
 import { getPlanDefine, getPlanSelect } from '../define/planType';
@@ -39,6 +39,7 @@ type PlanItemProps = {
   isDragging: boolean;
   attributes: DraggableAttributes;
   listeners: SyntheticListenerMap | undefined;
+  onDelete: (id: number) => void;
 };
 
 // -----------------------------------------------------------------------------
@@ -56,8 +57,9 @@ const PlanItem = memo(
     isDragging,
     attributes,
     listeners,
+    onDelete,
   }: PlanItemProps) => {
-    const { x, y, plan, times, edit } = item;
+    const { id, x, y, plan, times, edit } = item;
     const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
 
     const { control, subscribe, reset, setValue } = useForm<Omit<planInfoZod, 'from_uuid'>>({
@@ -208,6 +210,14 @@ const PlanItem = memo(
         {times > 1 && !edit && (
           <span className="font-mono text-xl text-shadow-xs/30">{`[${times}回]`}</span>
         )}
+
+        <button
+          onClick={() => onDelete(id)}
+          className="ml-auto p-2 text-gray-400 transition-colors hover:cursor-pointer hover:text-red-600 focus:outline-none"
+          aria-label="Delete plan"
+        >
+          <IoTrash className="text-xl" />
+        </button>
       </div>
     );
   },
@@ -226,7 +236,7 @@ PlanItem.displayName = 'PlanItem';
 // -----------------------------------------------------------------------------
 
 const SortableItem = memo(
-  ({ isChange, islandOptions, item, onUpdate, turn }: SortableItemProps) => {
+  ({ isChange, islandOptions, item, onUpdate, turn, onDelete }: SortableItemProps) => {
     const {
       isDragging,
       setActivatorNodeRef,
@@ -255,6 +265,7 @@ const SortableItem = memo(
           isDragging={isDragging}
           attributes={attributes}
           listeners={listeners}
+          onDelete={onDelete}
         />
       </div>
     );
@@ -269,6 +280,7 @@ type SortableItemProps = {
   item: LocalPlanItem;
   onUpdate: (id: number, data: Partial<LocalPlanItem>) => void;
   turn: number;
+  onDelete: (id: number) => void;
 };
 
 // -----------------------------------------------------------------------------
@@ -326,6 +338,7 @@ const PlanList = memo(
     const setItems = usePlanDataStore((state) => state.setItems);
     const undo = usePlanDataStore((state) => state.undo);
     const redo = usePlanDataStore((state) => state.redo);
+    const deleteItem = usePlanDataStore((state) => state.deleteItem);
 
     // propsを元に、あるべき初期状態を計算
     const computedItems = useMemo(() => {
@@ -365,6 +378,14 @@ const PlanList = memo(
         setItems(next);
       },
       [setItems]
+    );
+
+    // 削除
+    const handleDeleteItem = useCallback(
+      (id: number) => {
+        deleteItem(id);
+      },
+      [deleteItem]
     );
 
     // 並び替え
@@ -461,6 +482,7 @@ const PlanList = memo(
                   item={item}
                   onUpdate={handleUpdateItem}
                   turn={turnList[index]}
+                  onDelete={handleDeleteItem}
                 />
               ))}
             </SortableContext>

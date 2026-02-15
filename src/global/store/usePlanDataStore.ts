@@ -17,6 +17,7 @@ type newPlanDataStoreType = {
   ) => void;
   undo: () => void;
   redo: () => void;
+  deleteItem: (id: number) => void;
   reset: () => void;
 };
 
@@ -97,6 +98,13 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
         set({ items: targetData, historyIndex: nextIdx });
       }
     }
+  },
+  deleteItem: (id) => {
+    const { items } = get();
+    const nextItems = items
+      .filter((item) => item.id !== id)
+      .map((item, index) => ({ ...item, plan_no: index }));
+    get().setItems(nextItems);
   },
 
   reset: () =>
