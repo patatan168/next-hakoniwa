@@ -23,9 +23,9 @@ export const farm: mapType = {
   baseLand: 'plains',
   name: '農場',
   imgPath: '/img/facility/farm.gif',
-  defVal: 2,
-  maxVal: 50,
-  coefficient: 1000,
+  defVal: 1,
+  maxVal: 25,
+  coefficient: 2000,
   unit: facilityUnit,
 };
 export const mining: mapType = {
@@ -33,9 +33,9 @@ export const mining: mapType = {
   baseLand: 'mountain',
   name: '採掘場',
   imgPath: '/img/facility/mining.gif',
-  defVal: 5,
-  maxVal: 200,
-  coefficient: 100,
+  defVal: 1,
+  maxVal: 40,
+  coefficient: 5000,
   unit: facilityUnit,
 };
 export const oilField: mapType = {
