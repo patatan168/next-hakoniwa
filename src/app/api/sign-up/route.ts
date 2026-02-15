@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     await createJwtToken(db.client, uuid, false);
     await createJwtToken(db.client, uuid, true);
 
-    accessLogger(request).info(`Create uuid=${uuid}`);
+    accessLogger(request).info(`Sign Up uuid=${uuid}`);
 
     createIsland(db.client, uuid);
   }

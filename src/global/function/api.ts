@@ -36,8 +36,6 @@ export const asyncRequestValid = async <T extends z.ZodTypeAny>(
     return { response, data };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      const errors = JSON.stringify(e.flatten().fieldErrors);
-      accessLogger(request).error(`Valid Error: [${errors}]`);
       const response = NextResponse.json(
         { error: 'Invalid Input' },
         {

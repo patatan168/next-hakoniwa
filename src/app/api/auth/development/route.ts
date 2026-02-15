@@ -12,14 +12,12 @@ export async function OPTIONS() {
 export async function GET(request: NextRequest) {
   const uuid = request.headers.get('x-verified-uuid');
   if (!uuid) {
-    accessLogger(request).warn(`Unauthorized Development`);
     return NextResponse.json(
       { error: '島の取得に失敗しました。再度お試しください。' },
       { status: 401 }
     );
   }
   using db = dbConn('./src/db/data/main.db');
-  accessLogger(request).info(`Request Development uuid=${uuid}`);
   const islandData = db.client
     .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
       `SELECT * FROM (
@@ -36,10 +34,8 @@ export async function GET(request: NextRequest) {
     )
     .get(uuid);
   if (islandData === undefined) {
-    return NextResponse.json(
-      { error: '島の取得に失敗しました。再度お試しください。' },
-      { status: 401 }
-    );
+    accessLogger(request).warn(`Internal Server Error: Development uuid=${uuid}`);
+    return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });
   }
   parseJsonIslandData(islandData, false);
   return NextResponse.json(islandData);

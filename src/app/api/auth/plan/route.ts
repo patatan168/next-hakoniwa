@@ -1,6 +1,5 @@
 import { asyncRequestValid } from '@/global/function/api';
 import { dbConn } from '@/global/function/db';
-import { accessLogger } from '@/global/function/logger';
 import { planInfoZodValid } from '@/global/valid/planInfo';
 import { NextRequest, NextResponse } from 'next/server';
 import z from 'zod';
@@ -12,11 +11,9 @@ export async function OPTIONS() {
 export async function GET(request: NextRequest) {
   const uuid = request.headers.get('x-verified-uuid');
   if (!uuid) {
-    accessLogger(request).warn('Unauthorized Plan');
     return new Response('Unauthorized', { status: 401 });
   }
   using db = dbConn('./src/db/data/main.db');
-  accessLogger(request).info(`Request Plan uuid=${uuid}`);
   const planData = db.client.prepare('SELECT * FROM plan WHERE from_uuid=?').all(uuid);
   return NextResponse.json(planData);
 }
@@ -24,7 +21,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const uuid = request.headers.get('x-verified-uuid');
   if (!uuid) {
-    accessLogger(request).warn('Unauthorized Plan');
     return NextResponse.json(
       { error: '計画の送信が失敗しました。再度お試しください。' },
       { status: 401 }
@@ -34,7 +30,6 @@ export async function POST(request: NextRequest) {
   const cloned = request.clone();
   const requestBody = await cloned.json();
   if (requestBody instanceof Array) {
-    accessLogger(request).info(`Request Plan uuid=${uuid}`);
     const postDataZod = z.array(
       planInfoZodValid.omit({
         from_uuid: true,
@@ -58,7 +53,6 @@ export async function POST(request: NextRequest) {
     }
     return response;
   } else {
-    accessLogger(request).info(`Request Plan uuid=${uuid}`);
     const { response, data } = await asyncRequestValid(
       request,
       planInfoZodValid.omit({

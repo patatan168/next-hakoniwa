@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
       const lockedUntil = auth?.locked_until ? new Date(auth.locked_until) : null;
       if (lockedUntil !== null) {
         if (now < lockedUntil) {
-          accessLogger(request).warn(`Locked Sign In Attempt`);
           return NextResponse.json(
             { error: `アカウントがロックされています。しばらくしてから再度お試しください。` },
             { status: 403 }
@@ -88,14 +87,12 @@ export async function POST(request: NextRequest) {
 
         updateLoginFailCount(db.client, auth.uuid, failCount, lockedUntil);
 
-        accessLogger(request).warn(`Unauthorized Sign In`);
         return NextResponse.json(
           { error: 'ログインに失敗しました。IDとパスワードに誤りが無いか確認してください。' },
           { status: 401 }
         );
       }
     } else {
-      accessLogger(request).warn(`Unauthorized Sign In`);
       return NextResponse.json(
         { error: 'ログインに失敗しました。IDとパスワードに誤りが無いか確認してください。' },
         { status: 401 }
