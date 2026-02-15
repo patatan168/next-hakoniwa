@@ -17,11 +17,11 @@ const debounceDelay = 100;
  * @returns {WindowSize}
  */
 export const useWindowSize = () => {
-  const size = useSyncExternalStore(subscribe(), getSnapshot, getServerSnapshot);
+  const size = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   return size;
 };
 
-const subscribe = () => (callback: () => void) => {
+const subscribe = (callback: () => void) => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
 
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
