@@ -8,7 +8,7 @@ import {
   logSubmersion,
 } from '../define/logType';
 import { sea } from '../define/mapCategory/mapLand';
-import { getMapDefine, landType } from '../define/mapType';
+import { getMapDefine, landType, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { islandDataGetSet } from '../store/turnProgress';
 import { getBaseLog } from './turnProgress';
@@ -72,10 +72,12 @@ export const countMapAround = (
 ) => {
   let count = 0;
   const around = getMapAround(baseX, baseY, hex);
-  around.forEach(({ x, y }) => {
-    const islandInfo = getIslandInfo(data, x, y, true);
+  for (let i = 0; i < around.length; i++) {
+    const { x, y } = around[i];
+    if (isOpenSea(x, y)) continue;
+    const islandInfo = data[mapArrayConverter(x, y)];
     if (countType === islandInfo.type) count++;
-  });
+  }
 
   return count;
 };
@@ -98,11 +100,21 @@ export const countBaseLandAround = (
 ) => {
   let count = 0;
   const around = getMapAround(baseX, baseY, hex);
-  around.forEach(({ x, y }) => {
-    const islandInfo = getIslandInfo(data, x, y, true);
-    const { baseLand: islandBaseLand } = getMapDefine(islandInfo.type);
-    if (baseLand === islandBaseLand) count++;
-  });
+  // 定義のキャッシュ
+  const typeCache: Record<string, mapType> = {};
+
+  for (let i = 0; i < around.length; i++) {
+    const { x, y } = around[i];
+    if (isOpenSea(x, y)) {
+      if (baseLand === 'sea') count++;
+      continue;
+    }
+    const islandInfo = data[mapArrayConverter(x, y)];
+    if (!typeCache[islandInfo.type]) {
+      typeCache[islandInfo.type] = getMapDefine(islandInfo.type);
+    }
+    if (baseLand === typeCache[islandInfo.type].baseLand) count++;
+  }
 
   return count;
 };
@@ -144,20 +156,18 @@ export const countArea = (data: islandInfoData) => {
  */
 export const calcAllTypeNum = (data: islandInfoData, type: string) => {
   let count = 0;
-  for (let y = 0; y < META_DATA.MAP_SIZE; y++) {
-    for (let x = 0; x < META_DATA.MAP_SIZE; x++) {
-      const islandInfo = getIslandInfo(data, x, y, true);
-      const { coefficient } = getMapDefine(islandInfo.type);
-      switch (islandInfo.type) {
-        case type:
-          {
-            const tmpCoefficient = coefficient !== undefined ? coefficient : 1;
-            count = count + tmpCoefficient * islandInfo.landValue;
-          }
-          break;
-        default:
-          break;
+  // 定義のキャッシュ
+  const typeCache: Record<string, mapType> = {};
+
+  for (let i = 0; i < data.length; i++) {
+    const islandInfo = data[i];
+    if (islandInfo.type === type) {
+      if (!typeCache[islandInfo.type]) {
+        typeCache[islandInfo.type] = getMapDefine(islandInfo.type);
       }
+      const { coefficient } = typeCache[islandInfo.type];
+      const tmpCoefficient = coefficient !== undefined ? coefficient : 1;
+      count += tmpCoefficient * islandInfo.landValue;
     }
   }
 
@@ -184,10 +194,10 @@ export const mapArrayConverter = (x: number, y: number) => {
 export const getIslandInfo = (data: islandInfoData, findX: number, findY: number, deep = false) => {
   if (isOpenSea(findX, findY)) {
     //外海
-    return { x: findX, y: findY, type: sea.type, landValue: 0 };
+    return { x: findX, y: findY, type: sea.type, landValue: sea.defVal };
   } else {
     const arrayNum = mapArrayConverter(findX, findY);
-    return deep ? structuredClone(data[arrayNum]) : data[arrayNum];
+    return deep ? { ...data[arrayNum] } : data[arrayNum];
   }
 };
 

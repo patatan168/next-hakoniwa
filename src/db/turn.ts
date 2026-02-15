@@ -1,9 +1,8 @@
-import { getMapDefine } from '@/global/define/mapType';
+import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
-import { calcAllTypeNum, countArea } from '@/global/function/island';
 import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
@@ -207,11 +206,55 @@ function calcPhase(fromIsland: islandSchemaType) {
   using fromIslandGetSet = islandDataGetSet(fromIsland.uuid);
   const islandInfo = fromIslandGetSet.islandData;
   if (!islandInfo) throw new Error(`島情報が見つかりません。uuid=${fromIsland.uuid}`);
-  islandInfo.area = countArea(islandInfo.island_info);
-  islandInfo.factory = calcAllTypeNum(islandInfo.island_info, 'factory');
-  islandInfo.mining = calcAllTypeNum(islandInfo.island_info, 'mining');
-  islandInfo.farm = calcAllTypeNum(islandInfo.island_info, 'farm');
-  islandInfo.population = calcAllTypeNum(islandInfo.island_info, 'people');
+
+  let areaCount = 0;
+  let factoryCount = 0;
+  let miningCount = 0;
+  let farmCount = 0;
+  let populationCount = 0;
+
+  const typeCache: Record<string, mapType> = {};
+
+  for (const item of islandInfo.island_info) {
+    if (!typeCache[item.type]) {
+      typeCache[item.type] = getMapDefine(item.type);
+    }
+    const mapDef = typeCache[item.type];
+
+    // 面積カウント
+    switch (mapDef.baseLand) {
+      case 'plains':
+      case 'mountain':
+      case 'monster':
+      case 'sanjira':
+      case 'kujira':
+        areaCount++;
+        break;
+    }
+
+    // 各種統計
+    const coefficient = mapDef.coefficient ?? 1;
+    switch (item.type) {
+      case 'factory':
+        factoryCount += coefficient * item.landValue;
+        break;
+      case 'mining':
+        miningCount += coefficient * item.landValue;
+        break;
+      case 'farm':
+        farmCount += coefficient * item.landValue;
+        break;
+      case 'people':
+        populationCount += coefficient * item.landValue;
+        break;
+    }
+  }
+
+  islandInfo.area = 100 * areaCount;
+  islandInfo.factory = Math.trunc(factoryCount);
+  islandInfo.mining = Math.trunc(miningCount);
+  islandInfo.farm = Math.trunc(farmCount);
+  islandInfo.population = Math.trunc(populationCount);
 
   // 食料と資金の処理
   if (islandInfo.food > META_DATA.MAX_FOOD) {
