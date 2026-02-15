@@ -17,7 +17,6 @@ import scssStyle from './style/HakoniwaMap.module.scss';
 
 type SpacerProps = {
   mapWidth: number;
-  mapHeight: number;
   rows: number;
   cols: number;
   num?: number;
@@ -25,26 +24,19 @@ type SpacerProps = {
 };
 
 const Spacer = memo(
-  function Spacer({ mapWidth, mapHeight, rows, cols, num, algin }: SpacerProps) {
+  function Spacer({ mapWidth, rows, cols, num, algin }: SpacerProps) {
     // algin
-    let left = 50;
-    if (algin === 'left') {
-      left = 25;
-    } else if (algin === 'right') {
-      left = 75;
-    }
+    const leftStyle =
+      algin === 'left' ? 'left-[25%]' : algin === 'right' ? 'right-[25%]' : 'left-[50%]';
 
     return (
       <>
-        <div
-          style={{ width: (mapWidth * cols) / 2, height: (mapHeight * rows) / 2 }}
-          className={`col-span-${cols} row-span-${rows} relative`}
-        >
-          <Image src={'/img/land/sea.gif'} alt={'外海'} sizes={`${mapWidth}px`} fill priority />
+        <div className={`h-full w-full col-span-${cols} row-span-${rows} relative`}>
+          <Image src={'/img/land/sea.gif'} alt={'外海'} sizes={`100%`} fill priority />
           {num !== undefined && (
             <p
-              className={scssStyle['map-overlay']}
-              style={{ left: `${left}%`, fontSize: (13 * mapWidth) / baseMapPixel }}
+              className={`${scssStyle['map-overlay']} ${leftStyle}`}
+              style={{ fontSize: (13 * mapWidth) / baseMapPixel }}
             >
               {num}
             </p>
@@ -400,12 +392,11 @@ export default memo(
             />
           </div>
         )}
-        <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={1} cols={2} />
+        <Spacer mapWidth={mapWidth} rows={1} cols={2} />
         {coordinate.map((x) => (
           <Spacer
             key={`spacer-${x}`}
             mapWidth={mapWidth}
-            mapHeight={mapHeight}
             rows={1}
             cols={2}
             num={x}
@@ -429,21 +420,12 @@ export default memo(
           return (
             <Fragment key={`map-${x}-${y}`}>
               {x === 0 && y % 2 === 0 && (
-                <Spacer
-                  mapWidth={mapWidth}
-                  mapHeight={mapHeight}
-                  rows={2}
-                  cols={2}
-                  num={y}
-                  algin={'left'}
-                />
+                <Spacer mapWidth={mapWidth} rows={2} cols={2} num={y} algin={'left'} />
               )}
-              {x === 0 && y % 2 === 1 && (
-                <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={2} cols={1} num={y} />
-              )}
+              {x === 0 && y % 2 === 1 && <Spacer mapWidth={mapWidth} rows={2} cols={1} num={y} />}
               <div
-                ref={divCallback}
-                className={`relative col-span-2 row-span-2 ${isDevelop && !modalOpen ? 'cursor-pointer hover:z-[1000]' : ''}`}
+                ref={x === 0 && y === 0 ? divCallback : undefined}
+                className={`col-span-2 row-span-2 h-full w-full ${isDevelop && !modalOpen ? 'cursor-pointer hover:z-[1000]' : ''}`}
                 onClick={() => handleMapClick(x, y)}
               >
                 <Tooltip
@@ -458,20 +440,17 @@ export default memo(
                     />
                   }
                 >
-                  <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
-                    <Image
-                      className="hover:brightness-150 hover:contrast-115"
-                      src={src}
-                      alt={alt}
-                      sizes={`${mapWidth}px`}
-                      fill
-                      loading="lazy"
-                    />
-                  </div>
+                  <Image
+                    className="hover:brightness-150 hover:contrast-115"
+                    src={src}
+                    alt={alt}
+                    sizes={`100%`}
+                    fill
+                  />
                 </Tooltip>
               </div>
               {x === META.MAP_SIZE - 1 && y % 2 === 1 && (
-                <Spacer mapWidth={mapWidth} mapHeight={mapHeight} rows={2} cols={1} />
+                <Spacer mapWidth={mapWidth} rows={2} cols={1} />
               )}
             </Fragment>
           );
