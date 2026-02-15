@@ -3,7 +3,6 @@ import 'server-only';
 import { refreshTokenSchemaType } from '@/db/schema/refreshTokenTable';
 import { default as META } from '@/global/define/metadata';
 import sqlite from 'better-sqlite3';
-import { deleteCookie, getCookie, setCookie } from 'cookies-next/server';
 import * as jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { es256Gen, es384Gen, randomString } from './encrypt';
@@ -166,8 +165,8 @@ export const reCreateJwtToken = async (
  */
 export const setAuthCookie = async (token: string, isAccessToken: boolean) => {
   const { expiresHour, cookieKey } = tokenOptions(isAccessToken);
-  await setCookie(cookieKey, token, {
-    cookies,
+  const cookieStore = await cookies();
+  cookieStore.set(cookieKey, token, {
     maxAge: expiresHour * 60 * 60,
     sameSite: 'strict',
     secure: true,
@@ -181,7 +180,8 @@ export const setAuthCookie = async (token: string, isAccessToken: boolean) => {
  */
 export const getAuthCookie = async (isAccessToken: boolean) => {
   const { cookieKey } = tokenOptions(isAccessToken);
-  return await getCookie(cookieKey, { cookies });
+  const cookieStore = await cookies();
+  return cookieStore.get(cookieKey)?.value;
 };
 
 /**
@@ -190,10 +190,12 @@ export const getAuthCookie = async (isAccessToken: boolean) => {
  */
 export const deleteAuthCookie = async (isAccessToken: boolean) => {
   const { cookieKey } = tokenOptions(isAccessToken);
-  await deleteCookie(cookieKey, {
-    cookies,
-    path: '/',
+  const cookieStore = await cookies();
+  cookieStore.set(cookieKey, '', {
+    maxAge: 0,
+    sameSite: 'strict',
     secure: true,
+    path: '/',
   });
 };
 
