@@ -28,7 +28,6 @@ export const LicenseMenu = () => {
       <LinkList href="/license/htmlReactPerser">html-react-parser</LinkList>
       <LinkList href="/license/esToolkit">es-toolkit</LinkList>
       <LinkList href="/license/dotenvFlow">dotenv-flow</LinkList>
-      <LinkList href="/license/cookiesNext">cookies-next</LinkList>
       <LinkList href="/license/betterSqlite">better-sqlite3</LinkList>
       <LinkList href="/license/argon2">argon2</LinkList>
       <LinkList href="/license/uuidv7">uuidv7</LinkList>

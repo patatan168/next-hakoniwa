@@ -1,9 +1,9 @@
 'use client';
-import { getCookie } from 'cookies-next/client';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
+import { getCookie } from '../function/cookie';
 import { useClientFetch } from '../function/fetch/clientFetch';
 import { turnStore } from '../store/api/public/turn';
 import Button from './Button';

@@ -54,7 +54,6 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | zod                       | 4.3.6   |
 | es-toolkit                | 1.44.0  |
 | jsonwebtoken              | 9.0.3   |
-| cookies-next              | 6.1.1   |
 | winston                   | 3.19.0  |
 | winston-daily-rotate-file | 5.0.0   |
 | argon2                    | 0.44.0  |

@@ -2,12 +2,12 @@
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
+import { getCookie } from '@/global/function/cookie';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { signInStore } from '@/global/store/api/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getCookie } from 'cookies-next/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
