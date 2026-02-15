@@ -2,7 +2,6 @@ import { isEqual } from 'es-toolkit';
 import { memo, ReactNode, useEffect, useState } from 'react';
 import { RxCross1 } from 'react-icons/rx';
 import { createPortalIdHook } from '../function/createPortalIdHook';
-import { Card } from './Card';
 import IfComponent from './IfComponent';
 import Overlay from './Overlay';
 
@@ -132,19 +131,23 @@ export default memo(
 
     const modalContent = (
       <div
-        aria-modal="true"
-        role="dialog"
-        tabIndex={-1}
-        onKeyDown={modalFunction}
-        className={`${portal ? 'fixed' : 'absolute'} top-1/2 left-1/2 z-999 max-w-screen -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:bg-gray-700 ${open ? 'visible scale-100 opacity-100' : 'invisible scale-95 opacity-0'}`}
+        className={`${portal ? 'fixed' : 'absolute'} pointer-events-none inset-0 z-999 flex items-center justify-center transition-all duration-300 ease-in-out ${open ? 'visible' : 'invisible'}`}
       >
-        <IfComponent isRendered={isContentRendered}>
-          <Card>
+        <div
+          aria-modal="true"
+          role="dialog"
+          tabIndex={-1}
+          onKeyDown={modalFunction}
+          className={`card-border pointer-events-auto flex max-h-screen max-w-screen flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-700 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+        >
+          <IfComponent isRendered={isContentRendered}>
             <HeaderModal header={header} openToggle={openToggle} />
-            <BodyModal body={body} />
+            <div className="flex-1 overflow-y-auto">
+              <BodyModal body={body} />
+            </div>
             <FooterModal footer={footer} />
-          </Card>
-        </IfComponent>
+          </IfComponent>
+        </div>
       </div>
     );
 

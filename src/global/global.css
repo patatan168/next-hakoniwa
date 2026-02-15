@@ -67,6 +67,10 @@ footer {
   max-width: var(--real-vw);
 }
 
+.max-h-screen {
+  max-height: var(--real-vh);
+}
+
 .title {
   color: var(--title);
   text-shadow: 1px 1px 1px;
