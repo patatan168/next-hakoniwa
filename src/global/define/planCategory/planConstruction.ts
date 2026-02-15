@@ -128,7 +128,7 @@ export const farmDev: planType = {
       case 'farm': {
         const { maxVal } = getMapDefine('farm');
         // 加算する施設の値
-        const addValue = 2;
+        const addValue = 1;
         // 最大値以下なら施設を加算する
         if (maxVal >= mapInfo.landValue + addValue) {
           changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
@@ -192,7 +192,7 @@ export const immediateFarmDev: planType = {
         case 'farm': {
           const { maxVal } = getMapDefine('farm');
           // 加算する施設の値
-          const addValue = 2;
+          const addValue = 1;
           // 最大値以下なら施設を加算する
           if (maxVal >= mapInfo.landValue + addValue) {
             changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
@@ -388,7 +388,7 @@ export const miningDev: planType = {
       case 'mining': {
         const { maxVal } = getMapDefine('mining');
         // 加算する施設の値
-        const addValue = 5;
+        const addValue = 1;
         // 最大値以下なら施設を加算する
         if (maxVal >= mapInfo.landValue + addValue) {
           changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'add', value: addValue });
@@ -451,7 +451,7 @@ export const immediateMiningDev: planType = {
         case 'mining': {
           const { maxVal } = getMapDefine('mining');
           // 加算する施設の値
-          const addValue = 5;
+          const addValue = 1;
           // 最大値以下なら施設を加算する
           if (maxVal >= mapInfo.landValue + addValue) {
             changeMapData(toIsland, plan.x, plan.y, 'mining', { type: 'add', value: addValue });
