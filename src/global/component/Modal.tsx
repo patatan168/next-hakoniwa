@@ -61,6 +61,51 @@ const FooterModal = memo(
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
 
+const ModalContent = memo(
+  function ModalContent({
+    portal,
+    open,
+    modalFunction,
+    isContentRendered,
+    header,
+    openToggle,
+    body,
+    footer,
+  }: {
+    portal: boolean;
+    open: boolean;
+    modalFunction: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+    isContentRendered: boolean;
+    header?: string | ReactNode;
+    openToggle: ((value: boolean) => void) | (() => void);
+    body: ReactNode;
+    footer?: ReactNode;
+  }) {
+    return (
+      <div
+        className={`${portal ? 'fixed' : 'absolute'} pointer-events-none inset-0 z-999 flex items-center justify-center transition-all duration-300 ease-in-out ${open ? 'visible' : 'invisible'}`}
+      >
+        <div
+          aria-modal="true"
+          role="dialog"
+          tabIndex={-1}
+          onKeyDown={modalFunction}
+          className={`card-border pointer-events-auto flex ${portal ? 'max-h-screen max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+        >
+          <IfComponent isRendered={isContentRendered}>
+            <HeaderModal header={header} openToggle={openToggle} />
+            <div className="flex-1 overflow-y-auto">
+              <BodyModal body={body} />
+            </div>
+            <FooterModal footer={footer} />
+          </IfComponent>
+        </div>
+      </div>
+    );
+  },
+  (oldProps, newProps) => isEqual(oldProps, newProps)
+);
+
 export default memo(
   function Modal({
     header,
@@ -130,25 +175,16 @@ export default memo(
     if (!mounted || typeof document === 'undefined') return null;
 
     const modalContent = (
-      <div
-        className={`${portal ? 'fixed' : 'absolute'} pointer-events-none inset-0 z-999 flex items-center justify-center transition-all duration-300 ease-in-out ${open ? 'visible' : 'invisible'}`}
-      >
-        <div
-          aria-modal="true"
-          role="dialog"
-          tabIndex={-1}
-          onKeyDown={modalFunction}
-          className={`card-border pointer-events-auto flex max-h-screen max-w-screen flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-700 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
-        >
-          <IfComponent isRendered={isContentRendered}>
-            <HeaderModal header={header} openToggle={openToggle} />
-            <div className="flex-1 overflow-y-auto">
-              <BodyModal body={body} />
-            </div>
-            <FooterModal footer={footer} />
-          </IfComponent>
-        </div>
-      </div>
+      <ModalContent
+        portal={portal}
+        open={open}
+        modalFunction={modalFunction}
+        isContentRendered={isContentRendered}
+        header={header}
+        openToggle={openToggle}
+        body={body}
+        footer={footer}
+      />
     );
 
     return (
