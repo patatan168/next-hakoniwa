@@ -22,14 +22,14 @@ const tokenOptions = (
 } => {
   return isAccessToken
     ? {
-        cookieKey: '__Host-access_token',
+        cookieKey: '__Host-Http-access_token',
         tableName: 'access_token',
         algorithm: 'ES256',
         sessionStrNum: 32,
         expiresHour: META.ACCESS_TOKEN_EXPIRES_HOUR,
       }
     : {
-        cookieKey: '__Host-refresh_token',
+        cookieKey: '__Host-Http-refresh_token',
         tableName: 'refresh_token',
         algorithm: 'ES384',
         sessionStrNum: 128,
@@ -200,6 +200,9 @@ async function deleteAuthCookie(isAccessToken: boolean) {
   });
 }
 
+/**
+ * リフレッシュトークンが存在するかどうかをCookieに格納する
+ */
 async function setExistsRefreshToken() {
   const maxAge = tokenOptions(false).expiresHour * 60 * 60;
   const cookieStore = await cookies();
@@ -211,6 +214,9 @@ async function setExistsRefreshToken() {
   });
 }
 
+/**
+ * リフレッシュトークンが存在するかどうかをCookieから削除する
+ */
 async function deleteExistsRefreshToken() {
   const cookieStore = await cookies();
   cookieStore.set('__Host-exists_refresh_token', '', {
