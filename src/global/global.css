@@ -26,6 +26,7 @@
   --table-border: 1px solid rgba(0, 0, 0, 0.12);
   --real-vh: 99.8dvh;
   --real-vw: 99.8dvw;
+  --real-vh-minus-footer: 99dvh;
 }
 
 body {

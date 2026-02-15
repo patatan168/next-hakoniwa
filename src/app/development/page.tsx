@@ -25,7 +25,7 @@ export default function IslandList() {
   } = useClientFetch(planStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
   const [listHeight, setListHeight] = useState('100svh');
-  const [mapSize, setMapSize] = useState('min(100vw, 100vh)');
+  const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
   const { width, minusFooterHeight } = useWindowSize();
   const mapCallback = useCallback(
     (node: HTMLDivElement) => {
