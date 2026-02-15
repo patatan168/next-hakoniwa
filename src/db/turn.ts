@@ -54,12 +54,15 @@ function incomeAndEatenPhase(fromUuid: string) {
   if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
 
   if (fromIsland.population > fromIsland.farm) {
-    fromIsland.food += fromIsland.farm / 100;
+    fromIsland.food += fromIsland.farm;
     fromIsland.money += Math.trunc(
-      Math.min(fromIsland.population - fromIsland.food, fromIsland.factory + fromIsland.mining) / 10
+      Math.min(
+        (fromIsland.population - fromIsland.food) / 10,
+        fromIsland.factory + fromIsland.mining
+      )
     );
   } else {
-    fromIsland.food += fromIsland.population / 100;
+    fromIsland.food += fromIsland.population;
   }
   // 食料消費
   fromIsland.food -= Math.trunc(fromIsland.population * META_DATA.EATEN_FOOD_PER_PEOPLE);
