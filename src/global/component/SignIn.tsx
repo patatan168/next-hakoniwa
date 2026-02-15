@@ -63,7 +63,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
 
   // 開発画面へリダイレクト
   useEffect(() => {
-    const tmpCookie = getCookie('refresh_token');
+    const tmpCookie = getCookie('__Host-refresh_token');
     if (data.post?.result && open && tmpCookie) {
       reset();
       openToggle(false);

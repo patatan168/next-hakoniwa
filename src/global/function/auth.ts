@@ -23,14 +23,14 @@ const tokenOptions = (
 } => {
   return isAccessToken
     ? {
-        cookieKey: 'access_token',
+        cookieKey: '__Host-access_token',
         tableName: 'access_token',
         algorithm: 'ES256',
         sessionStrNum: 32,
         expiresHour: META.ACCESS_TOKEN_EXPIRES_HOUR,
       }
     : {
-        cookieKey: 'refresh_token',
+        cookieKey: '__Host-refresh_token',
         tableName: 'refresh_token',
         algorithm: 'ES384',
         sessionStrNum: 128,
@@ -169,7 +169,9 @@ export const setAuthCookie = async (token: string, isAccessToken: boolean) => {
   await setCookie(cookieKey, token, {
     cookies,
     maxAge: expiresHour * 60 * 60,
-    sameSite: 'lax',
+    sameSite: 'strict',
+    secure: true,
+    path: '/',
   });
 };
 
@@ -188,7 +190,11 @@ export const getAuthCookie = async (isAccessToken: boolean) => {
  */
 export const deleteAuthCookie = async (isAccessToken: boolean) => {
   const { cookieKey } = tokenOptions(isAccessToken);
-  await deleteCookie(cookieKey, { cookies });
+  await deleteCookie(cookieKey, {
+    cookies,
+    path: '/',
+    secure: true,
+  });
 };
 
 /**

@@ -20,7 +20,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const update = () => setExistsToken(!!getCookie('refresh_token'));
+    const update = () => setExistsToken(!!getCookie('__Host-refresh_token'));
     update(); // 初回
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
