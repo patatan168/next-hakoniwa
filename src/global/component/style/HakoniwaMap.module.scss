@@ -5,6 +5,19 @@ $mapSize: $NEXT_PUBLIC_MAP_SIZE;
   grid-template-rows: repeat(calc(2 * (#{$mapSize} + 1) - 1), minmax(0, 1fr));
   gap: 0;
   align-items: stretch;
+  aspect-ratio: calc(2 * (#{$mapSize} + 1)) / calc(2 * (#{$mapSize} + 1) - 1);
+}
+
+.map-container {
+  padding: 2px;
+  background: #fdfdfd;
+  border: 2px solid #138b1d;
+  outline: 4px double #34e480;
+  border-radius: 4px;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1),
+    inset 0 0 10px rgba(139, 69, 19, 0.2);
 }
 
 .map-overlay {

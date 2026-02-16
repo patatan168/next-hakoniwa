@@ -39,7 +39,7 @@ export default function MapSight({ uuid }: { uuid: string | string[] | undefined
       <IslandData mode="sight" data={islandData.get} />
       <HakoniwaMap
         ref={mapCallback}
-        style={{ width: mapSize, height: mapSize }}
+        style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
         isLoading={isLoading.get}
         islandName={islandData.get?.island_name}
         data={islandData.get?.island_info}

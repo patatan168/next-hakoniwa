@@ -60,7 +60,7 @@ export default function IslandList() {
           <IslandData mode="development" data={developData.get} />
           <HakoniwaMap
             ref={mapCallback}
-            style={{ width: mapSize, height: mapSize }}
+            style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
             isLoading={isLoading.get}
             islandName={developData.get?.island_name}
             data={developData.get?.island_info}

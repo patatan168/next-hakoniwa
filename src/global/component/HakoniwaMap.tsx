@@ -378,7 +378,11 @@ export default memo(
     };
 
     return (
-      <div ref={ref} style={style} className={`${scssStyle['map-grid']} ${className} relative`}>
+      <div
+        ref={ref}
+        style={style}
+        className={`${scssStyle['map-grid']} ${className} relative ${scssStyle['map-container']}`}
+      >
         {modalOpen && uuid && (
           <div className="absolute inset-0 z-50">
             <MapClickModal
