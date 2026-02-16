@@ -27,7 +27,7 @@ export default memo(
     return (
       <div
         ref={ref}
-        className="my-2 grid h-fit w-[98vw] max-w-xl grid-cols-9 items-stretch gap-0.5"
+        className="my-2 grid h-fit w-[98vw] max-w-md grid-cols-9 items-stretch gap-0.5"
       >
         {/* 順位 */}
         <div className={`${title} col-start-1 row-start-1`}>順位</div>

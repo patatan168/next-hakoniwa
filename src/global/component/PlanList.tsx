@@ -141,7 +141,7 @@ const PlanItem = memo(
                   style={{ width: 'fit-content' }}
                 />
                 <div className="flex items-center gap-0">
-                  <label className="text-sm" htmlFor={`x-${item.id}`}>
+                  <label className="whitespace-nowrap" htmlFor={`x-${item.id}`}>
                     X座標
                   </label>
                   <RangeSliderRHF
@@ -154,7 +154,7 @@ const PlanItem = memo(
                   />
                 </div>
                 <div className="flex items-center gap-0">
-                  <label className="text-sm" htmlFor={`y-${item.id}`}>
+                  <label className="whitespace-nowrap" htmlFor={`y-${item.id}`}>
                     Y座標
                   </label>
                   <RangeSliderRHF
@@ -169,7 +169,7 @@ const PlanItem = memo(
               </div>
               <div>
                 <div className="mt-2 flex items-center gap-0">
-                  <label className="mr-2 text-sm" htmlFor={`to_uuid-${item.id}`}>
+                  <label className="mr-2 whitespace-nowrap" htmlFor={`to_uuid-${item.id}`}>
                     目標島
                   </label>
                   <SelectRHF
@@ -183,7 +183,7 @@ const PlanItem = memo(
                   />
                 </div>
                 <div className="flex items-center gap-0">
-                  <label className="text-sm" htmlFor={`times-${item.id}`}>
+                  <label className="whitespace-nowrap" htmlFor={`times-${item.id}`}>
                     計画数
                   </label>
                   <RangeSliderRHF
