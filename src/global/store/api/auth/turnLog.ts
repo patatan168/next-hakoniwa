@@ -1,7 +1,7 @@
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { FetchStore } from '@/global/function/fetch/fetch';
 
-const store = new FetchStore<Omit<turnLogSchemaType, 'secret_log'>[]>('/api/public/turn-log', {
+const store = new FetchStore<Omit<turnLogSchemaType, 'log'>[]>('/api/auth/turn-log', {
   waitTime: 10,
   mergeData: {
     get: true,
@@ -14,4 +14,4 @@ const store = new FetchStore<Omit<turnLogSchemaType, 'secret_log'>[]>('/api/publ
   },
 });
 
-export const turnLogStore = store.store;
+export const turnLogAuthStore = store.store;
