@@ -7,24 +7,45 @@ import dynamic from 'next/dynamic';
 const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
 const TurnLog = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
 
+/**
+ * 島開発メニューのコンテンツを表示するコンポーネント
+ * '計画'と'記録'のビュー切り替えを処理
+ */
 type Props = {
+  /** モバイルビューかどうかを示すフラグ */
   isMobile: boolean;
+  /** 高さ計測用のリストコンテナのコールバックref */
   listCallback: (node: HTMLDivElement) => void;
+  /** リストコンテナの高さ */
   listHeight: string;
+  /** 島の開発データ */
   developData?: islandSchemaType & { island_name: string } & { rank: number };
+  /** 現在のビューモード（'plan' または 'log'） */
   view: 'plan' | 'log';
+  /** 移住可能な島のリスト */
   islandList?: { uuid: string; island_name: string }[];
+  /** 現在のターンデータ */
   turnData?: turnLogSchemaType;
+  /** 計画データ読み込み中フラグ */
   isPlanLoading: boolean;
+  /** 初期計画データ */
   fetchPlanData?: planSchemaType[];
+  /** ターン記録の履歴 */
   turnLog?: (Omit<turnLogSchemaType, 'log' | 'secret_log'> & {
     log?: string;
     secret_log?: string;
   })[];
+  /** ログの遅延読み込みフラグを設定するコールバック */
   setLazyFlag: (flag: boolean) => void;
+  /** ビューモードを変更するコールバック */
   setView: (view: 'plan' | 'log') => void;
 };
 
+/**
+ * 島開発用のメニューコンテンツをレンダリング
+ * @param props コンポーネントのプロパティ
+ * @returns レンダリングされたメニューコンテンツコンポーネント
+ */
 export const MenuContent = ({
   isMobile,
   listCallback,
@@ -44,7 +65,7 @@ export const MenuContent = ({
       <div
         ref={listCallback}
         className="double flex flex-1 flex-col overflow-hidden border-3 border-green-300 bg-teal-50/50 p-2"
-        style={{ height: isMobile ? '100%' : listHeight }}
+        style={{ height: listHeight }}
       >
         <div className="text-bold mb-4 text-center text-3xl text-red-900">
           {`「${developData?.island_name}島」`}
@@ -53,7 +74,6 @@ export const MenuContent = ({
         {view === 'plan' ? (
           <PlanList
             className="flex-1 overflow-y-auto"
-            style={{ height: '100%' }}
             islandList={islandList}
             turn={turnData?.turn}
             isPlanLoading={isPlanLoading}
@@ -61,15 +81,10 @@ export const MenuContent = ({
             uuid={developData?.uuid}
           />
         ) : (
-          <TurnLog
-            className="flex-1"
-            style={{ height: '100%' }}
-            logs={turnLog}
-            setLazyFlag={setLazyFlag}
-          />
+          <TurnLog className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
         )}
       </div>
-      <div className="-ml-[4px] flex h-full items-center">
+      <div className="-ml-[3px] flex h-full items-center">
         <BaseTabs
           orientation="vertical-right"
           value={view}

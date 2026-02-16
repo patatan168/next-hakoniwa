@@ -44,7 +44,7 @@ export const useDevelopmentPage = () => {
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { y } = node.getBoundingClientRect();
-        setListHeight(isMobile ? `${minusFooterHeight - 80}px` : `${minusFooterHeight - y}px`);
+        setListHeight(`${minusFooterHeight - y}px`);
       }
     },
     [minusFooterHeight, isMobile]

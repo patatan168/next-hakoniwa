@@ -27,7 +27,7 @@ function TurnLog({
   return (
     <div ref={ref} className={className} style={style}>
       <Virtuoso
-        style={{ height: '100%', width: '100%' }}
+        className="h-full w-full"
         data={logs}
         atBottomStateChange={(atBottom) => {
           setLazyFlag(atBottom);
