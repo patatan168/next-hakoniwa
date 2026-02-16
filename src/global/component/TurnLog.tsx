@@ -7,11 +7,13 @@ import { TransformHTML } from './TransFormHTML';
 
 function TurnLog({
   ref,
+  className,
   style,
   logs,
   setLazyFlag,
 }: {
   ref?: Ref<HTMLDivElement>;
+  className?: string;
   style?: React.CSSProperties;
   logs:
     | (Omit<turnLogSchemaType, 'log' | 'secret_log'> & { log?: string; secret_log?: string })[]
@@ -23,9 +25,9 @@ function TurnLog({
   if (!ready) return <Loading />;
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className={className} style={style}>
       <Virtuoso
-        style={style}
+        style={{ height: '100%', width: '100%' }}
         data={logs}
         atBottomStateChange={(atBottom) => {
           setLazyFlag(atBottom);

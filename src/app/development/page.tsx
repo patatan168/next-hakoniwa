@@ -1,77 +1,38 @@
 'use client';
 import IslandData from '@/global/component/IslandData';
-import BaseTabs from '@/global/component/TabContents';
-import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { useWindowSize } from '@/global/function/useWindowSize';
-import { developmentStore } from '@/global/store/api/auth/development';
-import { planStore } from '@/global/store/api/auth/plan';
-import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
-import { islandListStore } from '@/global/store/api/public/islandList';
-import { turnStore } from '@/global/store/api/public/turn';
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { GrNotes } from 'react-icons/gr';
+import { RxCross1 } from 'react-icons/rx';
+import { MenuContent } from './MenuContent';
+import { useDevelopmentPage } from './useDevelopmentPage';
+
 const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
-const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
-const TurnLog = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
 
 export default function IslandList() {
   const {
-    data: developData,
-    fetchIfNeeded: fetchDev,
+    developData,
+    turnData,
+    fetchPlanData,
+    isPlanLoading,
+    islandList,
+    turnLog,
+    view,
+    setView,
+    setLazyFlag,
+    listHeight,
+    mapSize,
+    showMenu,
+    setShowMenu,
+    isMobile,
+    mapCallback,
+    listCallback,
     isLoading,
-  } = useClientFetch(developmentStore);
-  const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
-  const {
-    data: fetchPlanData,
-    isLoading: isPlanLoading,
-    fetchIfNeeded: fetchPlan,
-  } = useClientFetch(planStore);
-  const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
-  const { data: turnLog, fetchIfNeeded: fetchTurnLog } = useClientFetch(turnLogAuthStore);
-  const [view, setView] = useState<'plan' | 'log'>('plan');
-  const [lazyFlag, setLazyFlag] = useState(false);
-  const [listHeight, setListHeight] = useState('100svh');
-  const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
-  const { width, minusFooterHeight } = useWindowSize();
-  const mapCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { x, y } = node.getBoundingClientRect();
-        setMapSize(`min(${width - x}px, ${minusFooterHeight - y}px)`);
-      }
-    },
-    [width, minusFooterHeight]
-  );
-  const listCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { y } = node.getBoundingClientRect();
-        setListHeight(`${minusFooterHeight - y}px`);
-      }
-    },
-    [minusFooterHeight]
-  );
-
-  useEffect(() => {
-    fetchDev({ method: 'GET' });
-    fetchTurn({ method: 'GET' });
-    fetchPlan({ method: 'GET' });
-    fetchIslandList({ method: 'GET' });
-  }, []);
-
-  useEffect(() => {
-    if (view === 'log') {
-      const lastLogUuid =
-        turnLog.get && turnLog.get.length > 0
-          ? turnLog.get[turnLog.get.length - 1].log_uuid
-          : undefined;
-      fetchTurnLog({ method: 'GET' }, { query: lastLogUuid ? `log_uuid=${lastLogUuid}` : '' });
-    }
-  }, [view, lazyFlag]);
+  } = useDevelopmentPage();
 
   return (
     <>
-      <div className="grid grid-cols-[auto_1fr_auto] gap-2">
+      <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'}`}>
         <div className="grid justify-items-center">
           <IslandData mode="development" data={developData.get} />
           <HakoniwaMap
@@ -84,44 +45,73 @@ export default function IslandList() {
             uuid={developData.get?.uuid}
           />
         </div>
-        <div>
-          {view === 'plan' ? (
-            <PlanList
-              className="overflow-y-auto"
-              ref={listCallback}
-              style={{ height: listHeight }}
-              islandList={islandList.get}
-              turn={turnData.get?.turn}
-              isPlanLoading={isPlanLoading.get}
-              initPlanData={fetchPlanData.get}
-              uuid={developData.get?.uuid}
-            />
-          ) : (
-            <>
-              <div className="text-bold mb-4 text-center text-3xl text-red-900">
-                {`「${developData.get?.island_name}島」`}
-                <span className="text-black">開発記録</span>
-              </div>
-              <TurnLog
-                ref={listCallback}
-                style={{ height: listHeight }}
-                logs={turnLog.get}
-                setLazyFlag={setLazyFlag}
-              />
-            </>
-          )}
-        </div>
-        <div className="flex h-full items-center">
-          <BaseTabs
-            orientation="vertical-right"
-            value={view}
-            onChange={setView}
-            tabContents={[
-              { label: '計画', value: 'plan' },
-              { label: '記録', value: 'log' },
-            ]}
+
+        {/* Desktop View: Always show menu */}
+        {!isMobile && (
+          <MenuContent
+            isMobile={false}
+            listCallback={listCallback}
+            listHeight={listHeight}
+            developData={developData.get}
+            view={view}
+            islandList={islandList.get}
+            turnData={turnData.get}
+            isPlanLoading={isPlanLoading.get}
+            fetchPlanData={fetchPlanData.get}
+            turnLog={turnLog.get}
+            setLazyFlag={setLazyFlag}
+            setView={setView}
           />
-        </div>
+        )}
+
+        {/* Mobile View: Floating Menu */}
+        {isMobile && (
+          <>
+            {/* Toggle Button */}
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="fixed right-4 bottom-20 z-[101] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+            >
+              {showMenu ? <RxCross1 className="text-2xl" /> : <GrNotes className="text-2xl" />}
+            </button>
+
+            {/* Menu Overlay via Portal */}
+            {showMenu &&
+              createPortal(
+                <div
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+                  onClick={() => setShowMenu(false)}
+                >
+                  <div
+                    className="relative h-full max-h-[90vh] w-full max-w-lg"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => setShowMenu(false)}
+                      className="absolute top-2 right-2 z-[102] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-red-100/50 text-gray-600 shadow-md hover:bg-red-200/50"
+                    >
+                      <RxCross1 className="text-xl" />
+                    </button>
+                    <MenuContent
+                      isMobile={true}
+                      listCallback={listCallback}
+                      listHeight={listHeight}
+                      developData={developData.get}
+                      view={view}
+                      islandList={islandList.get}
+                      turnData={turnData.get}
+                      isPlanLoading={isPlanLoading.get}
+                      fetchPlanData={fetchPlanData.get}
+                      turnLog={turnLog.get}
+                      setLazyFlag={setLazyFlag}
+                      setView={setView}
+                    />
+                  </div>
+                </div>,
+                document.getElementById('overlay-root') || document.body
+              )}
+          </>
+        )}
       </div>
     </>
   );

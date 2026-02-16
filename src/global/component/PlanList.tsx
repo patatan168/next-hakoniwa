@@ -364,11 +364,6 @@ const PlanList = memo(
       }));
     }, [uuid, isPlanLoading, initPlanData]);
 
-    const myIslandName = useMemo(() => {
-      if (!uuid || !islandList) return 'Loading';
-      return islandList.find((item) => item.uuid === uuid)?.island_name;
-    }, [uuid, islandList]);
-
     // 外部Storeへの同期（副作用）
     useEffect(() => {
       if (!isPlanLoading && uuid) {
@@ -441,10 +436,6 @@ const PlanList = memo(
 
     return (
       <>
-        <div className="text-bold mb-4 text-center text-3xl text-red-900">
-          {`「${myIslandName}島」`}
-          <span className="text-black">開発計画</span>
-        </div>
         <div className="mb-2 flex gap-4">
           <Button
             type="submit"
