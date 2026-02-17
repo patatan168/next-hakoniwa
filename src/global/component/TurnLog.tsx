@@ -40,7 +40,7 @@ export default memo(
               {index > 0 && log.turn !== logs?.[index - 1].turn && (
                 <hr className="my-2 border-gray-300 dark:border-gray-600" />
               )}
-              <div className="flex gap-1 px-2">
+              <div className="flex gap-1 px-2 text-sm md:text-base">
                 <div className="whitespace-nowrap">{`ターン ${log.turn} : `}</div>
                 <div className="min-w-0 break-words">
                   <TransformHTML html={logText} />

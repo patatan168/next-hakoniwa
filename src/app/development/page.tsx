@@ -70,7 +70,7 @@ export default function IslandList() {
             {/* Toggle Button */}
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="fixed right-4 bottom-20 z-[101] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+              className="fixed right-4 bottom-10 z-[9999] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
             >
               {showMenu ? <RxCross1 className="text-2xl" /> : <GrNotes className="text-2xl" />}
             </button>

@@ -24,7 +24,7 @@ export const useDevelopmentPage = () => {
 
   const [view, setView] = useState<'plan' | 'log'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
-  const [listHeight, setListHeight] = useState('100svh');
+  const [listHeight, setListHeight] = useState('var(--real-vh-minus-footer)');
   const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
   const { width, minusFooterHeight } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
@@ -34,10 +34,12 @@ export const useDevelopmentPage = () => {
     (node: HTMLDivElement) => {
       if (node !== null) {
         const { x, y } = node.getBoundingClientRect();
-        setMapSize(`min(${width - x}px, ${minusFooterHeight - y}px)`);
+        // スマホの場合はFABの分(bottom-6 + h-12 = 72px)を引く
+        const bottomSpace = isMobile ? 80 : 0;
+        setMapSize(`min(${width - x}px, ${minusFooterHeight - y - bottomSpace}px)`);
       }
     },
-    [width, minusFooterHeight]
+    [width, minusFooterHeight, isMobile]
   );
 
   const listCallback = useCallback(

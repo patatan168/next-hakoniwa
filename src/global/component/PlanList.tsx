@@ -107,7 +107,7 @@ const PlanItem = memo(
             </span>
           </div>
           <span
-            className={`inline-block min-w-[3em] font-mono text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+            className={`md:text-md inline-block min-w-[3em] font-mono text-sm text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
           >
             {`T${turn}`}
           </span>
@@ -125,7 +125,7 @@ const PlanItem = memo(
         <div className="grid min-w-28 gap-0">
           {!edit && (
             <span
-              className={`font-mono text-base font-extrabold text-shadow-md`}
+              className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
             >{`(${x},${y})`}</span>
           )}
           {edit ? (
@@ -141,7 +141,10 @@ const PlanItem = memo(
                   style={{ width: 'fit-content' }}
                 />
                 <div className="flex items-center gap-0">
-                  <label className="whitespace-nowrap" htmlFor={`x-${item.id}`}>
+                  <label
+                    className="text-sm whitespace-nowrap md:text-base"
+                    htmlFor={`x-${item.id}`}
+                  >
                     X座標
                   </label>
                   <RangeSliderRHF
@@ -154,7 +157,10 @@ const PlanItem = memo(
                   />
                 </div>
                 <div className="flex items-center gap-0">
-                  <label className="whitespace-nowrap" htmlFor={`y-${item.id}`}>
+                  <label
+                    className="text-sm whitespace-nowrap md:text-base"
+                    htmlFor={`y-${item.id}`}
+                  >
                     Y座標
                   </label>
                   <RangeSliderRHF
@@ -169,7 +175,10 @@ const PlanItem = memo(
               </div>
               <div>
                 <div className="mt-2 flex items-center gap-0">
-                  <label className="mr-2 whitespace-nowrap" htmlFor={`to_uuid-${item.id}`}>
+                  <label
+                    className="mr-2 text-sm whitespace-nowrap md:text-base"
+                    htmlFor={`to_uuid-${item.id}`}
+                  >
                     目標島
                   </label>
                   <SelectRHF
@@ -183,7 +192,10 @@ const PlanItem = memo(
                   />
                 </div>
                 <div className="flex items-center gap-0">
-                  <label className="whitespace-nowrap" htmlFor={`times-${item.id}`}>
+                  <label
+                    className="text-sm whitespace-nowrap md:text-base"
+                    htmlFor={`times-${item.id}`}
+                  >
                     計画数
                   </label>
                   <RangeSliderRHF
@@ -200,7 +212,7 @@ const PlanItem = memo(
             </div>
           ) : (
             <span
-              className={`ml-2 text-xl font-medium text-shadow-xs/30 ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+              className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
             >
               {name}
             </span>
