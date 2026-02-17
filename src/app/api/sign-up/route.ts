@@ -5,6 +5,7 @@ import { createIsland } from '@/global/function/createIsland';
 import { dbConn } from '@/global/function/db';
 import { createUuid25, sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
+import { profanityCheck } from '@/global/function/profanity';
 import { userInfoSchema } from '@/global/valid/server/userInfo';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -13,12 +14,15 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-
   const valid = await asyncRequestValid(request, userInfoSchema, 201);
 
   if (valid.data !== null) {
     const { id, password, userName, islandName } = valid.data;
+    // 卑猥語/差別用語チェック
+    if (profanityCheck(userName) || profanityCheck(islandName)) {
+      return NextResponse.json({ error: '不適切な単語が含まれています' }, { status: 400 });
+    }
+    using db = dbConn('./src/db/data/main.db');
     const uuid = createUuid25();
     const hashId = await sha256Gen(id);
     const hashPass = await argon2Gen(password);
