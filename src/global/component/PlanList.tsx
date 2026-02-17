@@ -94,20 +94,20 @@ const PlanItem = memo(
     return (
       <div
         ref={setActivator}
-        className={`card-border mb-0.5 flex items-center ${isChange ? 'bg-orange-50' : 'bg-teal-50'}`}
+        className={`card-border mb-0.5 flex items-stretch gap-y-1 ${isChange ? 'bg-orange-50' : 'bg-teal-50'}`}
       >
         <div
           {...attributes}
           {...listeners}
-          className={`flex items-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-stretch ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
-          <div className={`flex h-11 items-stretch ${edit ? 'h-33' : 'h-13'}`}>
+          <div className={`flex items-stretch`}>
             <span className="inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400">
               <RxDragHandleVertical />
             </span>
           </div>
           <span
-            className={`md:text-md inline-block min-w-[3em] font-mono text-sm text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+            className={`md:text-md inline-block min-w-[3em] self-center font-mono text-sm text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
           >
             {`T${turn}`}
           </span>
@@ -115,97 +115,100 @@ const PlanItem = memo(
 
         <button
           onClick={toggleEdit}
-          className={`mx-2 bg-sky-700 px-1.5 text-white hover:cursor-pointer hover:bg-sky-600 ${edit ? 'h-33' : 'h-13'}`}
+          className={`mx-2 bg-sky-700 px-1.5 text-white hover:cursor-pointer hover:bg-sky-600`}
         >
           <p className="text-md text-center font-semibold [writing-mode:vertical-rl]">
             {edit ? 'Close' : 'Edit'}
           </p>
         </button>
 
-        <div className="grid min-w-28 gap-0">
+        <div className="grid min-w-0 flex-1 gap-0">
           {!edit && (
             <span
               className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
             >{`(${x},${y})`}</span>
           )}
           {edit ? (
-            <div className="grid grid-cols-2 grid-cols-[auto_auto] gap-0">
-              <div>
+            <div className="grid w-full grid-cols-1 gap-2 p-1 md:grid-cols-2 md:gap-4">
+              <div className="flex items-center gap-2">
                 <SelectRHF
-                  className="mt-2"
                   name="plan"
                   control={control}
                   id={`plan-${item.id}`}
                   options={getPlanSelect()}
                   isBottomSpace={false}
-                  style={{ width: 'fit-content' }}
+                  className="w-full flex-1"
                 />
-                <div className="flex items-center gap-0">
-                  <label
-                    className="text-sm whitespace-nowrap md:text-base"
-                    htmlFor={`x-${item.id}`}
-                  >
-                    X座標
-                  </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <label
+                  className="text-sm font-bold whitespace-nowrap md:text-base"
+                  htmlFor={`to_uuid-${item.id}`}
+                >
+                  目標島
+                </label>
+                <SelectRHF
+                  name="to_uuid"
+                  control={control}
+                  id={`to_uuid-${item.id}`}
+                  options={islandOptions}
+                  isBottomSpace={false}
+                  disabled={!otherIsland}
+                  className="w-full flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-3 xl:gap-2">
+                <label
+                  className="text-sm font-bold whitespace-nowrap md:text-base"
+                  htmlFor={`x-${item.id}`}
+                >
+                  X座標
+                </label>
+                <div className="flex-1 text-sm">
                   <RangeSliderRHF
-                    className="w-fit scale-75"
                     id={`x-${item.id}`}
                     name="x"
                     control={control}
                     max={META_DATA.MAP_SIZE - 1}
                     isBottomSpace={false}
+                    className="w-full"
                   />
                 </div>
-                <div className="flex items-center gap-0">
-                  <label
-                    className="text-sm whitespace-nowrap md:text-base"
-                    htmlFor={`y-${item.id}`}
-                  >
-                    Y座標
-                  </label>
+              </div>
+              <div className="flex items-center gap-3 xl:gap-2">
+                <label
+                  className="text-sm font-bold whitespace-nowrap md:text-base"
+                  htmlFor={`y-${item.id}`}
+                >
+                  Y座標
+                </label>
+                <div className="flex-1 text-sm">
                   <RangeSliderRHF
-                    className="w-fit scale-75"
                     id={`y-${item.id}`}
                     name="y"
                     control={control}
                     max={META_DATA.MAP_SIZE - 1}
                     isBottomSpace={false}
+                    className="w-full"
                   />
                 </div>
               </div>
-              <div>
-                <div className="mt-2 flex items-center gap-0">
-                  <label
-                    className="mr-2 text-sm whitespace-nowrap md:text-base"
-                    htmlFor={`to_uuid-${item.id}`}
-                  >
-                    目標島
-                  </label>
-                  <SelectRHF
-                    name="to_uuid"
-                    control={control}
-                    id={`to_uuid-${item.id}`}
-                    options={islandOptions}
-                    isBottomSpace={false}
-                    disabled={!otherIsland}
-                    style={{ width: 'fit-content' }}
-                  />
-                </div>
-                <div className="flex items-center gap-0">
-                  <label
-                    className="text-sm whitespace-nowrap md:text-base"
-                    htmlFor={`times-${item.id}`}
-                  >
-                    計画数
-                  </label>
+              <div className="flex max-w-md items-center gap-2 md:col-span-2">
+                <label
+                  className="text-sm font-bold whitespace-nowrap md:text-base"
+                  htmlFor={`times-${item.id}`}
+                >
+                  計画数
+                </label>
+                <div className="flex-1">
                   <RangeSliderRHF
-                    className="w-fit scale-75"
                     id={`times-${item.id}`}
                     name="times"
                     control={control}
                     min={1}
                     max={maxTimes}
                     isBottomSpace={false}
+                    className="w-full"
                   />
                 </div>
               </div>

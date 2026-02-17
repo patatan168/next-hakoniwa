@@ -28,7 +28,7 @@ export const useDevelopmentPage = () => {
   const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
   const { width, minusFooterHeight } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
-  const isMobile = width < 1260;
+  const isMobile = width < 1280;
 
   const mapCallback = useCallback(
     (node: HTMLDivElement) => {

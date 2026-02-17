@@ -176,7 +176,7 @@ function _RangeSliderRHF<
         );
 
         return (
-          <ul style={props.style} className={`w-fit min-w-[270px] ${props.className}`}>
+          <ul style={props.style} className={`w-full ${props.className}`}>
             <li>
               <div
                 className="grid place-items-center gap-1.5"
