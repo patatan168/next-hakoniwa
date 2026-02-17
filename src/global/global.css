@@ -71,6 +71,10 @@ footer {
   max-height: var(--real-vh);
 }
 
+.h-minus-footer-screen {
+  height: var(--real-vh-minus-footer);
+}
+
 .title {
   color: var(--title);
   text-shadow: 1px 1px 1px;

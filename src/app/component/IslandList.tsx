@@ -60,23 +60,23 @@ export default function IslandList() {
   return (
     <>
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
-      {tab === 0 && (
-        <VrTableList
-          isLoading={isLoading.get}
-          ref={listCallback}
-          style={{ height: listHeight, backgroundColor: 'transparent' }}
-          columnHeader={header}
-          data={data.get}
-        />
-      )}
-      {tab === 1 && (
-        <TurnLog
-          ref={listCallback}
-          style={{ height: listHeight, backgroundColor: 'transparent' }}
-          logs={logData.get}
-          setLazyFlag={setLazyFlag}
-        />
-      )}
+      <div ref={listCallback}>
+        {tab === 0 && (
+          <VrTableList
+            isLoading={isLoading.get}
+            style={{ height: listHeight, backgroundColor: 'transparent' }}
+            columnHeader={header}
+            data={data.get}
+          />
+        )}
+        {tab === 1 && (
+          <TurnLog
+            style={{ height: listHeight, backgroundColor: 'transparent' }}
+            logs={logData.get}
+            setLazyFlag={setLazyFlag}
+          />
+        )}
+      </div>
     </>
   );
 }

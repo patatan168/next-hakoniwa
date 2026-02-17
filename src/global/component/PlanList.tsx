@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
 import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { IoArrowRedo, IoArrowUndo, IoTrash } from 'react-icons/io5';
+import { IoArrowRedo, IoArrowUndo, IoSendSharp, IoTrash } from 'react-icons/io5';
 import { RxDragHandleVertical } from 'react-icons/rx';
 import META_DATA from '../define/metadata';
 import { getPlanDefine, getPlanSelect } from '../define/planType';
@@ -436,41 +436,46 @@ const PlanList = memo(
 
     return (
       <>
-        <div className="mb-2 flex gap-4">
-          <Button
-            type="submit"
-            onClick={() => {
-              trigger({
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(postData),
-              });
-              resetStore();
-            }}
-            disabled={!isChange || isPlanLoading}
-          >
-            計画送信
-          </Button>
-          <button
-            type="button"
-            className="inline-flex cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-300"
-            disabled={planListData.length <= historyIndex + 1}
-            aria-label="Undo"
-            onClick={handleUndo}
-          >
-            <IoArrowUndo className="text-xl" />
-            戻る
-          </button>
-          <button
-            type="button"
-            className="inline-flex cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-300"
-            disabled={historyIndex === 0 || historyIndex === planListData.length}
-            aria-label="Redo"
-            onClick={handleRedo}
-          >
-            <IoArrowRedo className="text-xl" />
-            進む
-          </button>
+        <div className="grid grid-cols-2 px-4 pb-1">
+          <div>
+            <Button
+              type="submit"
+              icons={<IoSendSharp />}
+              onClick={() => {
+                trigger({
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(postData),
+                });
+                resetStore();
+              }}
+              disabled={!isChange || isPlanLoading}
+            >
+              計画送信
+            </Button>
+          </div>
+          <div className="flex items-center justify-end gap-5">
+            <button
+              type="button"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-300"
+              disabled={planListData.length <= historyIndex + 1}
+              aria-label="Undo"
+              onClick={handleUndo}
+            >
+              <IoArrowUndo className="text-xl" />
+              戻る
+            </button>
+            <button
+              type="button"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-300"
+              disabled={historyIndex === 0 || historyIndex === planListData.length}
+              aria-label="Redo"
+              onClick={handleRedo}
+            >
+              <IoArrowRedo className="text-xl" />
+              進む
+            </button>
+          </div>
         </div>
 
         <div ref={ref} className={className} style={style}>

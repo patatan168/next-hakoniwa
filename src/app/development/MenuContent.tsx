@@ -64,16 +64,17 @@ export const MenuContent = ({
     <div className={`flex h-full ${isMobile ? 'rounded-lg bg-white p-2 shadow-xl' : ''}`}>
       <div
         ref={listCallback}
-        className="double flex flex-1 flex-col overflow-hidden border-3 border-green-300 bg-teal-50/50 p-2"
+        className="double flex flex-1 flex-col overflow-hidden rounded-lg border-3 border-gray-200 bg-teal-50/50"
         style={{ height: listHeight }}
       >
-        <div className="text-bold mb-4 text-center text-3xl text-red-900">
+        <div className="text-bold mt-2 text-center text-3xl text-red-900">
           {`「${developData?.island_name}島」`}
           <span className="text-black">{view === 'plan' ? '開発計画' : '開発記録'}</span>
+          <hr className="my-2 border-gray-200" />
         </div>
         {view === 'plan' ? (
           <PlanList
-            className="flex-1 overflow-y-auto"
+            className="flex-1 overflow-y-auto p-2"
             islandList={islandList}
             turn={turnData?.turn}
             isPlanLoading={isPlanLoading}

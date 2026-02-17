@@ -83,7 +83,7 @@ export default function IslandList() {
                   onClick={() => setShowMenu(false)}
                 >
                   <div
-                    className="relative h-full max-h-[90svh] w-full max-w-lg"
+                    className="h-minus-footer-screen relative w-full max-w-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
