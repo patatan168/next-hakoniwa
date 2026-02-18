@@ -2,13 +2,14 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { create } from 'zustand';
 
 type newPlanDataStoreType = {
+  currentUuid: string | null;
   initData: planSchemaType[];
   postData: planSchemaType[];
   planListData: Array<Array<planSchemaType & { id: number; edit: boolean }>>;
   items: Array<planSchemaType & { id: number; edit: boolean }>;
   historyIndex: number;
   isChange: boolean;
-  setInitData: (initData?: planSchemaType[]) => void;
+  setInitData: (initData: planSchemaType[] | undefined, uuid: string | undefined) => void;
   addPlanListData: (planListData: Array<planSchemaType & { id: number; edit: boolean }>) => void;
   setPostData: (postData: planSchemaType[]) => void;
   setItems: (
@@ -32,6 +33,7 @@ const fastEqual = (a: any, b: any) => {
 };
 
 export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
+  currentUuid: null,
   initData: [],
   postData: [],
   planListData: [],
@@ -53,10 +55,12 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
     });
   },
 
-  setInitData: (data) => {
+  setInitData: (data, uuid) => {
     if (!data) return;
-    if (fastEqual(get().initData, data)) return;
-    set({ initData: data });
+    // UUIDが変わっていない、かつデータも変わっていない場合は何もしない
+    // NOTE: UUIDが変わった場合は強制的にデータをセットする
+    if (get().currentUuid === uuid && fastEqual(get().initData, data)) return;
+    set({ initData: data, currentUuid: uuid });
   },
 
   setPostData: (data) => {
@@ -127,6 +131,7 @@ export const usePlanDataStore = create<newPlanDataStoreType>((set, get) => ({
 
   reset: () =>
     set({
+      currentUuid: null,
       initData: [],
       postData: [],
       planListData: [],

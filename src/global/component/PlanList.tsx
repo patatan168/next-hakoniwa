@@ -379,14 +379,35 @@ const PlanList = memo(
       }));
     }, [uuid, isPlanLoading, initPlanData]);
 
+    const currentUuid = usePlanDataStore((state) => state.currentUuid);
+
     // 外部Storeへの同期（副作用）
     useEffect(() => {
       if (!isPlanLoading && uuid) {
-        resetStore();
-        setInitData(initPlanData);
-        setItems(computedItems);
+        const store = usePlanDataStore.getState();
+        // UUIDが変わった、または初期データが変わった場合のみ更新
+        // NOTE: Layout切り替えなどで再マウントされた際に、編集中のデータを消さないようにする
+        const isInitDataChanged = !isEqual(store.initData, initPlanData);
+
+        if (currentUuid !== uuid) {
+          resetStore();
+        }
+
+        if (currentUuid !== uuid || isInitDataChanged) {
+          setInitData(initPlanData, uuid);
+          setItems(computedItems, false); // 初期ロード時は履歴に残さない
+        }
       }
-    }, [uuid, isPlanLoading, initPlanData, resetStore, setInitData, setItems, computedItems]);
+    }, [
+      uuid,
+      isPlanLoading,
+      initPlanData,
+      resetStore,
+      setInitData,
+      setItems,
+      computedItems,
+      currentUuid,
+    ]);
 
     useEffect(() => {
       const cleanData = items
