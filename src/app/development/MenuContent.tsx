@@ -68,7 +68,7 @@ export const MenuContent = ({
         style={{ height: listHeight }}
       >
         <div className="text-bold mt-2 text-center text-3xl text-red-900">
-          {`「${developData?.island_name}島」`}
+          {`「${developData?.island_name || ''}島」`}
           <span className="text-black">{view === 'plan' ? '開発計画' : '開発記録'}</span>
           <hr className="my-2 border-gray-200" />
         </div>
