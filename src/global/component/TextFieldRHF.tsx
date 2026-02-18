@@ -117,6 +117,8 @@ function TextFieldRHFInner<
           field.onChange(tmpEvent);
         };
 
+        const textType = props.type === 'password' ? (viewText ? 'text' : 'password') : props.type;
+
         return (
           <ul style={props.style} className={props.className}>
             <li>
@@ -128,7 +130,7 @@ function TextFieldRHFInner<
                   {...textFieldProps}
                   onBeforeInput={handleBeforeInput}
                   onChange={handleOnChange}
-                  type={viewText ? 'text' : 'password'}
+                  type={textType}
                   ref={inputCallback}
                 />
                 {props.type === 'password' && (

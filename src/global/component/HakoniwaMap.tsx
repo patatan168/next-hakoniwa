@@ -12,8 +12,9 @@ import Loading from './Loading';
 import Modal from './Modal';
 import { RangeSliderRHF } from './RangeSliderRHF';
 import { SelectRHF } from './SelectRHF';
-import Tooltip from './Tooltip';
 import scssStyle from './style/HakoniwaMap.module.scss';
+import { TextFieldRHF } from './TextFieldRHF';
+import Tooltip from './Tooltip';
 
 type SpacerProps = {
   mapWidth: number;
@@ -299,11 +300,12 @@ const MapClickModal = ({
       </div>
       {maxTimes > 1 && (
         <div className="flex items-center gap-2">
-          <label className="text-sm" htmlFor={`times`}>
+          <label className="text-sm whitespace-nowrap" htmlFor={`times`}>
             計画数
           </label>
           <RangeSliderRHF
             name="times"
+            className="flex-1"
             control={control}
             min={1}
             max={maxTimes}
@@ -315,14 +317,16 @@ const MapClickModal = ({
   );
 
   const footer = (
-    <div className="flex w-full flex-col gap-2">
+    <div className="grid w-full grid-cols-2">
       {currentItems.length > 0 && (
         <div className="flex items-center gap-2">
-          <label className="text-sm" htmlFor={`position`}>
+          <label className="text-sm whitespace-nowrap" htmlFor={`position`}>
             挿入先
           </label>
-          <RangeSliderRHF
+          <TextFieldRHF
             name="position"
+            type="number"
+            className="w-[4em]"
             control={control}
             min={1}
             max={currentItems.length}
@@ -330,7 +334,7 @@ const MapClickModal = ({
           />
         </div>
       )}
-      <div className="mt-2 flex justify-end">
+      <div className="flex justify-end">
         <Button onClick={handleInsertPlan}>計画の挿入</Button>
       </div>
     </div>
@@ -347,6 +351,7 @@ const MapClickModal = ({
       body={body}
       footer={footer}
       portal={false}
+      className="!h-auto !max-h-[96%] !w-[96%] !max-w-md"
     />
   );
 };

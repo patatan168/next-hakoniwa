@@ -71,6 +71,7 @@ const ModalContent = memo(
     openToggle,
     body,
     footer,
+    className,
   }: {
     portal: boolean;
     open: boolean;
@@ -80,6 +81,7 @@ const ModalContent = memo(
     openToggle: ((value: boolean) => void) | (() => void);
     body: ReactNode;
     footer?: ReactNode;
+    className?: string;
   }) {
     return (
       <div
@@ -90,7 +92,7 @@ const ModalContent = memo(
           role="dialog"
           tabIndex={-1}
           onKeyDown={modalFunction}
-          className={`card-border pointer-events-auto flex ${portal ? 'max-h-screen max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+          className={`card-border pointer-events-auto flex ${portal ? 'max-h-screen max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${className}`}
         >
           <IfComponent isRendered={isContentRendered}>
             <HeaderModal header={header} openToggle={openToggle} />
@@ -116,6 +118,7 @@ export default memo(
     portal = true,
     open,
     openToggle,
+    className = '',
   }: {
     header?: string | ReactNode;
     body: ReactNode;
@@ -125,6 +128,7 @@ export default memo(
     footer?: ReactNode;
     open: boolean;
     openToggle: ((value: boolean) => void) | (() => void);
+    className?: string;
   }) {
     const [mounted, setMounted] = useState(false);
     const [firstOpen, setFirstOpen] = useState(false);
@@ -184,6 +188,7 @@ export default memo(
         openToggle={openToggle}
         body={body}
         footer={footer}
+        className={className}
       />
     );
 
