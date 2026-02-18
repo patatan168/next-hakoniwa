@@ -157,6 +157,9 @@ const MapClickModal = ({
   const plan = useWatch({ control, name: 'plan' });
   const times = useWatch({ control, name: 'times' });
   const position = useWatch({ control, name: 'position' });
+  const modalMapSize = useMemo(() => {
+    return Math.min(mapWidth, mapHeight) * 0.8;
+  }, [mapWidth, mapHeight]);
 
   // 選択中の計画のmaxTimesを取得
   const maxTimes = useMemo(() => {
@@ -207,11 +210,11 @@ const MapClickModal = ({
     const cell = data.find((d) => d.x === cx && d.y === cy);
     if (!cell) {
       return (
-        <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
-          <Image src={'/img/land/sea.gif'} alt={'外海'} fill sizes={`${mapWidth}px`} />
+        <div className="relative" style={{ width: modalMapSize, height: modalMapSize }}>
+          <Image src={'/img/land/sea.gif'} alt={'外海'} fill sizes={`${modalMapSize}px`} />
           <p
             className={scssStyle['map-overlay']}
-            style={{ left: `50%`, fontSize: (13 * mapWidth) / baseMapPixel }}
+            style={{ left: `50%`, fontSize: (13 * modalMapSize) / baseMapPixel }}
           >
             外
           </p>
@@ -222,13 +225,13 @@ const MapClickModal = ({
     const src = getMapImpPath(cell.type, cell.landValue, imgPath);
     const alt = getMapName(cell.type, cell.landValue, name);
     return (
-      <div className="relative" style={{ width: mapWidth, height: mapHeight }}>
+      <div className="relative" style={{ width: modalMapSize, height: modalMapSize }}>
         <Image
           src={src}
           alt={alt}
           fill
           className={isCenter ? 'brightness-150 contrast-115' : ''}
-          sizes={`${mapWidth}px`}
+          sizes={`${modalMapSize}px`}
         />
         {isCenter && (
           <div
@@ -271,9 +274,9 @@ const MapClickModal = ({
   const body = (
     <div className="flex flex-col gap-4">
       <div className="flex justify-center">
-        <div style={{ width: mapWidth * 3 }} className="border border-gray-400">
+        <div style={{ width: modalMapSize * 3 }} className="border border-gray-400">
           {/* 上段: 2セル、半ブロックオフセット */}
-          <div className="flex" style={{ marginLeft: mapWidth / 2 }}>
+          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
             {topRow.map((pos, i) => (
               <Fragment key={`top-${i}`}>{renderCell(pos.x, pos.y)}</Fragment>
             ))}
@@ -285,7 +288,7 @@ const MapClickModal = ({
             ))}
           </div>
           {/* 下段: 2セル、半ブロックオフセット */}
-          <div className="flex" style={{ marginLeft: mapWidth / 2 }}>
+          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
             {bottomRow.map((pos, i) => (
               <Fragment key={`bottom-${i}`}>{renderCell(pos.x, pos.y)}</Fragment>
             ))}
