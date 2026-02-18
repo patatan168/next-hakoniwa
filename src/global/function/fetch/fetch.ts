@@ -1,5 +1,7 @@
 import { isEqual, merge } from 'es-toolkit';
 import { createStore, StoreApi } from 'zustand/vanilla';
+import { getCookie } from '../cookie';
+import { CSRF_COOKIE_NAME } from '../csrf';
 
 type ApiMethodType<T, U = T> = Record<'get', T> &
   Record<'post' | 'put' | 'delete' | 'patch' | 'head' | 'options', U>;
@@ -332,7 +334,11 @@ export const fetcher = async <T = any>(
   timeOut: number = 5000
 ) => {
   const url = input;
-  const options = init;
+  const options = init || {};
+  const csrfToken = getCookie(CSRF_COOKIE_NAME);
+  if (csrfToken) {
+    options.headers = { ...options.headers, 'x-csrf-token': csrfToken };
+  }
   const responseData = async (res: Response) => {
     const data = (await res.json()) as T;
     if (!res.ok) {
