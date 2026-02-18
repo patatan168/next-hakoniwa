@@ -132,6 +132,8 @@ const MapClickModal = ({
   open,
   openToggle,
 }: MapClickModalProps) => {
+  const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃'>('優先');
+
   // 選択可能な計画リストを作成
   const planOptions = useMemo(() => {
     const allPlans = getPlanSelect();
@@ -143,17 +145,30 @@ const MapClickModal = ({
 
     return allPlans.filter((option) => {
       const planDefine = getPlanDefine(option.value);
-      return validLandType(dummyIsland, planDefine, x, y);
+      if (category === '優先') {
+        return validLandType(dummyIsland, planDefine, x, y);
+      }
+      return planDefine.category === category;
     });
-  }, [x, y, data]);
+  }, [x, y, data, category]);
 
   const { control, setValue } = useForm<{ plan: string; times: number; position: number }>({
     defaultValues: {
-      plan: planOptions.length > 0 ? planOptions[0].value : '',
+      plan: '',
       times: 1,
       position: 1,
     },
   });
+
+  // planOptionsが変わったときにplanをリセット
+  useEffect(() => {
+    if (planOptions.length > 0) {
+      setValue('plan', planOptions[0].value);
+    } else {
+      setValue('plan', '');
+    }
+  }, [planOptions, setValue]);
+
   const plan = useWatch({ control, name: 'plan' });
   const times = useWatch({ control, name: 'times' });
   const position = useWatch({ control, name: 'position' });
@@ -271,6 +286,8 @@ const MapClickModal = ({
         { x: x, y: y + 1 },
       ];
 
+  const categories = ['優先', '開発', '建設', '運営', '攻撃'] as const;
+
   const body = (
     <div className="flex flex-col gap-4">
       <div className="flex justify-center">
@@ -296,26 +313,40 @@ const MapClickModal = ({
         </div>
       </div>
       <div>
+        <div className="mb-2 flex border-b border-gray-200 dark:border-gray-700">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className={`flex-1 cursor-pointer p-2 text-center text-sm font-medium ${
+                category === cat
+                  ? 'border-b-2 border-green-500 text-green-600 dark:text-green-500'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+              onClick={() => setCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
         <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
           計画を選択
         </label>
         <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
       </div>
-      {maxTimes > 1 && (
-        <div className="flex items-center gap-2">
-          <label className="text-sm whitespace-nowrap" htmlFor={`times`}>
-            計画数
-          </label>
-          <RangeSliderRHF
-            name="times"
-            className="flex-1"
-            control={control}
-            min={1}
-            max={maxTimes}
-            isBottomSpace={false}
-          />
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        <label className="text-sm whitespace-nowrap" htmlFor={`times`}>
+          計画数
+        </label>
+        <RangeSliderRHF
+          name="times"
+          className="flex-1"
+          disabled={maxTimes === 1}
+          control={control}
+          min={1}
+          max={maxTimes}
+          isBottomSpace={false}
+        />
+      </div>
     </div>
   );
 
