@@ -32,8 +32,8 @@ export default function IslandList() {
 
   return (
     <>
-      <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'}`}>
-        <div className="grid justify-items-center">
+      <div className={`grid gap-1 ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'}`}>
+        <div className="grid grid-rows-[auto_1fr] items-start justify-items-center gap-1 px-1">
           <IslandData mode="development" data={developData.get} />
           <HakoniwaMap
             ref={mapCallback}
