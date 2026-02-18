@@ -1,6 +1,5 @@
 'use client';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
 import { getCookie } from '../function/cookie';
@@ -33,28 +32,26 @@ export default function Header() {
           {/* 左カラム */}
           <div>
             <div className="flex justify-start gap-1">
-              <Link href="/">
-                <Button
-                  size="xs"
-                  className="sm:text-sm"
-                  category="primary"
-                  color="blue"
-                  icons={<IoHomeSharp />}
-                >
-                  ホーム
-                </Button>
-              </Link>
-              <Link className="hidden sm:block" href="/">
-                <Button
-                  size="xs"
-                  className="sm:text-sm"
-                  category="outline"
-                  color="sky"
-                  icons={<IoBookSharp />}
-                >
-                  取説
-                </Button>
-              </Link>
+              <Button
+                href="/"
+                size="xs"
+                className="sm:text-sm"
+                category="primary"
+                color="blue"
+                icons={<IoHomeSharp />}
+              >
+                ホーム
+              </Button>
+              <Button
+                href="/"
+                size="xs"
+                className="hidden sm:block sm:text-sm"
+                category="outline"
+                color="sky"
+                icons={<IoBookSharp />}
+              >
+                取説
+              </Button>
             </div>
           </div>
           <div className="sub-title col-span-3 col-start-1 row-start-2 mx-1 min-w-[3em] text-base font-semibold text-shadow-xs/10">

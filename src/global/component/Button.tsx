@@ -1,4 +1,5 @@
 import { isEqual } from 'es-toolkit';
+import Link from 'next/link';
 import { ButtonHTMLAttributes, memo, useMemo } from 'react';
 import { TailwindColor, TailwindSize } from '../define/utilityType';
 
@@ -196,23 +197,34 @@ interface ButtonType extends ButtonHTMLAttributes<HTMLButtonElement> {
   color?: TailwindColor;
   category?: 'primary' | 'outline';
   size?: TailwindSize;
+  href?: string;
 }
 
 export default memo(
   function Button(props: ButtonType) {
+    const className = ButtonClassName(props.className, props.color, props.category, props.size);
+    const content = props.icons ? (
+      <div className="flex items-center justify-center">
+        <div className="mr-2">{props.icons}</div>
+        <div>{props.children}</div>
+      </div>
+    ) : (
+      props.children
+    );
+
+    if (props.href) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { href, ...other } = props as any;
+      return (
+        <Link href={href} {...other} className={className}>
+          {content}
+        </Link>
+      );
+    }
+
     return (
-      <button
-        {...props}
-        className={ButtonClassName(props.className, props.color, props.category, props.size)}
-      >
-        {props.icons ? (
-          <div className="flex items-center justify-center">
-            <div className="mr-2">{props.icons}</div>
-            <div>{props.children}</div>
-          </div>
-        ) : (
-          props.children
-        )}
+      <button {...props} className={className}>
+        {content}
       </button>
     );
   },
