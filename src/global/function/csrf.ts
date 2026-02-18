@@ -19,5 +19,11 @@ export const generateCsrfToken = () => {
  */
 export const verifyCsrfToken = (cookieToken: string | undefined, headerToken: string | null) => {
   if (!cookieToken || !headerToken) return false;
+
+  // 簡易的なUUIDv7バリデーション (ハイフンなし32文字の16進数)
+  // NOTE: 他機能でCSRF対策を十分に行っているため、簡易チェックのみ
+  const isValidFormat = /^[0-9a-f]{32}$/i.test(headerToken);
+  if (!isValidFormat) return false;
+
   return cookieToken === headerToken;
 };
