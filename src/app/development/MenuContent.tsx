@@ -3,6 +3,7 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import BaseTabs from '@/global/component/TabContents';
 import dynamic from 'next/dynamic';
+import { Activity } from 'react';
 
 const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
 const TurnLog = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
@@ -72,18 +73,21 @@ export const MenuContent = ({
           <span className="text-black">{view === 'plan' ? '開発計画' : '開発記録'}</span>
           <hr className="my-2 border-gray-200" />
         </div>
-        {view === 'plan' ? (
-          <PlanList
-            className="flex-1 overflow-y-auto p-2"
-            islandList={islandList}
-            turn={turnData?.turn}
-            isPlanLoading={isPlanLoading}
-            initPlanData={fetchPlanData}
-            uuid={developData?.uuid}
-          />
-        ) : (
-          <TurnLog className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
-        )}
+        <div className={'flex flex-1 flex-col overflow-hidden'}>
+          <Activity mode={view === 'plan' ? 'visible' : 'hidden'}>
+            <PlanList
+              className="flex-1 overflow-y-auto p-2"
+              islandList={islandList}
+              turn={turnData?.turn}
+              isPlanLoading={isPlanLoading}
+              initPlanData={fetchPlanData}
+              uuid={developData?.uuid}
+            />
+          </Activity>
+          <Activity mode={view === 'log' ? 'visible' : 'hidden'}>
+            <TurnLog className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
+          </Activity>
+        </div>
       </div>
       <div className="-ml-[3px] flex h-full items-center">
         <BaseTabs
