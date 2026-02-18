@@ -6,12 +6,11 @@
 export const secureRandom = () => {
   // NOTE: getRandomValuesの引数が配列のため
   const randomValues = new Uint32Array(1);
-  // 符号なしビットシフトでUint32の最大値を取得
-  const maxUint32 = -1 >>> 0;
   // Uint32の範囲で乱数生成
   crypto.getRandomValues(randomValues);
 
-  return randomValues[0] / (maxUint32 + 1 / 100000);
+  // 0 以上 1 未満の値を返すために 2^32 (4294967296) で割る
+  return randomValues[0] / 4294967296;
 };
 
 /**
