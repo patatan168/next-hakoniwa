@@ -27,7 +27,6 @@ export async function proxy(request: NextRequest) {
   if (csrfResult.shouldSetCookie && csrfResult.token) {
     response.cookies.set(CSRF_COOKIE_NAME, csrfResult.token, {
       httpOnly: false,
-      maxAge: 600,
       secure: true,
       sameSite: 'lax',
       path: '/',
