@@ -27,7 +27,7 @@ import {
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
 import sqlite from 'better-sqlite3';
-import { islandInfo, islandSchemaType } from './schema/islandTable';
+import { islandInfo, islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
 
@@ -137,6 +137,7 @@ function processSingleCell(
   item: islandInfo,
   nextTurn: number,
   fromUuid: string,
+  island: islandInfoTurnProgress,
   typeCache: Map<string, mapType>,
   stats: IslandStats
 ): turnLogSchemaType[] | undefined {
@@ -181,6 +182,7 @@ function processSingleCell(
       y: item.y,
       turn: nextTurn,
       fromUuid,
+      island,
     });
     return logs || undefined;
   }
@@ -205,7 +207,7 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
   const typeCache = new Map<string, mapType>();
 
   for (const item of islandInfo.island_info) {
-    const logs = processSingleCell(item, nextTurn, fromUuid, typeCache, stats);
+    const logs = processSingleCell(item, nextTurn, fromUuid, islandInfo, typeCache, stats);
     if (logs) logArray.push(...logs);
   }
 

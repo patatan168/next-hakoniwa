@@ -1,6 +1,5 @@
 import { mapArrayConverter, wideDamage } from '@/global/function/island';
 import { getBaseLog } from '@/global/function/turnProgress';
-import { islandDataStore } from '@/global/store/turnProgress';
 import { logSelfCrash } from '../logType';
 import { mapType } from '../mapType';
 
@@ -35,14 +34,11 @@ export const defenseBase: mapType = {
   imgPath: '/img/military/defense_base.gif',
   defVal: 0,
   maxVal: 0,
-  event: function ({ x, y, turn, fromUuid }) {
-    const fromIsland = islandDataStore.getState().islandGet(fromUuid);
-    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
-
-    const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
+  event: function ({ x, y, turn, fromUuid, island }) {
+    const mapInfo = island.island_info[mapArrayConverter(x, y)];
     if (mapInfo.landValue < this.maxVal) {
-      const baseLog = getBaseLog(turn, fromIsland);
-      const selfCrash = logSelfCrash(fromIsland, x, y);
+      const baseLog = getBaseLog(turn, island);
+      const selfCrash = logSelfCrash(island, x, y);
       const selfCrashLog = { ...baseLog, log: selfCrash, secret_log: selfCrash };
       const damageLog = wideDamage(fromUuid, x, y, turn);
       return [selfCrashLog, ...damageLog];

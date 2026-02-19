@@ -1,7 +1,6 @@
 import { eventRateSchemaType } from '@/db/schema/eventRateTable';
-import { islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfoTurnProgress } from '@/db/schema/islandTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { userSchemaType } from '@/db/schema/userTable';
 import {
   changeMapData,
   countMapAround,
@@ -11,7 +10,6 @@ import {
 } from '../function/island';
 import { getBaseLog } from '../function/turnProgress';
 import { checkProbability, randomIntInRange } from '../function/utility';
-import { islandDataGetSet } from '../store/turnProgress';
 import { logFire, logMonsterMove, logMonsterSuicideBombing } from './logType';
 import * as mapFacility from './mapCategory/mapFacility';
 import * as mapFake from './mapCategory/mapFake';
@@ -71,11 +69,13 @@ export type mapType = {
     y,
     turn,
     fromUuid,
+    island,
   }: {
     x: number;
     y: number;
     turn: number;
     fromUuid: string;
+    island: islandInfoTurnProgress;
   }) => Array<turnLogSchemaType> | void | undefined;
 };
 
@@ -188,7 +188,7 @@ export function fireDisaster(
   x: number,
   y: number,
   turn: number,
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: islandInfoTurnProgress,
   eventRate: eventRateSchemaType
 ): turnLogSchemaType | undefined {
   if (checkProbability(eventRate.fire)) {
@@ -214,18 +214,16 @@ export function fireDisaster(
  * @param x X座標
  * @param y Y座標
  * @param turn ターン数
- * @param fromIsland 実行する島データー
+ * @param fromUuid 実行する島データー
  * @returns 移動ログ or undefined
  */
 export function monsterMove(
   x: number,
   y: number,
   turn: number,
-  fromUuid: string
+  fromUuid: string,
+  fromIsland: islandInfoTurnProgress
 ): Array<turnLogSchemaType> | undefined {
-  using fromIslandGetSet = islandDataGetSet(fromUuid);
-  const fromIsland = fromIslandGetSet.islandData;
-  if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
   const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
 
   // サンジラとクジラの硬化判定
