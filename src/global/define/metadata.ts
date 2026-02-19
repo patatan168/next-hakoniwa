@@ -34,6 +34,14 @@ const META_DATA = Object.freeze({
   INIT_FOOD: Number(process.env.INIT_FOOD!),
   /** 最大食料 (トン) */
   MAX_FOOD: Number(process.env.MAX_FOOD!),
+  /** 1人規模あたりの農場が生み出す食料 */
+  FARM_PER_PEOPLE: Number(process.env.EARN_FARM_PER_PEOPLE!),
+  /** 1人規模あたりの工場が生み出す資金 */
+  FACTORY_PER_PEOPLE: Number(process.env.EARN_FACTORY_PER_PEOPLE!),
+  /** 1人規模あたりの鉱山が生み出す資金 */
+  MINING_PER_PEOPLE: Number(process.env.EARN_MINING_PER_PEOPLE!),
+  /** 食料から資金への変換率 */
+  FOOD_TO_MONEY_RATE: Number(process.env.FOOD_TO_MONEY_RATE!),
   /** 食料不足で施設が破壊される確率 (%) */
   LACK_FOOD_DESTROY_RATE: Number(process.env.LACK_FOOD_DESTROY_RATE!),
   /** 食料消費量 (トン/人) */
