@@ -59,15 +59,7 @@ function incomeAndEatenPhase(fromUuid: string) {
 
   if (fromIsland.population > fromIsland.farm) {
     fromIsland.food += fromIsland.farm;
-    fromIsland.money += Math.trunc(
-      Math.max(
-        0,
-        Math.min(
-          (fromIsland.population - fromIsland.food) / 10,
-          fromIsland.factory + fromIsland.mining
-        )
-      )
-    );
+    fromIsland.money += Math.trunc((fromIsland.factory + fromIsland.mining) / 1000);
   } else {
     fromIsland.food += fromIsland.population;
   }
