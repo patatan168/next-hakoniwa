@@ -6,46 +6,36 @@ import { mapType } from '../mapType';
 import META_DATA from '../metadata';
 import { sea } from './mapLand';
 
+const facilityUnit = '人規模';
 export const factory: mapType = {
   type: 'factory',
   baseLand: 'plains',
   name: '工場',
   imgPath: '/img/facility/factory.gif',
-  defVal: 0,
-  maxVal: 100,
-  coefficient: 100,
-  unit: '00人',
-  unitType: 'after',
-};
-export const mining: mapType = {
-  type: 'mining',
-  baseLand: 'mountain',
-  name: '採掘場',
-  imgPath: '/img/facility/mining.gif',
-  defVal: 0,
-  maxVal: 100,
-  coefficient: 100,
-  unit: '00人',
-  unitType: 'after',
+  defVal: 1,
+  maxVal: 10,
+  coefficient: 10000,
+  unit: facilityUnit,
 };
 export const farm: mapType = {
   type: 'farm',
   baseLand: 'plains',
   name: '農場',
   imgPath: '/img/facility/farm.gif',
-  defVal: 0,
-  maxVal: 100,
-  coefficient: 100,
-  unit: '00人',
-  unitType: 'after',
+  defVal: 1,
+  maxVal: 25,
+  coefficient: 2000,
+  unit: facilityUnit,
 };
-export const submarineMissile: mapType = {
-  type: 'submarine_missile',
-  baseLand: 'submarine_missile',
-  name: '海底基地',
-  imgPath: '/img/facility/submarine_missile.gif',
-  defVal: 0,
-  maxVal: 0,
+export const mining: mapType = {
+  type: 'mining',
+  baseLand: 'mountain',
+  name: '採掘場',
+  imgPath: '/img/facility/mining.gif',
+  defVal: 1,
+  maxVal: 40,
+  coefficient: 5000,
+  unit: facilityUnit,
 };
 export const oilField: mapType = {
   type: 'oil_field',

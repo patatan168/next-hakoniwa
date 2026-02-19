@@ -21,10 +21,11 @@ export const shallows: mapType = {
 };
 export const forest: mapType = {
   type: 'forest',
+  fakeType: 'fake_forest',
   baseLand: 'plains',
   name: '森',
   imgPath: '/img/land/forest.gif',
-  defVal: 200,
+  defVal: 5,
   maxVal: 200,
   coefficient: 100,
   unit: '本',
