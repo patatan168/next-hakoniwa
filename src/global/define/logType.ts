@@ -17,8 +17,14 @@ const coordinate = (x: number, y: number, isSecret = false): string => {
   return `<font color="#a06040"><b>${char}</b></font>`;
 };
 
-const islandName = (island: islandSchemaType & Pick<userSchemaType, 'island_name'>) => {
-  return `<a href="/sight?uuid=${island.uuid}"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
+const islandName = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  link = true
+) => {
+  if (link) {
+    return `<a href="/sight?uuid=${island.uuid}"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
+  }
+  return `<font color="#a06040"><b>${island.island_name}島</b></font>`;
 };
 
 const planName = (plan: planType) => {
@@ -757,4 +763,15 @@ export const logTreasure = (
   const name = getMapName(mapInfo.type, mapInfo.landValue, getMapDefine(mapInfo.type).name);
 
   return `${islandName(island)}${coordinate(x, y)}での${name}中に、<b>${earn}${META_DATA.UNIT_MONEY}</b>もの埋蔵金が発見されました。`;
+};
+
+/**
+ * 島滅亡ログ
+ * @param island 島情報
+ * @returns 島滅亡ログ
+ */
+export const logIslandDeath = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
+  return `${islandName(island, false)}から人がいなくなり、<b>無人島</b>になりました。`;
 };

@@ -9,6 +9,7 @@ import {
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { turnStateSchemaType } from '@/db/schema/turnStateTable';
+import { userSchemaType } from '@/db/schema/userTable';
 import sqlite from 'better-sqlite3';
 import { differenceWith, isEqual } from 'es-toolkit';
 import {
@@ -19,6 +20,7 @@ import {
   logEruptionDamageToShallows,
   logFallMonument,
   logHugeMeteorite,
+  logIslandDeath,
   logLackFoods,
   logLackFoodsDamage,
   logLandSubsidence,
@@ -76,7 +78,8 @@ export function getAllIslands(db: { client: sqlite.Database; [Symbol.dispose]: (
       INNER JOIN island
         ON user.uuid = island.uuid
       INNER JOIN event_rate
-        ON island.uuid = event_rate.uuid`
+        ON island.uuid = event_rate.uuid
+      WHERE user.inhabited = 1`
     )
     .all();
   if (islands) {
@@ -200,6 +203,54 @@ export const updateIslands = (
   });
 
   updateManyIslands(islandData);
+};
+
+/**
+ * ユーザーの生存フラグを更新
+ * @param db DB接続情報
+ * @param islandData 全島情報
+ */
+export const updateUserInhabited = (
+  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+  islandData: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[],
+  logArray: turnLogSchemaType[],
+  turn: number
+) => {
+  const deadIslands = islandData.filter((island) => island.population <= 0);
+  if (deadIslands.length === 0) return;
+
+  const update = db.client.prepare('UPDATE user SET inhabited = 0 WHERE uuid = @uuid');
+  const deleteStatements = [
+    'DELETE FROM island WHERE uuid = @uuid',
+    'DELETE FROM event_rate WHERE uuid = @uuid',
+    'DELETE FROM plan WHERE from_uuid = @uuid OR to_uuid = @uuid',
+    'DELETE FROM access_token WHERE uuid = @uuid',
+    'DELETE FROM auth WHERE uuid = @uuid',
+    'DELETE FROM last_login WHERE uuid = @uuid',
+    'DELETE FROM refresh_token WHERE uuid = @uuid',
+    'DELETE FROM role WHERE uuid = @uuid',
+  ].map((sql) => db.client.prepare(sql));
+
+  const updateMany = db.client.transaction(
+    (islands: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[]) => {
+      for (const island of islands) {
+        update.run({ uuid: island.uuid });
+        for (const stmt of deleteStatements) {
+          stmt.run({ uuid: island.uuid });
+        }
+        // ログの挿入
+        logArray.push({
+          log_uuid: createUuid25(),
+          from_uuid: island.uuid,
+          to_uuid: '',
+          turn: turn,
+          secret_log: '',
+          log: logIslandDeath(island),
+        });
+      }
+    }
+  );
+  updateMany(deadIslands);
 };
 
 /**

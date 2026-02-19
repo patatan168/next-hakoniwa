@@ -22,6 +22,7 @@ import {
   updateIslands,
   updateTurn,
   updateTurnProgressing,
+  updateUserInhabited,
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
@@ -336,6 +337,7 @@ function turnProceed(recursiveCount = 0) {
     if (!finalData) throw new Error('島データの取得に失敗しました。');
 
     updateIslands(db, finalData);
+    updateUserInhabited(db, finalData, logArray, turnInfo.turn);
     updateTurn(db, turnInfo.turn + 1);
     insertLogs(db, logArray);
   } catch (error) {
