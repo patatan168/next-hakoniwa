@@ -60,9 +60,12 @@ function incomeAndEatenPhase(fromUuid: string) {
   if (fromIsland.population > fromIsland.farm) {
     fromIsland.food += fromIsland.farm;
     fromIsland.money += Math.trunc(
-      Math.min(
-        (fromIsland.population - fromIsland.food) / 10,
-        fromIsland.factory + fromIsland.mining
+      Math.max(
+        0,
+        Math.min(
+          (fromIsland.population - fromIsland.food) / 10,
+          fromIsland.factory + fromIsland.mining
+        )
       )
     );
   } else {
@@ -220,9 +223,9 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
   // 食料と資金の処理
   if (islandInfo.food > META_DATA.MAX_FOOD) {
     islandInfo.money += Math.trunc((islandInfo.food - META_DATA.MAX_FOOD) / 1000);
-    islandInfo.food = Math.min(islandInfo.money, META_DATA.MAX_FOOD);
+    islandInfo.food = Math.min(islandInfo.food, META_DATA.MAX_FOOD);
   }
-  islandInfo.money = Math.min(islandInfo.money, META_DATA.MAX_MONEY);
+  islandInfo.money = Math.max(0, Math.min(islandInfo.money, META_DATA.MAX_MONEY));
 }
 
 /**
