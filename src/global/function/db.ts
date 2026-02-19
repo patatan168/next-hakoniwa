@@ -197,7 +197,17 @@ export const migrateDbTable =
       // 新旧テーブルで構造に差異がない場合は新テーブルを破棄してスキップ
       const newTableInfo = getTableInfo(db, newTableName);
       const oldTableInfo = getTableInfo(db, tableName);
-      if (isEqual(newTableInfo, oldTableInfo)) {
+
+      // デフォルト値の正規化を行う関数
+      // sqliteの仕様で、DEFAULT NULLは'NULL'（文字列）として返ってくることがあるため、nullに変換して比較する
+      const normalizeTableInfo = (info: ReturnType<typeof getTableInfo>) => {
+        return info.map((col) => {
+          const dflt_value = col.dflt_value === 'NULL' ? null : col.dflt_value;
+          return { ...col, dflt_value };
+        });
+      };
+
+      if (isEqual(normalizeTableInfo(newTableInfo), normalizeTableInfo(oldTableInfo))) {
         console.log('テーブルの構造に変更がないため、新テーブルを破棄します。');
         // 新しいテーブルを削除
         db.prepare(`DROP TABLE ${newTableName}`).run();

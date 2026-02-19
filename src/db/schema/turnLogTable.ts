@@ -28,6 +28,7 @@ export const turnLogSchema: DbSchema = [
   {
     name: 'log',
     type: 'TEXT',
+    nullable: true,
   },
 ];
 
@@ -37,5 +38,5 @@ export type turnLogSchemaType = {
   to_uuid: string;
   turn: number;
   secret_log: string;
-  log: string;
+  log: string | null;
 };
