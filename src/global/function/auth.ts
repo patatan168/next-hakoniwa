@@ -267,6 +267,7 @@ async function reCreateAccessToken(client: sqlite.Database) {
  * クッキー認証
  * @note 認証に失敗したらundefined
  * @param client DBクライアント
+ * @param isAccessToken アクセストークンorリフレッシュトークン
  * @returns UUID
  */
 export const validAuthCookie = async (
@@ -274,92 +275,97 @@ export const validAuthCookie = async (
   isAccessToken: boolean
 ): Promise<string | undefined> => {
   const jwtToken = await getAuthCookie(isAccessToken);
-  const { tableName, algorithm, expiresHour } = tokenOptions(isAccessToken);
 
-  if (jwtToken) {
-    const rawToken = jwt.decode(jwtToken, { json: true });
-    // Decode Error
-    if (rawToken === null) {
-      throw 'JWT Decode Error';
-    }
-    try {
-      // Issuer Error
-      const issuer = rawToken.iss;
-      if (issuer !== META.ISSUER) {
-        throw 'JWT Issuer Error';
-      }
-      // Session Error
-      const uuid = rawToken.sub;
-      const sessionId = rawToken.session_id;
-      if (!uuid || !sessionId) {
-        throw 'JWT Session Error';
-      }
-      const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
-        `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
-      );
-      const tokenData = selectTokenTable.get(uuid, sessionId);
-      if (!tokenData) {
-        throw `${tableName} Table Error`;
-      }
-
-      // Verify
-      jwt.verify(jwtToken, tokenData.public_key, { algorithms: [algorithm] });
-
-      // Token Refresh
-      if (tokenData.created_at) {
-        const now = Math.round(new Date().getTime() / 1000);
-        const diffSec = now - tokenData.created_at;
-        const refreshSec = 0.8 * expiresHour * 3600;
-        if (diffSec > refreshSec) {
-          if (isAccessToken) {
-            await reCreateAccessToken(client);
-            await setExistsRefreshToken();
-          } else {
-            await reCreateJwtToken(client, uuid, isAccessToken);
-          }
-        }
-      }
-      // 期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
-      if (isAccessToken) {
-        await reCreateRefreshToken(client);
-      }
-
-      // 10分以内にログインしていなければ最終ログイン時間を更新
-      client
-        .prepare(
-          `UPDATE last_login
-           SET last_login_at = unixepoch()
-           WHERE uuid = ?
-             AND last_login_at < unixepoch() - 600`
-        )
-        .run(uuid);
-      // Success
-      return uuid;
-    } catch (error) {
-      console.error(error);
-      // Cookie削除
-      await deleteAuthCookie(isAccessToken);
-      if (error instanceof jwt.TokenExpiredError) {
-        // トークン期限切れの場合はDBからセッション削除
-        client
-          .prepare(
-            `DELETE FROM ${tableName}
-           WHERE uuid = ? AND session_id = ?`
-          )
-          .run(rawToken.sub, rawToken.session_id);
-        if (isAccessToken) {
-          return await reCreateAccessToken(client);
-        }
-      }
-      // Fail
-      await deleteExistsRefreshToken();
-      return undefined;
-    }
-  } else if (isAccessToken) {
-    // アクセストークンがない場合、リフレッシュトークンで再認証
-    return await reCreateAccessToken(client);
+  // トークンが無い場合の早期リターン
+  if (!jwtToken) {
+    if (isAccessToken) return await reCreateAccessToken(client);
+    throw 'No JWT Token';
   }
-  throw 'No JWT Token';
+
+  const { tableName, algorithm, expiresHour } = tokenOptions(isAccessToken);
+  const rawToken = jwt.decode(jwtToken, { json: true }) as jwt.JwtPayload | null;
+
+  // バリデーション失敗時の共通処理
+  const abortAuth = async (msg: string) => {
+    console.error(msg);
+    await deleteAuthCookie(isAccessToken);
+    await deleteExistsRefreshToken();
+    return undefined;
+  };
+
+  if (!rawToken) {
+    return await abortAuth('JWT Decode Error');
+  }
+
+  if (rawToken.iss !== META.ISSUER) {
+    return await abortAuth('JWT Issuer Error');
+  }
+
+  const uuid = rawToken.sub as string | undefined;
+  const sessionId = rawToken.session_id as string | undefined;
+
+  if (!uuid || !sessionId) {
+    return await abortAuth('JWT Session Error');
+  }
+
+  const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
+    `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
+  );
+  const tokenData = selectTokenTable.get(uuid, sessionId);
+
+  if (!tokenData) {
+    return await abortAuth(`${tableName} Table Error`);
+  }
+
+  // 電子署名検証の例外ハンドリング
+  const handleVerifyError = async (error: unknown) => {
+    console.error(error);
+    await deleteAuthCookie(isAccessToken);
+
+    if (error instanceof jwt.TokenExpiredError) {
+      client
+        .prepare(`DELETE FROM ${tableName} WHERE uuid = ? AND session_id = ?`)
+        .run(uuid, sessionId);
+      if (isAccessToken) return await reCreateAccessToken(client);
+    }
+
+    await deleteExistsRefreshToken();
+    return undefined;
+  };
+
+  try {
+    jwt.verify(jwtToken, tokenData.public_key, { algorithms: [algorithm] });
+  } catch (error) {
+    return await handleVerifyError(error);
+  }
+
+  // リフレッシュトークンの場合のみ、トークンの再生成（ローテーション）を行う
+  if (!isAccessToken) {
+    const handleTokenRefresh = async () => {
+      if (!tokenData.created_at) return;
+      const diffSec = Math.trunc(Date.now() / 1000) - tokenData.created_at;
+      if (diffSec <= 0.8 * expiresHour * 3600) return;
+
+      await reCreateJwtToken(client, uuid, false);
+    };
+
+    await handleTokenRefresh();
+  } else {
+    // アクセストークンの場合は、リフレッシュトークン側が期限切れ間近なら再生成を試みる
+    await reCreateRefreshToken(client);
+  }
+
+  // 10分以内にログインしていなければ最終ログイン時間を更新
+  client
+    .prepare(
+      `UPDATE last_login
+       SET last_login_at = unixepoch()
+       WHERE uuid = ?
+         AND last_login_at < unixepoch() - 600`
+    )
+    .run(uuid);
+
+  return uuid;
 };
 
 /**
@@ -369,72 +375,52 @@ export const validAuthCookie = async (
 export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
   const accessToken = await getAuthCookie(true);
   const refreshToken = await getAuthCookie(false);
+
   // Cookie削除
   await deleteAuthCookie(true);
   await deleteAuthCookie(false);
   await deleteExistsRefreshToken();
 
-  if (accessToken) {
-    const { tableName: accessTokenTableName, algorithm: accessTokenAlgorithm } = tokenOptions(true);
-    const rawToken = jwt.decode(accessToken, { json: true });
-    // Decode Error
-    if (rawToken === null) {
-      throw 'JWT Decode Error';
+  // DBセッション削除用の内部ヘルパー関数
+  const deleteDbSession = (tokenStr: string, isAccessToken: boolean) => {
+    const { tableName, algorithm } = tokenOptions(isAccessToken);
+    const rawToken = jwt.decode(tokenStr, { json: true }) as jwt.JwtPayload | null;
+
+    if (!rawToken) {
+      console.error('JWT Decode Error');
+      return;
     }
-    // Issuer Error
-    const issuer = rawToken.iss;
-    if (issuer !== META.ISSUER) {
-      throw 'JWT Issuer Error';
+
+    if (rawToken.iss !== META.ISSUER) {
+      console.error('JWT Issuer Error');
+      return;
     }
-    // Session Error
-    const uuid = rawToken.sub;
-    const sessionId = rawToken.session_id;
+
+    const uuid = rawToken.sub as string | undefined;
+    const sessionId = rawToken.session_id as string | undefined;
+
     if (!uuid || !sessionId) {
-      throw 'JWT Session Error';
+      console.error('JWT Session Error');
+      return;
     }
+
     const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
-      `SELECT public_key, created_at FROM ${accessTokenTableName} WHERE uuid = ? AND session_id = ?`
+      `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
     );
     const tokenData = selectTokenTable.get(uuid, sessionId);
-    if (tokenData) {
-      // Verify
-      jwt.verify(accessToken, tokenData.public_key, { algorithms: [accessTokenAlgorithm] });
-      // セッション削除
+
+    if (!tokenData) return;
+
+    try {
+      jwt.verify(tokenStr, tokenData.public_key, { algorithms: [algorithm] });
       client
-        .prepare(`DELETE FROM ${accessTokenTableName} WHERE uuid = ? AND session_id = ?`)
+        .prepare(`DELETE FROM ${tableName} WHERE uuid = ? AND session_id = ?`)
         .run(uuid, sessionId);
+    } catch (error) {
+      console.error(error);
     }
-  }
-  if (refreshToken) {
-    const { tableName: refreshTokenTableName, algorithm: refreshTokenAlgorithm } =
-      tokenOptions(false);
-    const rawToken = jwt.decode(refreshToken, { json: true });
-    // Decode Error
-    if (rawToken === null) {
-      throw 'JWT Decode Error';
-    }
-    // Issuer Error
-    const issuer = rawToken.iss;
-    if (issuer !== META.ISSUER) {
-      throw 'JWT Issuer Error';
-    }
-    // Session Error
-    const uuid = rawToken.sub;
-    const sessionId = rawToken.session_id;
-    if (!uuid || !sessionId) {
-      throw 'JWT Session Error';
-    }
-    const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
-      `SELECT public_key, created_at FROM ${refreshTokenTableName} WHERE uuid = ? AND session_id = ?`
-    );
-    const tokenData = selectTokenTable.get(uuid, sessionId);
-    if (tokenData) {
-      // Verify
-      jwt.verify(refreshToken, tokenData.public_key, { algorithms: [refreshTokenAlgorithm] });
-      // セッション削除
-      client
-        .prepare(`DELETE FROM ${refreshTokenTableName} WHERE uuid = ? AND session_id = ?`)
-        .run(uuid, sessionId);
-    }
-  }
+  };
+
+  if (accessToken) deleteDbSession(accessToken, true);
+  if (refreshToken) deleteDbSession(refreshToken, false);
 };
