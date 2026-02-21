@@ -118,14 +118,18 @@ export const logCommonDev = (
  * @param fromIsland 援助元
  * @param toIsland 援助先
  * @param plan 計画情報
+ * @param times 実行回数
  * @returns ログ
  */
 export const logCommonAid = (
   fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  plan: planType
+  plan: planType,
+  times: number
 ): string => {
-  return `${islandName(fromIsland)}が${islandName(toIsland)}へ${planName(plan)}を行いました。`;
+  const unit = plan.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
+  const cost = plan.cost * times;
+  return `${islandName(fromIsland)}が${islandName(toIsland)}へ<b>${cost}${unit}</b>の${planName(plan)}を行いました。`;
 };
 
 export const logNoCoordinateCommonDev = (

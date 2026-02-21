@@ -37,7 +37,7 @@ export const foodAid: planType = {
     const cost = this.cost * plan.times;
     toIsland.food += cost;
     fromIsland.food -= cost;
-    const log = logCommonAid(fromIsland, toIsland, this);
+    const log = logCommonAid(fromIsland, toIsland, this, plan.times);
     // 計画回数の初期化
     plan.times = 0;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
@@ -77,7 +77,7 @@ export const financialAid: planType = {
     const cost = this.cost * plan.times;
     toIsland.money += cost;
     fromIsland.money -= cost;
-    const log = logCommonAid(fromIsland, toIsland, this);
+    const log = logCommonAid(fromIsland, toIsland, this, plan.times);
     // 計画回数の初期化
     plan.times = 0;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
