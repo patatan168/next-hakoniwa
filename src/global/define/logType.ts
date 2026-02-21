@@ -801,13 +801,20 @@ export const logIslandDeath = (
   return `${islandName(island, false)}から人がいなくなり、<b>無人島</b>になりました。`;
 };
 
-export const logNoCoordinateCommonAid = (
+/**
+ * 資源輸出ログ
+ * @param fromIsland 資源を輸出する島
+ * @param plan 計画
+ * @param cost 資源のコスト
+ * @param earn 獲得した資源
+ * @returns 資源輸出ログ
+ */
+export const logResourceExport = (
   fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType,
-  times: number
+  cost: number,
+  earn: { unit: string; amount: number }
 ): string => {
-  const unit = plan.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
-  const cost = plan.cost * times;
-  return `${islandName(fromIsland)}が${islandName(toIsland)}へ<b>${cost}${unit}</b>の${planName(plan)}を行いました。`;
+  const unit = plan.unit === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
+  return `${islandName(fromIsland)}が<b>${cost}${unit}</b>の${planName(plan)}を行い<b>${earn.amount}${earn.unit}</b>を得ました。`;
 };

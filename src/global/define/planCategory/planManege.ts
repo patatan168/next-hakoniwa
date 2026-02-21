@@ -1,6 +1,6 @@
 import { getBaseLog } from '@/global/function/turnProgress';
 import { islandDataGetSet } from '@/global/store/turnProgress';
-import { logCommonAid, logNoCoordinateCommonDev } from '../logType';
+import { logCommonAid, logNoCoordinateCommonDev, logResourceExport } from '../logType';
 import META_DATA from '../metadata';
 import { changeDataArgs, planType, validCostAndLandType } from '../planType';
 
@@ -90,7 +90,7 @@ export const foodExport: planType = {
   coordinate: false,
   category: '運営',
   name: '食料輸出',
-  otherIsland: true,
+  otherIsland: false,
   immediate: true,
   mapType: 'none',
   cost: 10000,
@@ -112,9 +112,13 @@ export const foodExport: planType = {
 
     const baseLog = getBaseLog(turn, fromIsland);
     const cost = this.cost * plan.times;
+    const earn = Math.ceil(cost * META_DATA.FOOD_TO_MONEY_RATE);
     fromIsland.food -= cost;
-    fromIsland.money += cost * META_DATA.FOOD_TO_MONEY_RATE;
-    const log = logNoCoordinateCommonDev(fromIsland, this);
+    fromIsland.money += earn;
+    const log = logResourceExport(fromIsland, this, cost, {
+      unit: META_DATA.UNIT_MONEY,
+      amount: earn,
+    });
     // 計画回数の初期化
     plan.times = 0;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };

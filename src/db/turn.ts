@@ -220,7 +220,9 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
 
   // 食料と資金の処理
   if (islandInfo.food > META_DATA.MAX_FOOD) {
-    islandInfo.money += (islandInfo.food - META_DATA.MAX_FOOD) * META_DATA.FOOD_TO_MONEY_RATE;
+    islandInfo.money += Math.ceil(
+      (islandInfo.food - META_DATA.MAX_FOOD) * META_DATA.FOOD_TO_MONEY_RATE
+    );
     islandInfo.food = Math.min(islandInfo.food, META_DATA.MAX_FOOD);
   }
   islandInfo.money = Math.trunc(Math.max(0, Math.min(islandInfo.money, META_DATA.MAX_MONEY)));
