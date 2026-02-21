@@ -114,6 +114,19 @@ export const logCommonDev = (
 };
 
 /**
+ * 座標の無い共通の開発ログ
+ * @param island 島情報
+ * @param plan 計画情報
+ * @returns ログ
+ */
+export const logNoCoordinateCommonDev = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  plan: planType
+): string => {
+  return `${islandName(island)}で${planName(plan)}が行われました。`;
+};
+
+/**
  * 共通の援助ログ
  * @param fromIsland 援助元
  * @param toIsland 援助先
@@ -130,13 +143,6 @@ export const logCommonAid = (
   const unit = plan.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
   const cost = plan.cost * times;
   return `${islandName(fromIsland)}が${islandName(toIsland)}へ<b>${cost}${unit}</b>の${planName(plan)}を行いました。`;
-};
-
-export const logNoCoordinateCommonDev = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  plan: planType
-): string => {
-  return `${islandName(island)}で${planName(plan)}が行われました。`;
 };
 
 /**
@@ -793,4 +799,15 @@ export const logIslandDeath = (
   island: islandSchemaType & Pick<userSchemaType, 'island_name'>
 ): string => {
   return `${islandName(island, false)}から人がいなくなり、<b>無人島</b>になりました。`;
+};
+
+export const logNoCoordinateCommonAid = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  plan: planType,
+  times: number
+): string => {
+  const unit = plan.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
+  const cost = plan.cost * times;
+  return `${islandName(fromIsland)}が${islandName(toIsland)}へ<b>${cost}${unit}</b>の${planName(plan)}を行いました。`;
 };
