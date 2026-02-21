@@ -1,6 +1,7 @@
 import { getBaseLog } from '@/global/function/turnProgress';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logCommonAid, logNoCoordinateCommonDev } from '../logType';
+import META_DATA from '../metadata';
 import { changeDataArgs, planType, validCostAndLandType } from '../planType';
 
 export const foodAid: planType = {
@@ -77,6 +78,43 @@ export const financialAid: planType = {
     toIsland.money += cost;
     fromIsland.money -= cost;
     const log = logCommonAid(fromIsland, toIsland, this);
+    // 計画回数の初期化
+    plan.times = 0;
+    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+  },
+};
+
+export const foodExport: planType = {
+  planNo: 902,
+  type: 'foodExport',
+  coordinate: false,
+  category: '運営',
+  name: '食料輸出',
+  otherIsland: true,
+  immediate: true,
+  mapType: 'none',
+  cost: 10000,
+  costType: 'food',
+  minTimes: 1,
+  maxTimes: 99,
+  maxTimesPerTurn: 1,
+  unit: '回',
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using fromIslandGetSet = islandDataGetSet(uuid.fromIsland);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.fromIsland}`);
+
+    const validConstAndLand = validCostAndLandType(fromIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
+
+    const baseLog = getBaseLog(turn, fromIsland);
+    const cost = this.cost * plan.times;
+    fromIsland.food -= cost;
+    fromIsland.money += cost * META_DATA.FOOD_TO_MONEY_RATE;
+    const log = logNoCoordinateCommonDev(fromIsland, this);
     // 計画回数の初期化
     plan.times = 0;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
