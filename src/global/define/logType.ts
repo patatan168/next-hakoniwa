@@ -113,6 +113,21 @@ export const logCommonDev = (
   return `${islandName(island)}${coordinate(x, y, isSecret)}で${planName(plan)}が行われました。`;
 };
 
+/**
+ * 共通の援助ログ
+ * @param fromIsland 援助元
+ * @param toIsland 援助先
+ * @param plan 計画情報
+ * @returns ログ
+ */
+export const logCommonAid = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  plan: planType
+): string => {
+  return `${islandName(fromIsland)}が${islandName(toIsland)}へ${planName(plan)}を行いました。`;
+};
+
 export const logNoCoordinateCommonDev = (
   island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
   plan: planType

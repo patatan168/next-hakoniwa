@@ -169,8 +169,10 @@ export const validLandType = (
   y: number
 ): boolean => {
   switch (plan.mapType) {
-    case 'none':
-      return false;
+    case 'none': {
+      // 座標に関係しないコマンドなので常にtrue
+      return true;
+    }
     case 'all': {
       // マップ情報の取得
       const mapInfo = island.island_info[mapArrayConverter(x, y)];
