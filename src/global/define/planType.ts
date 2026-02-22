@@ -116,15 +116,24 @@ export const getPlanSelect = () => {
   return PLAN_SELECT_CACHE;
 };
 
+let ALL_PLAN_DEFINES: Map<string, planType> | null = null;
+
 /**
  * 計画情報を取得
  * @param type 計画タイプ
  * @returns 計画情報
  */
 export const getPlanDefine = (type: string): planType => {
-  const plan = Object.entries(getAllPlan())
-    .map(([_, value]) => ({ ...value }))
-    .find((plan) => plan.type === type);
+  if (!ALL_PLAN_DEFINES) {
+    ALL_PLAN_DEFINES = new Map<string, planType>();
+    const allPlans = getAllPlan();
+    for (const value of Object.values(allPlans)) {
+      if (!value) continue;
+      ALL_PLAN_DEFINES.set(value.type, value);
+    }
+  }
+
+  const plan = ALL_PLAN_DEFINES.get(type);
 
   if (!plan) {
     console.error(`Plan type "${type}" not found.`);
