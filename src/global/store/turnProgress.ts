@@ -1,5 +1,4 @@
 import { islandInfoTurnProgress } from '@/db/schema/islandTable';
-import { cloneDeep } from 'es-toolkit';
 import { createStore } from 'zustand/vanilla';
 
 type islandProgressStore = {
@@ -16,14 +15,15 @@ export const islandDataStore = createStore<islandProgressStore>((set, get) => ({
   islandGet: (uuid) => {
     const index = get().indexMap[uuid];
     if (index === undefined) return;
-    return cloneDeep(get().data[index]);
+    return get().data[index];
   },
   change: (data, uuid) => {
     const index = get().indexMap[uuid];
     if (index === undefined) return;
-    const updated = [...get().data];
-    updated[index] = data;
-    set({ data: updated });
+    const currentData = get().data;
+    if (currentData[index] !== data) {
+      currentData[index] = data;
+    }
   },
   reset: () => set({ data: [], indexMap: {} }),
 }));
