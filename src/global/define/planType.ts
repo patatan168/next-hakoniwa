@@ -160,18 +160,20 @@ export const validBaseLandType = (mapInfo: islandInfo, plan: planType) => {
  * @param plan 計画情報
  * @param x X座標
  * @param y Y座標
+ * @param noneMapType 座標に関係しないコマンドの場合にtrue/falseを返す
  * @returns 予定地が有効かどうか
  */
 export const validLandType = (
   island: islandSchemaType,
   plan: planType,
   x: number,
-  y: number
+  y: number,
+  noneMapType: boolean = false
 ): boolean => {
   switch (plan.mapType) {
     case 'none': {
       // 座標に関係しないコマンドなので常にtrue
-      return true;
+      return noneMapType;
     }
     case 'all': {
       // マップ情報の取得
@@ -213,7 +215,7 @@ export const validCostAndLandType = (
 ): planResult => {
   const baseLog = getBaseLog(turn, island);
   // 地形整備が不可能なら中止
-  if (!validLandType(island, plan, x, y)) {
+  if (!validLandType(island, plan, x, y, true)) {
     const log = logLandFail(island, plan, x, y);
     return { nextPlan: true, log: [{ ...baseLog, secret_log: log, log: log }] };
   }
