@@ -39,6 +39,9 @@ export const baseUserInfoSchema = z.object({
     .max(16, { error: '16文字以内で入力してください' })
     .regex(/^[^<>&"'/`={}():%]+$/, {
       error: '「^ < > & " \' ` = { } ( ) : %」は使用できません',
+    })
+    .regex(/^[^\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u, {
+      error: '絵文字は使用できません',
     }),
   islandName: z.coerce
     .string()
@@ -46,7 +49,7 @@ export const baseUserInfoSchema = z.object({
     .min(1, { error: '島名を入力してください' })
     .max(16, { error: '16文字以内の島名を入力してください' })
     .regex(/[^島]$/, {
-      error: '末尾に「島」は登録できません',
+      error: '末尾に「島」は使用できません',
     })
     .regex(/^[^<>&"'/`={}():%]+$/, {
       error: '「^ < > & " \' ` = { } ( ) : %」は使用できません',
