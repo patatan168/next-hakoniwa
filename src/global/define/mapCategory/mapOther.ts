@@ -20,18 +20,16 @@ export const people: mapType = {
       const growthValue = () => {
         if (island.food >= 0) {
           const propaganda = island.propaganda;
-          if (mapInfo.landValue > valueOrSafeLimit(this.level?.[0], 'max')) {
-            return propaganda === 100
-              ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
-              : META_DATA.PEOPLE_GROWTH.VILLAGE;
-          } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[1], 'max')) {
+          if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[2], 'max')) {
+            return propaganda === 100 ? META_DATA.PEOPLE_PROPAGANDA.CITY : 0; // 都市は誘致活動しないと増加しない
+          } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[1], 'max')) {
             return propaganda === 100
               ? META_DATA.PEOPLE_PROPAGANDA.TOWN
               : META_DATA.PEOPLE_GROWTH.TOWN;
-          } else if (mapInfo.landValue > valueOrSafeLimit(this.level?.[2], 'max')) {
+          } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[0], 'max')) {
             return propaganda === 100
-              ? META_DATA.PEOPLE_PROPAGANDA.CITY
-              : META_DATA.PEOPLE_GROWTH.CITY;
+              ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
+              : META_DATA.PEOPLE_GROWTH.VILLAGE;
           } else {
             return 0;
           }
@@ -39,9 +37,23 @@ export const people: mapType = {
           return META_DATA.PEOPLE_LOSS.FAMINE;
         }
       };
+
+      const vLimit = valueOrSafeLimit(this.level?.[1], 'max') - 1; // 村の上限
+      const tLimit = valueOrSafeLimit(this.level?.[2], 'max') - 1; // 町の上限
+      const cLimit = this.maxVal; // 都市の上限
+
+      let capacityLimit = cLimit;
+      if (mapInfo.landValue <= vLimit) {
+        capacityLimit = vLimit;
+      } else if (mapInfo.landValue <= tLimit) {
+        capacityLimit = tLimit;
+      }
+
       const tmpValue = mapInfo.landValue + randomIntInRange(1, growthValue());
+
       if (tmpValue > 0) {
-        changeMapData(island, x, y, 'people', { type: 'ins', value: tmpValue % this.maxVal });
+        const clampedValue = Math.min(tmpValue, capacityLimit);
+        changeMapData(island, x, y, 'people', { type: 'ins', value: clampedValue });
       } else {
         // 人口不足時は平地に戻す
         changeMapData(island, x, y, 'plains', { type: 'ins', value: 0 });
