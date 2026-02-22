@@ -88,26 +88,32 @@ const getAllPlan = () => {
   return { ...planConstruction, ...planDevelopment, ...planManage };
 };
 
+let PLAN_SELECT_CACHE: { value: string; label: string; className: string | undefined }[] | null =
+  null;
+
 /**
  * SelectBox用の計画情報を取得
  * @returns SelectBox用の計画情報
  */
 export const getPlanSelect = () => {
-  return Object.entries(getAllPlan())
-    .map(([_, value]) => ({ ...value }))
-    .sort((a, b) => (a.planNo > b.planNo ? 1 : -1))
-    .map((value) => {
-      const unit = value.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
-      const preUnit = value.cost > 0 ? '' : '+';
-      const cost = value.cost !== 0 ? `${preUnit}${Math.abs(value.cost)}${unit}` : '無料';
-      // 即時コマンドの場合は背景色を変える
-      const optionClassName = value.immediate ? 'bg-sky-100' : undefined;
-      return {
-        value: value.type,
-        label: `${value.name} (${cost})`,
-        className: optionClassName,
-      };
-    });
+  if (!PLAN_SELECT_CACHE) {
+    PLAN_SELECT_CACHE = Object.entries(getAllPlan())
+      .map(([_, value]) => value)
+      .sort((a, b) => (a.planNo > b.planNo ? 1 : -1))
+      .map((value) => {
+        const unit = value.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
+        const preUnit = value.cost > 0 ? '' : '+';
+        const cost = value.cost !== 0 ? `${preUnit}${Math.abs(value.cost)}${unit}` : '無料';
+        // 即時コマンドの場合は背景色を変える
+        const optionClassName = value.immediate ? 'bg-sky-100' : undefined;
+        return {
+          value: value.type,
+          label: `${value.name} (${cost})`,
+          className: optionClassName,
+        };
+      });
+  }
+  return PLAN_SELECT_CACHE;
 };
 
 /**
