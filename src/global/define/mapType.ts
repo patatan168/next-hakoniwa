@@ -81,23 +81,31 @@ export type mapType = {
   }) => Array<turnLogSchemaType> | void | undefined;
 };
 
+let ALL_MAP_DEFINES: Map<string, mapType> | null = null;
+
 /**
  * マップ定義を取得
  * @param type マップのタイプ
  * @returns マップ定義
  */
 export const getMapDefine = (type: string): mapType => {
-  // NOTE: 定義ファイルが増えたらObjectを追加すること
-  const map = Object.entries({
-    ...mapFacility,
-    ...mapFake,
-    ...mapLand,
-    ...mapMilitary,
-    ...mapMonster,
-    ...mapOther,
-  })
-    .map(([_, value]) => ({ ...value }))
-    .find((map) => map.type === type);
+  if (!ALL_MAP_DEFINES) {
+    ALL_MAP_DEFINES = new Map<string, mapType>();
+    const allMaps = {
+      ...mapFacility,
+      ...mapFake,
+      ...mapLand,
+      ...mapMilitary,
+      ...mapMonster,
+      ...mapOther,
+    };
+    for (const value of Object.values(allMaps)) {
+      if (!value) continue;
+      ALL_MAP_DEFINES.set(value.type, value);
+    }
+  }
+
+  const map = ALL_MAP_DEFINES.get(type);
 
   if (!map) {
     console.error(`${type} undefined`);
