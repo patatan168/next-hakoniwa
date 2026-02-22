@@ -214,7 +214,8 @@ export function fireDisaster(
  * @param x X座標
  * @param y Y座標
  * @param turn ターン数
- * @param fromUuid 実行する島データー
+ * @param fromUuid 実行する島データーのUUID
+ * @param fromIsland 実行する島データー
  * @returns 移動ログ or undefined
  */
 export function monsterMove(
