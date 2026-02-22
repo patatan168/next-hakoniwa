@@ -5,6 +5,7 @@ import {
   changeMapData,
   countMapAround,
   getMapAround,
+  isOpenSea,
   mapArrayConverter,
   wideDamage,
 } from '../function/island';
@@ -17,6 +18,7 @@ import * as mapLand from './mapCategory/mapLand';
 import * as mapMilitary from './mapCategory/mapMilitary';
 import * as mapMonster from './mapCategory/mapMonster';
 import * as mapOther from './mapCategory/mapOther';
+import META_DATA from './metadata';
 
 export type landType =
   | 'sea'
@@ -228,71 +230,85 @@ export function monsterMove(
   const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
 
   // サンジラとクジラの硬化判定
-  if (turn % 2 !== 0) {
-    if (mapInfo.type === 'sanjira') return;
-  } else {
-    if (mapInfo.type === 'kujira') return;
-  }
+  if (turn % 2 !== 0 && mapInfo.type === 'sanjira') return;
+  if (turn % 2 === 0 && mapInfo.type === 'kujira') return;
 
   // 最大移動距離の取得
   const maxMoveDistance = getMapDefine(mapInfo.type).maxMoveDistance ?? 1;
 
-  // 怪獣の移動イベントが未実行なら実行
-  if (mapInfo.monsterDistance === undefined || mapInfo.monsterDistance < maxMoveDistance) {
-    // 移動カウント
-    mapInfo.monsterDistance = mapInfo.monsterDistance !== undefined ? mapInfo.monsterDistance++ : 1;
-    // 怪獣の移動範囲
-    const movedArea = getMapAround(x, y, maxMoveDistance);
-    // 移動試行数
-    const moveChallenge = 3;
-    // 移動先をランダムに決定
-    let moveCoordinate: { x: number; y: number } | undefined = undefined;
+  // 怪獣の移動イベントが実行済みか判定
+  if (mapInfo.monsterDistance !== undefined && mapInfo.monsterDistance >= maxMoveDistance) return;
+
+  // 移動カウントの更新
+  mapInfo.monsterDistance = (mapInfo.monsterDistance ?? 0) + 1;
+
+  // 移動先の決定
+  const moveCoordinate = decideMonsterMoveCoordinate(x, y, maxMoveDistance, fromIsland);
+
+  // 移動先が決定しない場合は終了
+  if (!moveCoordinate) return;
+
+  const { x: moveX, y: moveY } = moveCoordinate;
+  const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
+  const baseLog = getBaseLog(turn, fromIsland);
+
+  if (moveMapInfo.type === 'defense_base') {
+    const log = logMonsterSuicideBombing(fromIsland, x, y, moveX, moveY);
+    const wideDamageLog = wideDamage(fromUuid, moveX, moveY, turn);
+    return [{ ...baseLog, log, secret_log: log }, ...wideDamageLog];
+  }
+
+  const log = logMonsterMove(fromIsland, x, y, moveX, moveY);
+  // 移動先のマップ情報を変更
+  changeMapData(fromIsland, moveX, moveY, mapInfo.type, { type: 'ins', value: mapInfo.landValue });
+  // 元のマップを荒地に変更
+  changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
+
+  return [{ ...baseLog, log, secret_log: log }];
+}
+
+/**
+ * 怪獣の移動先座標を決定する
+ * @param x X座標
+ * @param y Y座標
+ * @param maxMoveDistance 最大移動距離
+ * @param fromIsland 実行する島データー
+ * @returns 移動先座標 or undefined
+ */
+function decideMonsterMoveCoordinate(
+  x: number,
+  y: number,
+  maxMoveDistance: number,
+  fromIsland: islandInfoTurnProgress
+): { x: number; y: number } | undefined {
+  const moveChallenge = 3;
+
+  // 移動範囲がマップ全体の場合はランダム取得で計算量を抑える
+  if (maxMoveDistance >= META_DATA.MAP_SIZE) {
     for (let i = 0; i < moveChallenge; i++) {
-      // 移動先の座標をランダムに取得
-      const randomIndex = randomIntInRange(0, movedArea.length - 1);
-      const { x: moveX, y: moveY } = movedArea[randomIndex];
-      // 移動先のマップ情報を取得
+      const moveX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
+      const moveY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
       const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
-      // 移動可能な地形かどうか
       if (getMapDefine(moveMapInfo.type).baseLand === 'plains') {
-        moveCoordinate = { x: moveX, y: moveY };
-        break;
+        return { x: moveX, y: moveY };
       }
     }
-    // 移動先が決まった場合
-    if (moveCoordinate !== undefined) {
-      const { x: moveX, y: moveY } = moveCoordinate;
-      const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
-      let log: string;
-      const baseLog = getBaseLog(turn, fromIsland);
-      if (moveMapInfo.type === 'defense_base') {
-        log = logMonsterSuicideBombing(fromIsland, x, y, moveX, moveY);
-        const wideDamageLog = wideDamage(fromUuid, moveX, moveY, turn);
-        return [
-          {
-            ...baseLog,
-            log: log,
-            secret_log: log,
-          },
-          ...wideDamageLog,
-        ];
-      } else {
-        log = logMonsterMove(fromIsland, x, y, moveX, moveY);
-        // 移動先のマップ情報を変更
-        changeMapData(fromIsland, moveX, moveY, mapInfo.type, {
-          type: 'ins',
-          value: mapInfo.landValue,
-        });
-        // 元のマップを荒地に変更
-        changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
-        return [
-          {
-            ...baseLog,
-            log: log,
-            secret_log: log,
-          },
-        ];
-      }
+    return undefined;
+  }
+
+  // 局所的な移動の場合は周囲のマスから取得
+  const movedArea = getMapAround(x, y, maxMoveDistance);
+  for (let i = 0; i < moveChallenge; i++) {
+    const randomIndex = randomIntInRange(0, movedArea.length - 1);
+    const { x: moveX, y: moveY } = movedArea[randomIndex];
+
+    // 外海の場合はスキップ
+    if (isOpenSea(moveX, moveY)) continue;
+
+    const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
+    if (getMapDefine(moveMapInfo.type).baseLand === 'plains') {
+      return { x: moveX, y: moveY };
     }
   }
+  return undefined;
 }
