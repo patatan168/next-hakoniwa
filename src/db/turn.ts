@@ -363,7 +363,7 @@ turnProceed();
 const endTime = performance.now();
 const endUsage = memoryUsage();
 
-turnProceedLogger.info(`ExecuteTime: ${endTime - startTime} msec`);
+turnProceedLogger.info(`ExecuteTime: ${Math.round((endTime - startTime) * 100) / 100} msec`);
 turnProceedLogger.info(`Memory Usage: ${startUsage.messages} -> ${endUsage.messages}`);
 const mbDiff = (key: keyof typeof endUsage.values) =>
   Math.round(((endUsage.values[key] - startUsage.values[key]) / 1024 / 1024) * 100) / 100;
