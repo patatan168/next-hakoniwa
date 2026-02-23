@@ -11,7 +11,7 @@ import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { IoSendSharp } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 
@@ -93,7 +93,6 @@ function ChangeAccountSection() {
     subscribe,
     reset,
     control,
-    watch,
     trigger: formTrig,
     handleSubmit,
     formState: { isValid },
@@ -114,11 +113,10 @@ function ChangeAccountSection() {
   const [body, setBody] = useState('{}');
   const { fetch, data, error } = useClientFetch(changeAccountStore);
 
-  const [changeId, changeUserName, changePassword] = watch([
-    'changeId',
-    'changeUserName',
-    'changePassword',
-  ]);
+  const [changeId, changeUserName, changePassword] = useWatch({
+    control,
+    name: ['changeId', 'changeUserName', 'changePassword'],
+  });
 
   const onSubmit = () => fetch({ ...POST_HEADER, method: 'PUT', body });
 
