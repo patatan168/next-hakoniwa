@@ -1,12 +1,18 @@
 import { planSchemaType } from '@/db/schema/planTable';
-import { closestCenter, DndContext, DragEndEvent, DraggableAttributes } from '@dnd-kit/core';
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
-import { CSSProperties, memo, Ref, useCallback, useEffect, useMemo } from 'react';
+import {
+  CSSProperties,
+  forwardRef,
+  memo,
+  Ref,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import { IoArrowRedo, IoArrowUndo, IoSendSharp, IoTrash } from 'react-icons/io5';
 import { RxDragHandleVertical } from 'react-icons/rx';
@@ -35,11 +41,10 @@ type PlanItemProps = {
   item: Omit<LocalPlanItem, 'from_uuid'>;
   onUpdate: (id: number, data: Partial<LocalPlanItem>) => void;
   turn: number;
-  setActivator: Ref<HTMLDivElement> | undefined;
-  isDragging: boolean;
-  attributes: DraggableAttributes;
-  listeners: SyntheticListenerMap | undefined;
   onDelete: (id: number) => void;
+  isDragged: boolean;
+  /** ドラッグハンドルのpointerdownイベント */
+  onPointerDown: (e: React.PointerEvent, id: number) => void;
 };
 
 // -----------------------------------------------------------------------------
@@ -47,256 +52,208 @@ type PlanItemProps = {
 // -----------------------------------------------------------------------------
 
 const PlanItem = memo(
-  ({
-    isChange,
-    islandOptions,
-    item,
-    onUpdate,
-    turn,
-    setActivator,
-    isDragging,
-    attributes,
-    listeners,
-    onDelete,
-  }: PlanItemProps) => {
-    const { id, x, y, plan, times, edit } = item;
-    const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
+  forwardRef<HTMLDivElement, PlanItemProps>(
+    (
+      {
+        isChange,
+        islandOptions,
+        item,
+        onUpdate,
+        turn,
+        onDelete,
+        isDragged,
+        onPointerDown,
+      }: PlanItemProps,
+      itemRef
+    ) => {
+      const { id, x, y, plan, times, edit } = item;
+      const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
 
-    const { control, subscribe, reset, setValue } = useForm<Omit<planInfoZod, 'from_uuid'>>({
-      defaultValues: item,
-      resolver: zodResolver(planInfoZodValid.omit({ from_uuid: true })),
-    });
-
-    useEffect(() => {
-      reset(item);
-    }, [item, reset]);
-
-    useEffect(() => {
-      const unsubscribe = subscribe({
-        formState: { values: true },
-        callback: ({ values }) => {
-          const formData = planInfoZodValid.omit({ from_uuid: true }).safeParse(values);
-          if (!formData.success) return;
-
-          const data = formData.data;
-          if (!isEqual(data, omit(item, ['id']))) {
-            Promise.resolve().then(() => {
-              onUpdate(item.id, { ...data, edit: data.edit ?? false });
-            });
-          }
-        },
+      const { control, subscribe, reset, setValue } = useForm<Omit<planInfoZod, 'from_uuid'>>({
+        defaultValues: item,
+        resolver: zodResolver(planInfoZodValid.omit({ from_uuid: true })),
       });
-      return () => unsubscribe();
-    }, [subscribe, item, onUpdate]);
 
-    const toggleEdit = () => setValue('edit', !edit);
+      useEffect(() => {
+        reset(item);
+      }, [item, reset]);
 
-    return (
-      <div
-        ref={setActivator}
-        className={`card-border mb-0.5 flex items-stretch gap-y-1 ${isChange ? 'bg-orange-50' : 'bg-teal-50'}`}
-      >
+      useEffect(() => {
+        const unsubscribe = subscribe({
+          formState: { values: true },
+          callback: ({ values }) => {
+            const formData = planInfoZodValid.omit({ from_uuid: true }).safeParse(values);
+            if (!formData.success) return;
+
+            const data = formData.data;
+            if (!isEqual(data, omit(item, ['id']))) {
+              Promise.resolve().then(() => {
+                onUpdate(item.id, { ...data, edit: data.edit ?? false });
+              });
+            }
+          },
+        });
+        return () => unsubscribe();
+      }, [subscribe, item, onUpdate]);
+
+      const toggleEdit = () => setValue('edit', !edit);
+
+      return (
         <div
-          {...attributes}
-          {...listeners}
-          className={`flex items-stretch ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          ref={itemRef}
+          className={`card-border mb-0.5 flex items-stretch gap-y-1 ${isChange ? 'bg-orange-50' : 'bg-teal-50'} ${isDragged ? 'opacity-50' : ''}`}
         >
-          <div className={`flex items-stretch`}>
-            <span className="inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400">
-              <RxDragHandleVertical />
+          {/* ドラッグハンドル: pointerdown のみを受け付ける */}
+          <div
+            className="flex cursor-grab items-stretch"
+            style={{ touchAction: 'none' }}
+            onPointerDown={(e) => onPointerDown(e, id)}
+          >
+            <div className={`flex items-stretch`}>
+              <span className="inline-flex h-full items-center justify-center rounded-sm bg-orange-200 text-gray-400">
+                <RxDragHandleVertical />
+              </span>
+            </div>
+            <span
+              className={`md:text-md inline-block min-w-[3em] self-center font-mono text-sm text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+            >
+              {`T${turn}`}
             </span>
           </div>
-          <span
-            className={`md:text-md inline-block min-w-[3em] self-center font-mono text-sm text-shadow-xs/30 ${immediate ? 'text-sky-500' : ''}`}
+
+          <button
+            onClick={toggleEdit}
+            className={`mx-2 bg-sky-700 px-1.5 text-white hover:cursor-pointer hover:bg-sky-600`}
           >
-            {`T${turn}`}
-          </span>
-        </div>
+            <p className="text-md text-center font-semibold [writing-mode:vertical-rl]">
+              {edit ? 'Close' : 'Edit'}
+            </p>
+          </button>
 
-        <button
-          onClick={toggleEdit}
-          className={`mx-2 bg-sky-700 px-1.5 text-white hover:cursor-pointer hover:bg-sky-600`}
-        >
-          <p className="text-md text-center font-semibold [writing-mode:vertical-rl]">
-            {edit ? 'Close' : 'Edit'}
-          </p>
-        </button>
+          <div className="grid min-w-0 flex-1 gap-0">
+            {!edit && (
+              <span
+                className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
+              >{`(${x},${y})`}</span>
+            )}
+            {edit ? (
+              <div className="grid w-full grid-cols-1 gap-2 p-1 md:grid-cols-2 md:gap-4">
+                <div className="flex items-center gap-2">
+                  <SelectRHF
+                    name="plan"
+                    control={control}
+                    id={`plan-${item.id}`}
+                    options={getPlanSelect()}
+                    isBottomSpace={false}
+                    className="w-full flex-1"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label
+                    className="text-sm font-bold whitespace-nowrap md:text-base"
+                    htmlFor={`to_uuid-${item.id}`}
+                  >
+                    目標島
+                  </label>
+                  <SelectRHF
+                    name="to_uuid"
+                    control={control}
+                    id={`to_uuid-${item.id}`}
+                    options={islandOptions}
+                    isBottomSpace={false}
+                    disabled={!otherIsland}
+                    className="w-full flex-1"
+                  />
+                </div>
+                <div className="flex items-center gap-3 xl:gap-2">
+                  <label
+                    className="text-sm font-bold whitespace-nowrap md:text-base"
+                    htmlFor={`x-${item.id}`}
+                  >
+                    X座標
+                  </label>
+                  <div className="flex-1 text-sm">
+                    <RangeSliderRHF
+                      id={`x-${item.id}`}
+                      name="x"
+                      control={control}
+                      max={META_DATA.MAP_SIZE - 1}
+                      isBottomSpace={false}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 xl:gap-2">
+                  <label
+                    className="text-sm font-bold whitespace-nowrap md:text-base"
+                    htmlFor={`y-${item.id}`}
+                  >
+                    Y座標
+                  </label>
+                  <div className="flex-1 text-sm">
+                    <RangeSliderRHF
+                      id={`y-${item.id}`}
+                      name="y"
+                      control={control}
+                      max={META_DATA.MAP_SIZE - 1}
+                      isBottomSpace={false}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="flex max-w-md items-center gap-2 md:col-span-2">
+                  <label
+                    className="text-sm font-bold whitespace-nowrap md:text-base"
+                    htmlFor={`times-${item.id}`}
+                  >
+                    計画数
+                  </label>
+                  <div className="flex-1">
+                    <RangeSliderRHF
+                      id={`times-${item.id}`}
+                      name="times"
+                      control={control}
+                      min={1}
+                      max={maxTimes}
+                      isBottomSpace={false}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <span
+                className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+              >
+                {name}
+              </span>
+            )}
+          </div>
 
-        <div className="grid min-w-0 flex-1 gap-0">
-          {!edit && (
-            <span
-              className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
-            >{`(${x},${y})`}</span>
+          {times > 1 && !edit && (
+            <span className="font-mono text-xl text-shadow-xs/30">{`[${times}回]`}</span>
           )}
-          {edit ? (
-            <div className="grid w-full grid-cols-1 gap-2 p-1 md:grid-cols-2 md:gap-4">
-              <div className="flex items-center gap-2">
-                <SelectRHF
-                  name="plan"
-                  control={control}
-                  id={`plan-${item.id}`}
-                  options={getPlanSelect()}
-                  isBottomSpace={false}
-                  className="w-full flex-1"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label
-                  className="text-sm font-bold whitespace-nowrap md:text-base"
-                  htmlFor={`to_uuid-${item.id}`}
-                >
-                  目標島
-                </label>
-                <SelectRHF
-                  name="to_uuid"
-                  control={control}
-                  id={`to_uuid-${item.id}`}
-                  options={islandOptions}
-                  isBottomSpace={false}
-                  disabled={!otherIsland}
-                  className="w-full flex-1"
-                />
-              </div>
-              <div className="flex items-center gap-3 xl:gap-2">
-                <label
-                  className="text-sm font-bold whitespace-nowrap md:text-base"
-                  htmlFor={`x-${item.id}`}
-                >
-                  X座標
-                </label>
-                <div className="flex-1 text-sm">
-                  <RangeSliderRHF
-                    id={`x-${item.id}`}
-                    name="x"
-                    control={control}
-                    max={META_DATA.MAP_SIZE - 1}
-                    isBottomSpace={false}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-3 xl:gap-2">
-                <label
-                  className="text-sm font-bold whitespace-nowrap md:text-base"
-                  htmlFor={`y-${item.id}`}
-                >
-                  Y座標
-                </label>
-                <div className="flex-1 text-sm">
-                  <RangeSliderRHF
-                    id={`y-${item.id}`}
-                    name="y"
-                    control={control}
-                    max={META_DATA.MAP_SIZE - 1}
-                    isBottomSpace={false}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              <div className="flex max-w-md items-center gap-2 md:col-span-2">
-                <label
-                  className="text-sm font-bold whitespace-nowrap md:text-base"
-                  htmlFor={`times-${item.id}`}
-                >
-                  計画数
-                </label>
-                <div className="flex-1">
-                  <RangeSliderRHF
-                    id={`times-${item.id}`}
-                    name="times"
-                    control={control}
-                    min={1}
-                    max={maxTimes}
-                    isBottomSpace={false}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <span
-              className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
-            >
-              {name}
-            </span>
-          )}
+
+          <button
+            onClick={() => onDelete(id)}
+            className="ml-auto p-2 text-gray-400 transition-colors hover:cursor-pointer hover:text-red-600 focus:outline-none"
+            aria-label="Delete plan"
+          >
+            <IoTrash className="text-xl" />
+          </button>
         </div>
-
-        {times > 1 && !edit && (
-          <span className="font-mono text-xl text-shadow-xs/30">{`[${times}回]`}</span>
-        )}
-
-        <button
-          onClick={() => onDelete(id)}
-          className="ml-auto p-2 text-gray-400 transition-colors hover:cursor-pointer hover:text-red-600 focus:outline-none"
-          aria-label="Delete plan"
-        >
-          <IoTrash className="text-xl" />
-        </button>
-      </div>
-    );
-  },
-  (prev, next) =>
+      );
+    }
+  ),
+  (prev: PlanItemProps, next: PlanItemProps) =>
     isEqual(prev.item, next.item) &&
     prev.turn === next.turn &&
     prev.isChange === next.isChange &&
-    prev.isDragging === next.isDragging &&
+    prev.isDragged === next.isDragged &&
     isEqual(prev.islandOptions, next.islandOptions)
 );
 
 PlanItem.displayName = 'PlanItem';
-
-// -----------------------------------------------------------------------------
-// Component: SortableItem
-// -----------------------------------------------------------------------------
-
-const SortableItem = memo(
-  ({ isChange, islandOptions, item, onUpdate, turn, onDelete }: SortableItemProps) => {
-    const {
-      isDragging,
-      setActivatorNodeRef,
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-    } = useSortable({ id: item.id });
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      zIndex: isDragging ? 999 : 'auto',
-      position: 'relative' as const,
-    };
-    const itemProps = useMemo(() => omit(item, ['from_uuid']), [item]);
-    return (
-      <div ref={setNodeRef} style={style}>
-        <PlanItem
-          isChange={isChange}
-          islandOptions={islandOptions}
-          item={itemProps}
-          onUpdate={onUpdate}
-          turn={turn}
-          setActivator={setActivatorNodeRef}
-          isDragging={isDragging}
-          attributes={attributes}
-          listeners={listeners}
-          onDelete={onDelete}
-        />
-      </div>
-    );
-  }
-);
-
-SortableItem.displayName = 'SortableItem';
-
-type SortableItemProps = {
-  isChange: boolean;
-  islandOptions: Array<{ label: string; value: string }>;
-  item: LocalPlanItem;
-  onUpdate: (id: number, data: Partial<LocalPlanItem>) => void;
-  turn: number;
-  onDelete: (id: number) => void;
-};
 
 // -----------------------------------------------------------------------------
 // Helpers
@@ -341,6 +298,14 @@ const PlanList = memo(
     initPlanData,
   }: PlanListProps) => {
     const { fetch: trigger } = useClientFetch(planStore);
+    const [listRef, animateList] = useAutoAnimate<HTMLDivElement>();
+
+    // 初回マウント時はアニメーションを抑制（リスト展開時のアニメーション防止）
+    useEffect(() => {
+      animateList(false);
+      const id = requestAnimationFrame(() => animateList(true));
+      return () => cancelAnimationFrame(id);
+    }, [animateList]);
 
     const planListData = usePlanDataStore((state) => state.planListData);
     const setPostData = usePlanDataStore((state) => state.setPostData);
@@ -434,22 +399,110 @@ const PlanList = memo(
       [deleteItem]
     );
 
-    // 並び替え
-    const handleDragEnd = useCallback(
-      (event: DragEndEvent) => {
-        const { active, over } = event;
-        if (over && active.id !== over.id) {
-          const prev = usePlanDataStore.getState().items;
-          const oldIndex = prev.findIndex((item) => item.id === active.id);
-          const newIndex = prev.findIndex((item) => item.id === over.id);
-          const sorted = arrayMove(prev, oldIndex, newIndex);
-          const reindexed = sorted.map((item, index) => ({ ...item, plan_no: index }));
+    // 並び替え (Pointer Events + Auto Animate)
+    const [draggedId, setDraggedId] = useState<number | null>(null);
+    const [previewItems, setPreviewItems] = useState<LocalPlanItem[] | null>(null);
+    const previewItemsRef = useRef<LocalPlanItem[] | null>(null);
+    const draggedIdRef = useRef<number | null>(null);
+    // コンテナ内の各行DOMを参照するためのRefMap
+    const itemRowsRef = useRef<Map<number, HTMLElement>>(new Map());
 
-          setItems(reindexed);
+    const sortByProximity = useCallback((clientY: number) => {
+      const draggedId = draggedIdRef.current;
+      if (draggedId === null) return;
+
+      // カーソルのY座標に最も近い行を特定
+      let closestId: number | null = null;
+      let closestDist = Infinity;
+      itemRowsRef.current.forEach((el, id) => {
+        const rect = el.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dist = Math.abs(clientY - midY);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestId = id;
         }
+      });
+
+      if (closestId === null || closestId === draggedId) return;
+      const targetId = closestId;
+
+      setPreviewItems((prev) => {
+        const current = prev || usePlanDataStore.getState().items;
+        const oldIndex = current.findIndex((item) => item.id === draggedId);
+        const newIndex = current.findIndex((item) => item.id === targetId);
+
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return current;
+
+        const newItems = [...current];
+        const [movedItem] = newItems.splice(oldIndex, 1);
+        newItems.splice(newIndex, 0, movedItem);
+        previewItemsRef.current = newItems;
+        return newItems;
+      });
+    }, []);
+
+    /** pointermove / pointerup のリスナーをクリーンアップする関数 */
+    const cleanupRef = useRef<(() => void) | null>(null);
+
+    const commitDrop = useCallback(() => {
+      const latestPreview = previewItemsRef.current;
+      if (latestPreview) {
+        const reindexed = latestPreview.map((item, index) => ({ ...item, plan_no: index }));
+        setItems(reindexed);
+      }
+      setPreviewItems(null);
+      previewItemsRef.current = null;
+      draggedIdRef.current = null;
+      setDraggedId(null);
+      document.body.classList.remove('is-dragging');
+    }, [setItems]);
+
+    /**
+     * PointerDown: ドラッグ開始時にポインターをキャプチャし、
+     * document レベルの move / up リスナーをアタッチ
+     */
+    const handlePointerDown = useCallback(
+      (e: React.PointerEvent, id: number) => {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+        draggedIdRef.current = id;
+        setDraggedId(id);
+        setPreviewItems(usePlanDataStore.getState().items);
+        document.body.classList.add('is-dragging');
+
+        const onMove = (ev: PointerEvent) => {
+          sortByProximity(ev.clientY);
+        };
+
+        const onUp = () => {
+          commitDrop();
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          cleanupRef.current = null;
+        };
+
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+        cleanupRef.current = () => {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        };
       },
-      [setItems]
+      [sortByProximity, commitDrop]
     );
+
+    // アンマウント時にリスナーを確実に解除
+    useEffect(
+      () => () => {
+        cleanupRef.current?.();
+      },
+      []
+    );
+
+    // 描画用のアイテムリスト（プレビュー中ならプレビューを優先）
+    const displayItems = previewItems || items;
 
     // Undo
     const handleUndo = useCallback(() => {
@@ -468,7 +521,17 @@ const PlanList = memo(
       }));
     }, [islandList]);
 
-    const turnList = useMemo(() => getTurnList(items, turn), [items, turn]);
+    const turnList = useMemo(() => getTurnList(displayItems, turn), [displayItems, turn]);
+
+    const handleRef = useCallback(
+      (node: HTMLDivElement | null) => {
+        if (typeof ref === 'function') ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+
+        listRef(node);
+      },
+      [listRef, ref]
+    );
 
     return (
       <>
@@ -514,26 +577,27 @@ const PlanList = memo(
           </div>
         </div>
 
-        <div ref={ref} className={className} style={style}>
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={items.map((i) => i.id)}>
-              {items.map((item, index) => (
-                <SortableItem
-                  key={`item-${item.id}`}
-                  isChange={isChange}
-                  islandOptions={islandOptions}
-                  item={item}
-                  onUpdate={handleUpdateItem}
-                  turn={turnList[index]}
-                  onDelete={handleDeleteItem}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
+        <div ref={handleRef} className={className} style={style}>
+          {displayItems.map((item, index) => {
+            const itemProps = omit(item, ['from_uuid']);
+            return (
+              <PlanItem
+                key={`item-${item.id}`}
+                ref={(el) => {
+                  if (el) itemRowsRef.current.set(item.id, el);
+                  else itemRowsRef.current.delete(item.id);
+                }}
+                isChange={isChange}
+                islandOptions={islandOptions}
+                item={itemProps}
+                onUpdate={handleUpdateItem}
+                turn={turnList[index]}
+                onDelete={handleDeleteItem}
+                isDragged={draggedId === item.id}
+                onPointerDown={(e) => handlePointerDown(e, item.id)}
+              />
+            );
+          })}
         </div>
       </>
     );

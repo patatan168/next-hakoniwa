@@ -57,5 +57,5 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | winston                   | 3.19.0  |
 | winston-daily-rotate-file | 5.0.0   |
 | argon2                    | 0.44.0  |
-| dnd kit                   | 6.3.1   |
+| auto-animate              | 0.9.0   |
 | zustand                   | 5.0.11  |
