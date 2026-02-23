@@ -59,14 +59,6 @@ const PlanList = memo(
     const { fetch: trigger } = useClientFetch(planStore);
     const [listRef, animateList] = useAutoAnimate<HTMLDivElement>();
 
-    // 初回マウント時はアニメーションを抑制（リスト展開時のアニメーション防止）
-    useEffect(() => {
-      animateList(false);
-      const id = requestAnimationFrame(() => animateList(true));
-      return () => cancelAnimationFrame(id);
-    }, [animateList]);
-
-    // ── Store ──
     const planListData = usePlanDataStore((state) => state.planListData);
     const setPostData = usePlanDataStore((state) => state.setPostData);
     const resetStore = usePlanDataStore((state) => state.reset);
@@ -167,6 +159,18 @@ const PlanList = memo(
 
     const { draggedId, previewItems, handlePointerDown, setItemRowRef, setScrollContainer } =
       useDragReorder({ getItems, setItems: commitItems });
+
+    // ドラッグ中と初回マウント時はアニメーションを抑制
+    // draggedId が使用可能になってから呼び出す
+    useEffect(() => {
+      if (draggedId !== null) {
+        animateList(false);
+      } else {
+        animateList(false);
+        const id = requestAnimationFrame(() => animateList(true));
+        return () => cancelAnimationFrame(id);
+      }
+    }, [animateList, draggedId]);
 
     // 描画用のアイテムリスト（プレビュー中ならプレビューを優先）
     const displayItems = previewItems || items;
