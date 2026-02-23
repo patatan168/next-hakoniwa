@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
     accessLogger(request).info(`Sign Up uuid=${uuid}`);
 
     createIsland(db.client, uuid);
+
+    return NextResponse.json({ result: true, uuid }, { status: 201 });
   }
   return valid.response;
 }

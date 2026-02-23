@@ -8,7 +8,13 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
 
-export default function MapSight({ uuid }: { uuid: string | string[] | undefined }) {
+export default function MapSight({
+  uuid,
+  create,
+}: {
+  uuid: string | string[] | undefined;
+  create?: boolean;
+}) {
   const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
 
   const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
@@ -31,11 +37,19 @@ export default function MapSight({ uuid }: { uuid: string | string[] | undefined
     <div className="grid grid-rows-[auto_auto_auto_1fr] justify-items-center gap-1 px-1">
       <span className="text-bold text-3xl text-red-900">
         {`「${islandData.get?.island_name || ''}島」`}
-        <span className="text-black">{`へようこそ！！`}</span>
+        {create && <span className="text-black">{`が発見されました！！`}</span>}
+        {!create && <span className="text-black">{`へようこそ！！`}</span>}
       </span>
-      <Link href="/" className="text-2xl text-blue-500 underline">
-        トップへ戻る
-      </Link>
+      {create && (
+        <Link href="/development" className="text-2xl text-blue-500 underline">
+          島を開発する
+        </Link>
+      )}
+      {!create && (
+        <Link href="/" className="text-2xl text-blue-500 underline">
+          トップへ戻る
+        </Link>
+      )}
       <IslandData mode="sight" data={islandData.get} />
       <HakoniwaMap
         ref={mapCallback}

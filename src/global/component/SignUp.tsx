@@ -7,6 +7,7 @@ import { signUpStore } from '@/global/store/api/sign-up';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoSendSharp } from 'react-icons/io5';
@@ -38,12 +39,12 @@ function SignUpForm() {
     defaultValues,
     resolver: zodResolver(userInfoSchema),
   });
+  const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch, error } = useClientFetch(signUpStore);
+  const { fetch, data, error } = useClientFetch(signUpStore);
 
   const onSubmit = () => {
     fetch({ ...POST_HEADER, body: body });
-    reset();
   };
 
   useEffect(() => {
@@ -60,6 +61,15 @@ function SignUpForm() {
   useEffect(() => {
     formTrig();
   }, [body]);
+
+  // 登録成功時に観光画面へリダイレクト
+  useEffect(() => {
+    const post = data.post as { result?: boolean; uuid?: string } | undefined;
+    if (post?.result && post.uuid) {
+      reset();
+      router.push(`/sight?uuid=${post.uuid}&create=true`);
+    }
+  }, [data.post]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
