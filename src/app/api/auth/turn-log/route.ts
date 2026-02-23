@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
   using db = dbConn('./src/db/data/main.db');
   const log = db.client
     .prepare<
-      [string, string],
+      [string, string, string],
       turnLogSchemaType
-    >('SELECT log_uuid, from_uuid, to_uuid, turn, secret_log FROM turn_log WHERE log_uuid < ? AND from_uuid = ? ORDER BY log_uuid DESC LIMIT 100;')
-    .all(logUuid, uuid);
+    >('SELECT log_uuid, from_uuid, to_uuid, turn, secret_log FROM turn_log WHERE log_uuid < ? AND (from_uuid = ? OR to_uuid = ?) ORDER BY log_uuid DESC LIMIT 100;')
+    .all(logUuid, uuid, uuid);
   return NextResponse.json(log);
 }
