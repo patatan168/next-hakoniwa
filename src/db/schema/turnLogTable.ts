@@ -15,6 +15,7 @@ export const turnLogSchema: DbSchema = [
   {
     name: 'to_uuid',
     type: 'TEXT',
+    nullable: true,
     foreign: { table: 'user', name: 'uuid' },
   },
   {
@@ -35,7 +36,7 @@ export const turnLogSchema: DbSchema = [
 export type turnLogSchemaType = {
   log_uuid: string;
   from_uuid: string;
-  to_uuid: string;
+  to_uuid: string | null;
   turn: number;
   secret_log: string;
   log: string | null;

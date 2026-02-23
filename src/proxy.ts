@@ -5,7 +5,7 @@ import { CSRF_COOKIE_NAME, generateCsrfToken, verifyCsrfToken } from './global/f
 import { dbConn } from './global/function/db';
 
 const authPaths = ['/api/auth/'];
-const sessionPaths = ['/development'];
+const sessionPaths = ['/development', '/account'];
 const excludeNoncePaths = ['/api'];
 
 export async function proxy(request: NextRequest) {

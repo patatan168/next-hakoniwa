@@ -802,6 +802,17 @@ export const logIslandDeath = (
 };
 
 /**
+ * 島削除ログ
+ * @param island 島情報
+ * @returns 島削除ログ
+ */
+export const logIslandDelete = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
+): string => {
+  return `${islandName(island, false)}は放棄され、<b>無人島</b>になりました。`;
+};
+
+/**
  * 資源輸出ログ
  * @param fromIsland 資源を輸出する島
  * @param plan 計画

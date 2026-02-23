@@ -206,6 +206,29 @@ export const updateIslands = (
 };
 
 /**
+ * 島関連データの物理削除とinhabited=0更新
+ * @param client DB接続クライアント
+ * @param uuid ユーザーUUID
+ */
+export const abandonIsland = (client: sqlite.Database, uuid: string) => {
+  const deleteStatements = [
+    'DELETE FROM island WHERE uuid = @uuid',
+    'DELETE FROM event_rate WHERE uuid = @uuid',
+    'DELETE FROM plan WHERE from_uuid = @uuid OR to_uuid = @uuid',
+    'DELETE FROM access_token WHERE uuid = @uuid',
+    'DELETE FROM auth WHERE uuid = @uuid',
+    'DELETE FROM last_login WHERE uuid = @uuid',
+    'DELETE FROM refresh_token WHERE uuid = @uuid',
+    'DELETE FROM role WHERE uuid = @uuid',
+  ].map((sql) => client.prepare(sql));
+
+  client.prepare<string, void>('UPDATE user SET inhabited = 0 WHERE uuid = ?').run(uuid);
+  for (const stmt of deleteStatements) {
+    stmt.run({ uuid });
+  }
+};
+
+/**
  * ユーザーの生存フラグを更新
  * @param db DB接続情報
  * @param islandData 全島情報
@@ -219,30 +242,15 @@ export const updateUserInhabited = (
   const deadIslands = islandData.filter((island) => island.population <= 0);
   if (deadIslands.length === 0) return;
 
-  const update = db.client.prepare('UPDATE user SET inhabited = 0 WHERE uuid = @uuid');
-  const deleteStatements = [
-    'DELETE FROM island WHERE uuid = @uuid',
-    'DELETE FROM event_rate WHERE uuid = @uuid',
-    'DELETE FROM plan WHERE from_uuid = @uuid OR to_uuid = @uuid',
-    'DELETE FROM access_token WHERE uuid = @uuid',
-    'DELETE FROM auth WHERE uuid = @uuid',
-    'DELETE FROM last_login WHERE uuid = @uuid',
-    'DELETE FROM refresh_token WHERE uuid = @uuid',
-    'DELETE FROM role WHERE uuid = @uuid',
-  ].map((sql) => db.client.prepare(sql));
-
   const updateMany = db.client.transaction(
     (islands: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[]) => {
       for (const island of islands) {
-        update.run({ uuid: island.uuid });
-        for (const stmt of deleteStatements) {
-          stmt.run({ uuid: island.uuid });
-        }
-        // ログの挿入
+        abandonIsland(db.client, island.uuid);
+        // 無人化ログ
         logArray.push({
           log_uuid: createUuid25(),
           from_uuid: island.uuid,
-          to_uuid: '',
+          to_uuid: null,
           turn: turn,
           secret_log: '',
           log: logIslandDeath(island),

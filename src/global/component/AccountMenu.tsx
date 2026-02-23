@@ -41,8 +41,11 @@ export default function AccountMenu() {
       {open && (
         <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-md border bg-white shadow-lg">
           <ul className="py-1">
+            <Link href="/account">
+              <li className="cursor-pointer px-4 py-2 hover:bg-gray-100">アカウント設定</li>
+            </Link>
             <Link href="/sign-out">
-              <li className="cursor-pointer px-4 py-2 hover:bg-gray-100">サインアウト</li>
+              <li className="cursor-pointer bg-sky-100 px-4 py-2 hover:bg-sky-200">サインアウト</li>
             </Link>
           </ul>
         </div>
