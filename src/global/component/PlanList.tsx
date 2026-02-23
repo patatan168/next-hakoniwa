@@ -406,6 +406,10 @@ const PlanList = memo(
     const draggedIdRef = useRef<number | null>(null);
     // コンテナ内の各行DOMを参照するためのRefMap
     const itemRowsRef = useRef<Map<number, HTMLElement>>(new Map());
+    // 自動スクロール用
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const scrollRafRef = useRef<number | null>(null);
+    const pointerYRef = useRef(0);
 
     const sortByProximity = useCallback((clientY: number) => {
       const draggedId = draggedIdRef.current;
@@ -442,10 +446,55 @@ const PlanList = memo(
       });
     }, []);
 
+    /** 自動スクロールループ（ドラッグ中のみ稼働） */
+    const stopAutoScroll = useCallback(() => {
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    }, []);
+
+    const startAutoScroll = useCallback(() => {
+      if (scrollRafRef.current !== null) return;
+
+      const EDGE_THRESHOLD = 50;
+      const MAX_SPEED = 12;
+
+      const tick = () => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const y = pointerYRef.current;
+        const distFromTop = y - rect.top;
+        const distFromBottom = rect.bottom - y;
+
+        let speed = 0;
+        if (distFromTop < EDGE_THRESHOLD) {
+          // 上端に近いほど速く上スクロール
+          speed = -MAX_SPEED * (1 - distFromTop / EDGE_THRESHOLD);
+        } else if (distFromBottom < EDGE_THRESHOLD) {
+          // 下端に近いほど速く下スクロール
+          speed = MAX_SPEED * (1 - distFromBottom / EDGE_THRESHOLD);
+        }
+
+        if (speed !== 0) {
+          container.scrollTop += speed;
+          // スクロール後に並び替え位置を再計算
+          sortByProximity(pointerYRef.current);
+        }
+
+        scrollRafRef.current = requestAnimationFrame(tick);
+      };
+
+      scrollRafRef.current = requestAnimationFrame(tick);
+    }, [sortByProximity]);
+
     /** pointermove / pointerup のリスナーをクリーンアップする関数 */
     const cleanupRef = useRef<(() => void) | null>(null);
 
     const commitDrop = useCallback(() => {
+      stopAutoScroll();
       const latestPreview = previewItemsRef.current;
       if (latestPreview) {
         const reindexed = latestPreview.map((item, index) => ({ ...item, plan_no: index }));
@@ -456,7 +505,7 @@ const PlanList = memo(
       draggedIdRef.current = null;
       setDraggedId(null);
       document.body.classList.remove('is-dragging');
-    }, [setItems]);
+    }, [setItems, stopAutoScroll]);
 
     /**
      * PointerDown: ドラッグ開始時にポインターをキャプチャし、
@@ -473,8 +522,11 @@ const PlanList = memo(
         document.body.classList.add('is-dragging');
 
         const onMove = (ev: PointerEvent) => {
+          pointerYRef.current = ev.clientY;
           sortByProximity(ev.clientY);
         };
+
+        startAutoScroll();
 
         const onUp = () => {
           commitDrop();
@@ -490,15 +542,16 @@ const PlanList = memo(
           document.removeEventListener('pointerup', onUp);
         };
       },
-      [sortByProximity, commitDrop]
+      [sortByProximity, commitDrop, startAutoScroll]
     );
 
     // アンマウント時にリスナーを確実に解除
     useEffect(
       () => () => {
         cleanupRef.current?.();
+        stopAutoScroll();
       },
-      []
+      [stopAutoScroll]
     );
 
     // 描画用のアイテムリスト（プレビュー中ならプレビューを優先）
@@ -528,6 +581,7 @@ const PlanList = memo(
         if (typeof ref === 'function') ref(node);
         else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
 
+        scrollContainerRef.current = node;
         listRef(node);
       },
       [listRef, ref]
