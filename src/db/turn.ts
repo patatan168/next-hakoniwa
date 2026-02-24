@@ -43,6 +43,7 @@ type IslandStats = {
   factoryCount: number;
   miningCount: number;
   farmCount: number;
+  missileCount: number;
   populationCount: number;
 };
 
@@ -148,32 +149,23 @@ function processSingleCell(
   }
 
   // 面積カウント
-  switch (mapDef.baseLand) {
-    case 'plains':
-    case 'mountain':
-    case 'monster':
-    case 'sanjira':
-    case 'kujira':
-      stats.areaCount++;
-      break;
+  if (['plains', 'mountain', 'monster', 'sanjira', 'kujira'].includes(mapDef.baseLand)) {
+    stats.areaCount++;
   }
 
   // 統計加算
   const coefficient = mapDef.coefficient ?? 1;
-  switch (item.type) {
-    case 'factory':
-      stats.factoryCount += coefficient * item.landValue;
-      break;
-    case 'mining':
-      stats.miningCount += coefficient * item.landValue;
-      break;
-    case 'farm':
-      stats.farmCount += coefficient * item.landValue;
-      break;
-    case 'people':
-      stats.populationCount += coefficient * item.landValue;
-      break;
-  }
+  const level = mapDef.level ?? [0, 1];
+  const levelIndex = Math.max(0, level.findLastIndex((l) => item.landValue >= l) + 1);
+
+  const val = coefficient * item.landValue;
+  if (item.type === 'factory') stats.factoryCount += val;
+  else if (item.type === 'mining') stats.miningCount += val;
+  else if (item.type === 'farm') stats.farmCount += val;
+  else if (item.type === 'people') stats.populationCount += val;
+  else if (item.type === 'missile') stats.missileCount += coefficient * Math.max(0, levelIndex);
+  else if (item.type === 'submarine_missile')
+    stats.missileCount += coefficient * Math.max(0, levelIndex);
 
   // イベント実行
   if (mapDef.event) {
@@ -202,6 +194,7 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
     factoryCount: 0,
     miningCount: 0,
     farmCount: 0,
+    missileCount: 0,
     populationCount: 0,
   };
   const typeCache = new Map<string, mapType>();
@@ -217,6 +210,7 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
   islandInfo.mining = Math.trunc(stats.miningCount);
   islandInfo.farm = Math.trunc(stats.farmCount);
   islandInfo.population = Math.trunc(stats.populationCount);
+  islandInfo.missile = Math.trunc(stats.missileCount);
 
   // 食料と資金の処理
   if (islandInfo.food > META_DATA.MAX_FOOD) {

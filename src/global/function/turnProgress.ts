@@ -189,6 +189,7 @@ export const updateIslands = (
         farm = @farm,
         factory = @factory,
         mining = @mining,
+        missile = @missile,
         island_info = jsonb(@island_info)
       WHERE
         uuid = @uuid`

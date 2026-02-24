@@ -71,6 +71,11 @@ export const MenuContent = ({
         <div className="text-bold mt-2 text-center text-3xl text-red-900">
           {`「${developData?.island_name || ''}島」`}
           <span className="text-black">{view === 'plan' ? '開発計画' : '開発記録'}</span>
+          <div className="text-center text-base text-black">
+            {'ミサイル保有数: '}
+            <span className="font-mono text-lg font-bold text-red-900">{developData?.missile}</span>
+            {'発'}
+          </div>
           <hr className="my-2 border-gray-200" />
         </div>
         <div className={'flex flex-1 flex-col overflow-hidden'}>

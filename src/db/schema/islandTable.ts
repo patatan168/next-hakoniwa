@@ -45,6 +45,10 @@ export const islandSchema: DbSchema = [
     type: 'INTEGER',
   },
   {
+    name: 'missile',
+    type: 'INTEGER',
+  },
+  {
     name: 'island_info',
     type: 'JSON',
   },
@@ -71,6 +75,8 @@ export type islandSchemaType = {
   factory: number;
   /** 採掘規模 */
   mining: number;
+  /** ミサイル保有数 */
+  missile: number;
   /** 島情報 */
   island_info: islandInfoData;
 };
@@ -98,6 +104,7 @@ export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPub
       : JSON.parse(island.island_info);
   }
   if (isPublic) {
+    island.missile = 0;
     island.money = Math.round(island.money / 1000) * 1000;
   }
 };
