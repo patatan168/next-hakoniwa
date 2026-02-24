@@ -156,16 +156,15 @@ function processSingleCell(
   // 統計加算
   const coefficient = mapDef.coefficient ?? 1;
   const level = mapDef.level ?? [0, 1];
-  const levelIndex = Math.max(0, level.findLastIndex((l) => item.landValue >= l) + 1);
+  const levelIndex = level.findLastIndex((l) => item.landValue >= l) + 1;
 
   const val = coefficient * item.landValue;
   if (item.type === 'factory') stats.factoryCount += val;
   else if (item.type === 'mining') stats.miningCount += val;
   else if (item.type === 'farm') stats.farmCount += val;
   else if (item.type === 'people') stats.populationCount += val;
-  else if (item.type === 'missile') stats.missileCount += coefficient * Math.max(0, levelIndex);
-  else if (item.type === 'submarine_missile')
-    stats.missileCount += coefficient * Math.max(0, levelIndex);
+  else if (item.type === 'missile') stats.missileCount += coefficient * levelIndex;
+  else if (item.type === 'submarine_missile') stats.missileCount += coefficient * levelIndex;
 
   // イベント実行
   if (mapDef.event) {
