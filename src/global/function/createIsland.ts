@@ -177,8 +177,8 @@ export const createIsland = (client: sqlite.Database, uuid: string) => {
 
   // 島情報を初期化
   const insertIsland = client.prepare(
-    `INSERT INTO island(uuid, prize, money, food, area, population, farm, factory, mining, island_info) 
-      values(?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
+    `INSERT INTO island(uuid, prize, money, food, area, population, farm, factory, mining, missile, island_info) 
+      values(?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
   );
   // イベント発生率を初期化
   const insertEventRate = client.prepare(`INSERT INTO event_rate(uuid) values(?)`);
@@ -195,6 +195,7 @@ export const createIsland = (client: sqlite.Database, uuid: string) => {
       calcAllTypeNum(data, 'farm'),
       calcAllTypeNum(data, 'factory'),
       calcAllTypeNum(data, 'mining'),
+      calcAllTypeNum(data, 'missile') + calcAllTypeNum(data, 'submarine_missile'),
       JSON.stringify(data)
     );
 
