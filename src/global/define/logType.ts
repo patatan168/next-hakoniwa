@@ -1,6 +1,7 @@
 import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { mapArrayConverter } from '../function/island';
+import { people } from './mapCategory/mapOther';
 import { getMapDefine, getMapName, mapType } from './mapType';
 import META_DATA from './metadata';
 import { planType } from './planType';
@@ -27,8 +28,9 @@ const islandName = (
   return `<font color="#a06040"><b>${island.island_name}島</b></font>`;
 };
 
-const planName = (plan: planType) => {
-  return `<font color="#d08000"><b>${plan.name}</b></font>`;
+const planName = (plan: planType | string) => {
+  const name = typeof plan === 'string' ? plan : plan.name;
+  return `<font color="#d08000"><b>${name}</b></font>`;
 };
 
 const disaster = (char: string) => {
@@ -828,4 +830,486 @@ export const logResourceExport = (
 ): string => {
   const unit = plan.unit === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
   return `${islandName(fromIsland)}が<b>${cost}${unit}</b>の${planName(plan)}を行い<b>${earn.amount}${earn.unit}</b>を得ました。`;
+};
+
+/**
+ * ミサイル発射計画が実行されたが、目標の島が存在しなかった場合のログ
+ * @param island 計画を実行した島情報
+ * @param planNameStr 計画の名称
+ * @returns ログ文字列
+ */
+export const logMissileNoTarget = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string
+): string => {
+  return `${islandName(island)}で予定されていた${planName(planNameStr)}は、目標の島が存在しないため中止されました。`;
+};
+
+/**
+ * ミサイル発射計画が実行されたが、島内に発射可能な基地が存在しなかった場合のログ
+ * @param island 計画を実行した島情報
+ * @param planNameStr 計画の名称
+ * @returns ログ文字列
+ */
+export const logMissileNoBase = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string
+): string => {
+  return `${islandName(island)}で予定されていた${planName(planNameStr)}は、発射可能な基地が無かったため中止されました。`;
+};
+
+/**
+ * ステルスミサイルが範囲外（海など）に着弾した場合のログ（対象島不明用）
+ * @returns ログ文字列
+ */
+export const logMissileOutS = (): string => {
+  return `どこからかミサイルが発射されました。`;
+};
+
+/**
+ * 通常のミサイルが範囲外（海など）に着弾した場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 発射先の島情報
+ * @param planNameStr 計画の名称
+ * @returns ログ文字列
+ */
+export const logMissileOut = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}に向けて${planName(planNameStr)}が行われました。しかし着弾点は範囲外でした。`;
+};
+
+/**
+ * ステルスミサイルが防衛施設等によって迎撃された場合のログ
+ * @param toIsland 着弾目標だった島情報
+ * @param ix 迎撃されたX座標
+ * @param iy 迎撃されたY座標
+ * @returns ログ文字列
+ */
+export const logMissileCaughtS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}${coordinate(ix, iy)}上空で爆破されました。`;
+};
+
+/**
+ * 通常のミサイルが防衛施設等によって迎撃された場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾目標の島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 迎撃されたX座標
+ * @param iy 迎撃されたY座標
+ * @returns ログ文字列
+ */
+export const logMissileCaught = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われました。しかし${coordinate(ix, iy)}上空にて防衛施設により爆破されました。`;
+};
+
+/**
+ * ステルスミサイルが浅瀬などに着弾し、被害がなかった場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileNoDamageS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しましたが効果はありませんでした。`;
+};
+
+/**
+ * 通常のミサイルが浅瀬などに着弾し、被害がなかった場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileNoDamage = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しましたが効果はありませんでした。`;
+};
+
+/**
+ * ステルスミサイルが荒地に着弾し、被害を与えられなかった場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileWasteS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しましたが被害はありませんでした。`;
+};
+
+/**
+ * 通常のミサイルが荒地に着弾し、被害を与えられなかった場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileWaste = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しましたが被害はありませんでした。`;
+};
+
+/**
+ * ステルスミサイルが怪獣に着弾し、ダメージを与えられなかった場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonNoDamageS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾しましたが、外殻で弾かれました。`;
+};
+
+/**
+ * 通常のミサイルが怪獣に着弾し、ダメージを与えられなかった場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonNoDamage = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾しましたが、外殻で弾かれました。`;
+};
+
+/**
+ * ステルスミサイルが怪獣に着弾し、討伐に成功した場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonKillS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾、見事しとめました。`;
+};
+
+/**
+ * 通常のミサイルが怪獣に着弾し、討伐に成功した場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonKill = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾、見事しとめました。`;
+};
+
+/**
+ * 怪獣を討伐して賞金を獲得した場合のログ（共通）
+ * @param fakeMapInfo 偽装マップ情報
+ * @param money 獲得賞金額
+ * @returns ログ文字列
+ */
+export const logMissileMonMoney = (fakeMapInfo: islandInfo, money: number): string => {
+  return `怪獣${mapName(fakeMapInfo)}の死体は、標本として${money}${META_DATA.UNIT_MONEY}にて買い取られました。`;
+};
+
+/**
+ * ステルスミサイルが怪獣に着弾し、ダメージを与えた場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonsterS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾、ダメージを与えました。`;
+};
+
+/**
+ * 通常のミサイルが怪獣に着弾し、ダメージを与えた場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileMonster = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾、ダメージを与えました。`;
+};
+
+/**
+ * ステルスミサイルが通常の地形（平地、町、森など）に着弾し、荒地化させた場合のログ
+ * @param toIsland 着弾した島情報
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileNormalS = (
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `どこからかミサイルが発射され、${islandName(toIsland)}の${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しました。`;
+};
+
+/**
+ * 通常のミサイルが通常の地形（平地、町、森など）に着弾し、荒地化させた場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileNormal = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の${mapName(fakeMapInfo)}に着弾しました。`;
+};
+
+/**
+ * 陸地破壊爆弾（LDミサイル）が山に着弾し、山を荒地にした場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileLDMountain = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の${mapName(fakeMapInfo)}は見事に崩壊し荒地になりました。`;
+};
+
+/**
+ * 陸地破壊爆弾（LDミサイル）が海底基地に着弾し、浅瀬化（破壊）した場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @returns ログ文字列
+ */
+export const logMissileLDSbase = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}に着弾、衝撃で海底が隆起し浅瀬になりました。`;
+};
+
+/**
+ * 陸地破壊爆弾（LDミサイル）が怪獣に着弾し、怪獣を地形と一緒に海底へ沈めた場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @param fakeMapInfo 偽装マップ情報
+ * @returns ログ文字列
+ */
+export const logMissileLDMonster = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number,
+  fakeMapInfo: islandInfo
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}の怪獣${mapName(fakeMapInfo)}に着弾、衝撃で陸地ごと海底へ沈みました。`;
+};
+
+/**
+ * 陸地破壊爆弾（LDミサイル）が浅瀬に着弾し、完全に海にした場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @returns ログ文字列
+ */
+export const logMissileLDSea1 = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}に着弾、衝撃で浅瀬はえぐられ完全に海になりました。`;
+};
+
+/**
+ * 陸地破壊爆弾（LDミサイル）が陸地（平地・森・町・基地など）に着弾し、浅瀬化した場合のログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 着弾した島情報
+ * @param planNameStr 計画の名称
+ * @param tx 目標のX座標
+ * @param ty 目標のY座標
+ * @param ix 着弾X座標
+ * @param iy 着弾Y座標
+ * @returns ログ文字列
+ */
+export const logMissileLDLand = (
+  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  planNameStr: string,
+  tx: number,
+  ty: number,
+  ix: number,
+  iy: number
+): string => {
+  return `${islandName(fromIsland)}から${islandName(toIsland)}の${coordinate(tx, ty)}に向けて${planName(planNameStr)}が行われ、${coordinate(ix, iy)}に着弾、衝撃で陸地がえぐられ浅瀬になりました。`;
+};
+
+/**
+ * ミサイル着弾による難民が発生し、他島（または自島内）へ漂着した場合のログ
+ * @param island 難民を受け入れた島情報
+ * @param achieve 到着した難民の数
+ * @returns ログ文字列
+ */
+export const logMissileBoatPeople = (
+  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  achieve: number
+): string => {
+  const coefficient = people.coefficient ?? 1;
+  return `難民船が${islandName(island)}に到着しました。（${coefficient * achieve}人）`;
 };

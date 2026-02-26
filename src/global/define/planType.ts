@@ -12,6 +12,7 @@ import { getBaseLog } from '../function/turnProgress';
 import { logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
 import META_DATA from './metadata';
+import * as planAtack from './planCategory/planAtack';
 import * as planConstruction from './planCategory/planConstruction';
 import * as planDevelopment from './planCategory/planDevelopment';
 import * as planManage from './planCategory/planManege';
@@ -85,7 +86,7 @@ export type planType = {
  * @returns 全ての計画情報
  */
 const getAllPlan = () => {
-  return { ...planConstruction, ...planDevelopment, ...planManage };
+  return { ...planAtack, ...planConstruction, ...planDevelopment, ...planManage };
 };
 
 let PLAN_SELECT_CACHE: { value: string; label: string; className: string | undefined }[] | null =
