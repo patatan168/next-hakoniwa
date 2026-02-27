@@ -159,9 +159,19 @@ const processMissileImpacts = ({
   const errorHex = missileType === 'pp' ? 1 : 2;
 
   for (const base of missileBases) {
-    let baseLevel = base.level;
-    while (baseLevel > 0 && remainingTimes > 0 && fromIsland.money >= cost) {
-      baseLevel--;
+    // 基地のレベルは経験値付与によって変動するため、ループのたびに現在のレベルを取得する
+    let getBaseLevel = () => {
+      const mapInfo = fromIsland.island_info[mapArrayConverter(base.x, base.y)];
+      return getMapLevel(mapInfo.type, mapInfo.landValue);
+    };
+
+    let baseLevel = getBaseLevel();
+    // 撃つたびにレベル（発射可能弾数）を1ずつ消費して計算する
+    // ただし、途中で経験値を得てレベルが上がった場合は発射可能回数が増える
+    let usedLevel = 0;
+
+    while (baseLevel - usedLevel > 0 && remainingTimes > 0 && fromIsland.money >= cost) {
+      usedLevel++;
       remainingTimes--;
       fromIsland.money -= cost;
       flagShot = true;
@@ -183,6 +193,9 @@ const processMissileImpacts = ({
 
       logs.push(...impactResult.logs);
       accumulatedRefugees += impactResult.refugees;
+
+      // 発射によって経験値が得られた場合、基地レベルが上限まで変動する可能性があるため再取得
+      baseLevel = getBaseLevel();
     }
   }
 
@@ -719,7 +732,9 @@ const grantBaseExperience = (
 ) => {
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   if (mapInfo.type === 'missile' || mapInfo.type === 'submarine_missile') {
+    // 基地の経験値は標的の規模（人口、怪獣の体力など）の1/20（切り捨て）だけ上昇する
     const expGain = Math.floor(enemyLandValue / 20);
+    // 経験値の最大値は200に制限されている
     const newExp = Math.min(mapInfo.landValue + expGain, 200);
     changeMapData(island, x, y, mapInfo.type, { type: 'ins', value: newExp });
   }
