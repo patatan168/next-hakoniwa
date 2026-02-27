@@ -1,6 +1,8 @@
 'use client';
 
+import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { parseCronToJapanese } from '@/global/function/utility';
+import { turnStore } from '@/global/store/api/public/turn';
 import { useEffect, useState } from 'react';
 import { IoTimeOutline } from 'react-icons/io5';
 
@@ -13,6 +15,12 @@ export default function ScheduleBadge() {
   const parsed = parseCronToJapanese(cronString);
   const [mounted, setMounted] = useState(false);
   const [nextHour, setNextHour] = useState<number | null>(null);
+
+  // ターン情報を取得
+  const { data, fetch } = useClientFetch(turnStore);
+  useEffect(() => {
+    fetch({ method: 'GET' });
+  }, [fetch]);
 
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 0);
@@ -77,14 +85,26 @@ export default function ScheduleBadge() {
     );
   }
 
+  const turnNumberDisplay = data.get ? (
+    <div className="ml-3 flex items-baseline gap-1 text-emerald-800">
+      <span className="text-sm font-semibold tracking-wide">ターン</span>
+      <span className="text-2xl font-black tracking-tighter tabular-nums sm:text-3xl">
+        {data.get.turn}
+      </span>
+    </div>
+  ) : null;
+
   if (parsed.type === 'daily' && localHours.length > 0) {
     return (
       <div className="mt-1 flex flex-col gap-2">
-        <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-700 px-3.5 py-1.5 text-base font-bold text-white shadow-md">
-          <IoTimeOutline className="text-emerald-100" size={18} />
-          <span>{parsed.text}</span>
+        <div className="flex items-center">
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-700 px-3.5 py-1.5 text-base font-bold text-white shadow-md">
+            <IoTimeOutline className="text-emerald-100" size={18} />
+            <span>{parsed.text}</span>
+          </div>
+          {turnNumberDisplay}
         </div>
-        <div className="ml-1 grid grid-cols-4 gap-2 sm:grid-cols-6">
+        <div className="ml-1 grid grid-cols-6 gap-2">
           {localHours.map((h) => {
             const isNext = h === nextHour;
             return (
@@ -106,9 +126,12 @@ export default function ScheduleBadge() {
   }
 
   return (
-    <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-3.5 py-1.5 text-base font-bold text-white shadow-md">
-      <IoTimeOutline className="text-emerald-100" size={18} />
-      <span>{parsed.text}</span>
+    <div className="flex items-center">
+      <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-3.5 py-1.5 text-base font-bold text-white shadow-md">
+        <IoTimeOutline className="text-emerald-100" size={18} />
+        <span>{parsed.text}</span>
+      </div>
+      {turnNumberDisplay}
     </div>
   );
 }
