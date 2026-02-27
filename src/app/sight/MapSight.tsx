@@ -1,11 +1,11 @@
 'use client';
 import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { useWindowSize } from '@/global/function/useWindowSize';
+import { useClientRect } from '@/global/function/useClientRect';
 import { islandSightStore } from '@/global/store/api/public/islandSight';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
 
 export default function MapSight({
@@ -16,18 +16,11 @@ export default function MapSight({
   create?: boolean;
 }) {
   const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
+  const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
 
-  const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
-  const { width, minusFooterHeight } = useWindowSize();
-  const mapCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { x, y } = node.getBoundingClientRect();
-        setMapSize(`min(${width - x}px, ${minusFooterHeight - y}px)`);
-      }
-    },
-    [width, minusFooterHeight]
-  );
+  const mapSize = mapRect
+    ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
+    : 'min(var(--real-vw), var(--real-vh-minus-footer))';
 
   useEffect(() => {
     fetchIsland({ method: 'GET' }, { query: `uuid=${uuid}` });

@@ -13,7 +13,7 @@ let snapshot: WindowSize = initSnapshot;
 const listeners = new Set<() => void>();
 
 let cleanup: (() => void) | null = null;
-let timeoutId: NodeJS.Timeout | null = null;
+let rafId: number | null = null;
 
 const updateSnapshot = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -36,12 +36,12 @@ const updateSnapshot = () => {
   }
 };
 
-const debouncedUpdate = () => {
-  if (timeoutId) clearTimeout(timeoutId);
-  timeoutId = setTimeout(() => {
+const throttledUpdate = () => {
+  if (rafId) return; // 既にスケジュールされている場合はスキップ
+  rafId = requestAnimationFrame(() => {
     updateSnapshot();
-    timeoutId = null;
-  }, 100);
+    rafId = null;
+  });
 };
 
 const subscribe = (callback: () => void) => {
@@ -49,14 +49,14 @@ const subscribe = (callback: () => void) => {
   if (listeners.size === 1) {
     // First listener added, start observing
     updateSnapshot(); // Initial update
-    const resizeObserver = new ResizeObserver(debouncedUpdate);
+    const resizeObserver = new ResizeObserver(throttledUpdate);
     resizeObserver.observe(document.documentElement);
-    window.addEventListener('resize', debouncedUpdate);
+    window.addEventListener('resize', throttledUpdate);
 
     cleanup = () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', debouncedUpdate);
-      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('resize', throttledUpdate);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }
 

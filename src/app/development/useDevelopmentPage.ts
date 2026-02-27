@@ -1,11 +1,12 @@
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
 import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useDevelopmentPage = () => {
   const {
@@ -24,33 +25,20 @@ export const useDevelopmentPage = () => {
 
   const [view, setView] = useState<'plan' | 'log'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
-  const [listHeight, setListHeight] = useState('var(--real-vh-minus-footer)');
-  const [mapSize, setMapSize] = useState('min(var(--real-vw), var(--real-vh-minus-footer))');
-  const { width, minusFooterHeight } = useWindowSize();
+  const { width } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
   const isMobile = width < 1280;
 
-  const mapCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { x, y } = node.getBoundingClientRect();
-        // スマホの場合はFABの分(bottom-6 + h-12 = 72px)を引く
-        const bottomSpace = isMobile ? 80 : 0;
-        setMapSize(`min(${width - x}px, ${minusFooterHeight - y - bottomSpace}px)`);
-      }
-    },
-    [width, minusFooterHeight, isMobile]
-  );
+  const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
+  const [listRect, listCallback] = useClientRect<HTMLDivElement>();
 
-  const listCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { y } = node.getBoundingClientRect();
-        setListHeight(`${minusFooterHeight - y}px`);
-      }
-    },
-    [minusFooterHeight, isMobile]
-  );
+  const mapSize = mapRect
+    ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
+    : 'min(var(--real-vw), var(--real-vh-minus-footer))';
+
+  const listHeight = listRect
+    ? `calc(var(--real-vh-minus-footer) - ${listRect.y}px)`
+    : 'var(--real-vh-minus-footer)';
 
   useEffect(() => {
     fetchDev({ method: 'GET' });
