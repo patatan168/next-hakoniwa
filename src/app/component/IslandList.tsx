@@ -3,10 +3,10 @@ import TabContents, { TabType } from '@/global/component/TabContents';
 import TurnLog from '@/global/component/TurnLog';
 import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
-import { useWindowSize } from '@/global/function/useWindowSize';
+import { useClientRect } from '@/global/function/useClientRect';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnLogStore } from '@/global/store/api/public/turnLog';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaList } from 'react-icons/fa6';
 import { IoDocumentTextOutline } from 'react-icons/io5';
 
@@ -25,19 +25,12 @@ export default function IslandList() {
   const [tab, setTab] = useState(0);
   const { data, isLoading, fetch } = useClientFetch(islandListStore);
   const { data: logData, fetch: logFetch, isLoading: logLoading } = useClientFetch(turnLogStore);
-  const [listHeight, setListHeight] = useState('100svh');
-  const { minusFooterHeight } = useWindowSize();
+  const [listRect, listCallback] = useClientRect<HTMLDivElement>();
+  const listHeight = listRect
+    ? `calc(var(--real-vh-minus-footer) - ${listRect.y}px)`
+    : 'var(--real-vh-minus-footer)';
   const [lazyFlag, setLazyFlag] = useState(false);
   const prevLastUuid = useRef('');
-  const listCallback = useCallback(
-    (node: HTMLDivElement) => {
-      if (node !== null) {
-        const { y } = node.getBoundingClientRect();
-        setListHeight(`${minusFooterHeight - y}px`);
-      }
-    },
-    [minusFooterHeight]
-  );
 
   const handleChange = (newValue: number) => {
     setTab(newValue);
