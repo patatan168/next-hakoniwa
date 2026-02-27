@@ -94,3 +94,97 @@ export const memoryUsage = () => {
   }
   return { messages: messages.join(', '), values: used };
 };
+
+export type ParsedCron = {
+  isValid: boolean;
+  type: 'daily' | 'hourly' | 'minutely' | 'raw' | 'unset';
+  text: string;
+  hours: number[]; // 毎日の場合の更新時間
+  minute: number; // 更新分
+};
+
+/**
+ * Cron表現を詳細なデータオブジェクトに変換する
+ * 典型的な箱庭諸島のスケジュール表現に特化して簡易パースを行います。
+ *
+ * @param cronExpression 変換元のCron文字列 (未指定時は未設定状態を返す)
+ * @returns 変換後のオブジェクト
+ */
+export const parseCronToJapanese = (cronExpression?: string): ParsedCron => {
+  const fallback = (text: string, type: ParsedCron['type'] = 'raw'): ParsedCron => ({
+    isValid: type !== 'unset' && text !== 'スケジュール形式エラー',
+    type,
+    text,
+    hours: [],
+    minute: 0,
+  });
+
+  if (!cronExpression) return fallback('スケジュール未設定', 'unset');
+
+  const parts = cronExpression.trim().split(/\s+/);
+  if (parts.length < 5) return fallback('スケジュール形式エラー', 'raw');
+
+  const [min, hr, d, m, w] = parts;
+
+  // 全てワイルドカード
+  if (min === '*' && hr === '*' && d === '*' && m === '*' && w === '*') {
+    return { ...fallback('常に自動更新 (毎分)', 'minutely'), minute: 0 };
+  }
+
+  // 曜日・月・日は問わない（毎日/毎時）場合の判定
+  if (d === '*' && m === '*' && w === '*') {
+    return parseDailyCron(min, hr, cronExpression);
+  }
+
+  return fallback(`更新スケジュール: ${cronExpression}`, 'raw');
+};
+
+/**
+ * 毎日・毎時のパターンのオブジェクトを組み立てる
+ */
+const parseDailyCron = (min: string, hr: string, fallbackExpr: string): ParsedCron => {
+  const isSimpleVal = (v: string) => !v.includes(',') && !v.includes('/') && !v.includes('-');
+  const fallback = {
+    isValid: true,
+    type: 'raw' as const,
+    hours: [],
+    minute: 0,
+    text: `更新スケジュール: ${fallbackExpr}`,
+  };
+
+  const parseMin = isSimpleVal(min) && min !== '*' ? parseInt(min, 10) : 0;
+
+  // 毎時○分
+  if (hr === '*' && min !== '*' && isSimpleVal(min)) {
+    return {
+      isValid: true,
+      type: 'hourly',
+      hours: [],
+      minute: parseMin,
+      text: `毎時 ${min}分に更新`,
+    };
+  }
+
+  // 毎日○時...
+  if (hr !== '*' && !isSimpleVal(hr) && !hr.includes('/') && !hr.includes('-')) {
+    const hoursNum = hr
+      .split(',')
+      .map((h) => parseInt(h, 10))
+      .sort((a, b) => a - b);
+
+    if (min === '0') {
+      return { isValid: true, type: 'daily', hours: hoursNum, minute: parseMin, text: `毎日更新` };
+    }
+    if (min !== '*' && isSimpleVal(min)) {
+      return {
+        isValid: true,
+        type: 'daily',
+        hours: hoursNum,
+        minute: parseMin,
+        text: `毎日各時刻の${min}分に更新`,
+      };
+    }
+  }
+
+  return fallback;
+};

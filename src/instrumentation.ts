@@ -16,7 +16,7 @@ export async function register() {
     }
 
     try {
-      const tz = process.env.TURN_TIMEZONE;
+      const tz = process.env.NEXT_PUBLIC_TURN_TIMEZONE;
       // cronerを用いてパース、スケジュール登録（書式が不正であればここでエラーになる）
       const job = new Cron(cronStr, { timezone: tz }, () => {
         console.log('[TurnScheduler] Executing npm run turn (cron triggered)...');

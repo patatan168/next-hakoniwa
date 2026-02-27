@@ -14,7 +14,7 @@ export async function GET() {
   try {
     const cronStr = process.env.NEXT_PUBLIC_TURN_CRON || process.env.TURN_CRON;
     if (cronStr) {
-      const tz = process.env.TURN_TIMEZONE;
+      const tz = process.env.NEXT_PUBLIC_TURN_TIMEZONE;
       const nextTime = new Cron(cronStr, tz ? { timezone: tz } : {}).nextRun();
       if (nextTime) {
         user.next_updated_at = nextTime.getTime();
