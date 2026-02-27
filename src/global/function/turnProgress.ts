@@ -255,7 +255,7 @@ export const updateUserInhabited = (
           log_uuid: createUuid25(),
           from_uuid: island.uuid,
           to_uuid: null,
-          turn: turn,
+          turn: turn + 1,
           secret_log: '',
           log: logIslandDeath(island),
         });
