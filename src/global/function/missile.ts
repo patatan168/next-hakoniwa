@@ -149,11 +149,13 @@ const processMissileImpacts = ({
   cost: number;
   missileBases: { x: number; y: number; level: number }[];
 }) => {
+  // 0の場合は資金と弾が尽きるまで撃ち続けるため、事実上の無限回数を設定する
   let remainingTimes = times === 0 ? Number.MAX_SAFE_INTEGER : times;
   const logs: turnLogSchemaType[] = [];
   let accumulatedRefugees = 0;
   let flagShot = false;
 
+  // PP（ピンポイント）ミサイルは高精度なため、通常のミサイルより着弾誤差を狭める
   const errorHex = missileType === 'pp' ? 1 : 2;
 
   for (const base of missileBases) {
@@ -190,6 +192,7 @@ const processMissileImpacts = ({
     fromIsland.uuid !== toIsland.uuid &&
     missileType !== 'st'
   ) {
+    // 発生した難民のうち、海上を生き延びて無事に他島へ漂着できるのは半数のみとする仕様
     const validRefugees = Math.floor(accumulatedRefugees / 2);
     const refugeeLogs = processRefugees(fromIsland, turn, validRefugees);
     if (refugeeLogs) logs.push(refugeeLogs);
@@ -283,6 +286,7 @@ const processSingleImpact = ({
   }
 
   if (checkNoDamage(missileType, impactMapInfo.type)) {
+    // 潜水艦基地は攻撃を弾いた際、単なる「海」としてログに記録し、他島からその存在を秘匿する
     const fakeMapInfo =
       impactMapInfo.type === 'submarine_missile'
         ? { ...impactMapInfo, type: 'sea' }
@@ -583,6 +587,7 @@ const handleMonsterImpact = (
   logs: turnLogSchemaType[],
   base: { x: number; y: number }
 ) => {
+  // サンジラは奇数ターン、クジラは偶数ターンに硬化状態となり、あらゆるミサイルのダメージを無効化する
   const isHardened =
     (impactMapInfo.type === 'sanjira' && turn % 2 !== 0) ||
     (impactMapInfo.type === 'kujira' && turn % 2 === 0);
@@ -610,6 +615,7 @@ const handleMonsterImpact = (
     return;
   }
 
+  // 現在の体力が1以下（今回の着弾で0になる）場合、討伐成功として処理する
   if (impactMapInfo.landValue <= 1) {
     const logKillS = logMissileMonKillS(toIsland, impactPoint.x, impactPoint.y, impactMapInfo);
     const logKill = logMissileMonKill(
