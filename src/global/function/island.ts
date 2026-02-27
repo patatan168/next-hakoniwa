@@ -74,7 +74,10 @@ export const countMapAround = (
   const around = getMapAround(baseX, baseY, hex);
   for (let i = 0; i < around.length; i++) {
     const { x, y } = around[i];
-    if (isOpenSea(x, y)) continue;
+    if (isOpenSea(x, y)) {
+      if (countType === 'sea') count++;
+      continue;
+    }
     const islandInfo = data[mapArrayConverter(x, y)];
     if (countType === islandInfo.type) count++;
   }
