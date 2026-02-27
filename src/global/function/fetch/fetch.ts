@@ -18,6 +18,12 @@ type CustomOptions = {
   refreshGet?: boolean;
   /** APIの連続呼び出しを防ぐための待機時間 (ms) */
   waitTime?: number;
+  /**
+   * 指定した他のZustandストアが更新された際に、自動的にfetch(GET)をトリガーする
+   * @example dependsOn: [turnStore]
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dependsOn?: StoreApi<any>[];
 };
 
 type DataOptions = {
@@ -166,6 +172,7 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
     const mergeData = customOptions?.mergeData ?? createApiMethodDefaults(false);
     const refreshGet = customOptions?.refreshGet ?? false;
     const waitTime = customOptions?.waitTime ?? 200;
+    const dependsOn = customOptions?.dependsOn ?? [];
 
     this.store = createStore<FetchState<T, U>>((set, get) => ({
       data: createApiMethodDefaults(undefined),
@@ -264,6 +271,21 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
         }
       },
     }));
+
+    // 依存するストアが更新された際に自動的にfetch(GET)を行う
+    if (dependsOn.length > 0) {
+      dependsOn.forEach((dependencyStore) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dependencyStore.subscribe((newVal: any, oldVal: any) => {
+          // data.get の値が実際に変化した場合のみfetchをトリガーする
+          // (isLoadingやfetchedAtなど、他のプロパティの変化は無視する)
+          if (!isEqual(newVal?.data?.get, oldVal?.data?.get)) {
+            // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
+            this.store.getState().fetch({ method: 'GET' }, { refresh: true });
+          }
+        });
+      });
+    }
   }
 
   private async refreshFetch(url: string) {
