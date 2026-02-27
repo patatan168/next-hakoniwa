@@ -67,14 +67,23 @@ export const executeMissile = ({
   planName,
   cost,
 }: {
+  /** 現在のターン数 */
   turn: number;
+  /** 発射元の島情報 */
   fromIsland: IslandWithUser;
+  /** 発射先の島情報 */
   toIsland: IslandWithUser | undefined;
+  /** 目標X座標 */
   targetX: number;
+  /** 目標Y座標 */
   targetY: number;
+  /** ミサイルの種類 */
   missileType: 'normal' | 'pp' | 'st' | 'ld';
+  /** ミサイルの発射回数（0の場合は資金と弾が尽きるまで） */
   times: number;
+  /** 計画の名称（ログ用） */
   planName: string;
+  /** ミサイル1発あたりの費用 */
   cost: number;
 }): turnLogSchemaType[] => {
   if (!toIsland) {
@@ -138,15 +147,25 @@ const processMissileImpacts = ({
   cost,
   missileBases,
 }: {
+  /** 現在のターン数 */
   turn: number;
+  /** 発射元の島情報 */
   fromIsland: IslandWithUser;
+  /** 発射先の島情報 */
   toIsland: IslandWithUser;
+  /** 目標X座標 */
   targetX: number;
+  /** 目標Y座標 */
   targetY: number;
+  /** ミサイルの種類 */
   missileType: 'normal' | 'pp' | 'st' | 'ld';
+  /** ミサイルの発射回数 */
   times: number;
+  /** 計画の名称 */
   planName: string;
+  /** ミサイル1発あたりの費用 */
   cost: number;
+  /** 発射可能なミサイル基地のリスト */
   missileBases: { x: number; y: number; level: number }[];
 }) => {
   // 0の場合は資金と弾が尽きるまで撃ち続けるため、事実上の無限回数を設定する
@@ -217,6 +236,13 @@ const processMissileImpacts = ({
 /**
  * ステルスミサイルと通常ミサイルでログの出力を分けるヘルパー関数
  * ステルスなら公開用と、発射元のみ見られる非公開用の2つのログを追加する
+ * @param isStealth ステルスかどうか
+ * @param turn ターン
+ * @param fromIsland 発射元島
+ * @param baseLog 基地のログ
+ * @param stealthLogText ステルスのログ
+ * @param normalLogText 通常のログ
+ * @returns ログ配列
  */
 const createMissileLogs = (
   isStealth: boolean,
@@ -257,14 +283,23 @@ const processSingleImpact = ({
   planName,
   base,
 }: {
+  /** 現在のターン数 */
   turn: number;
+  /** 発射元の島情報 */
   fromIsland: IslandWithUser;
+  /** 発射先の島情報 */
   toIsland: IslandWithUser;
+  /** 目標X座標 */
   targetX: number;
+  /** 目標Y座標 */
   targetY: number;
+  /** 実際の着弾座標 */
   impactPoint: { x: number; y: number };
+  /** ミサイルの種類 */
   missileType: 'normal' | 'pp' | 'st' | 'ld';
+  /** 計画の名称 */
   planName: string;
+  /** 発射した基地の情報 */
   base: { x: number; y: number; level: number };
 }): { logs: turnLogSchemaType[]; refugees: number } => {
   const isStealth = missileType === 'st';
@@ -394,14 +429,23 @@ const applyLandDestructionMissile = ({
   impactMapInfo,
   base,
 }: {
+  /** 現在のターン数 */
   turn: number;
+  /** 発射元の島情報 */
   fromIsland: IslandWithUser;
+  /** 発射先の島情報 */
   toIsland: IslandWithUser;
+  /** 目標X座標 */
   targetX: number;
+  /** 目標Y座標 */
   targetY: number;
+  /** 実際の着弾座標 */
   impactPoint: { x: number; y: number };
+  /** 計画の名称 */
   planName: string;
+  /** 着弾地点の地形情報 */
   impactMapInfo: islandInfo;
+  /** 発射した基地の座標 */
   base: { x: number; y: number };
 }) => {
   const baseLog = getBaseLog(turn, fromIsland, toIsland);
@@ -496,15 +540,25 @@ const applyNormalMissile = ({
   missileType,
   base,
 }: {
+  /** 現在のターン数 */
   turn: number;
+  /** 発射元の島情報 */
   fromIsland: IslandWithUser;
+  /** 発射先の島情報 */
   toIsland: IslandWithUser;
+  /** 目標X座標 */
   targetX: number;
+  /** 目標Y座標 */
   targetY: number;
+  /** 実際の着弾座標 */
   impactPoint: { x: number; y: number };
+  /** 計画の名称 */
   planName: string;
+  /** 着弾地点の地形情報 */
   impactMapInfo: islandInfo;
+  /** ミサイルの種類 */
   missileType: 'normal' | 'pp' | 'st';
+  /** 発射した基地の座標 */
   base: { x: number; y: number };
 }) => {
   const isStealth = missileType === 'st';
