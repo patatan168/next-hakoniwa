@@ -24,6 +24,7 @@ export const LicenseMenu = () => {
       <LinkList href="/license/nextMdxRemoteClient">next-mdx-remote-client</LinkList>
       <LinkList href="/license/reactVirtuoso">react-virtuoso</LinkList>
       <LinkList href="/license/reactIcons">React Icons</LinkList>
+      <LinkList href="/license/croner">croner</LinkList>
       <LinkList href="/license/autoAnimate">auto-animate</LinkList>
       <LinkList href="/license/jsonwebtoken">jsonwebtoken</LinkList>
       <LinkList href="/license/htmlReactPerser">html-react-parser</LinkList>

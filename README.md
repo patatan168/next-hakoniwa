@@ -59,3 +59,4 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | argon2                    | 0.44.0  |
 | auto-animate              | 0.9.0   |
 | zustand                   | 5.0.11  |
+| croner                    | 10.0.1  |

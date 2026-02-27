@@ -27,6 +27,7 @@
     "@hookform/resolvers": "^5.2.2",
     "argon2": "^0.44.0",
     "better-sqlite3": "^12.6.2",
+    "croner": "^10.0.1",
     "dotenv-flow": "^4.1.0",
     "es-toolkit": "^1.44.0",
     "html-react-parser": "^5.2.17",

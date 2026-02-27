@@ -1,6 +1,7 @@
 import { islandSchemaType } from '@/db/schema/islandTable';
 import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { turnStateSchemaType } from '@/db/schema/turnStateTable';
 import BaseTabs from '@/global/component/TabContents';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
@@ -26,7 +27,7 @@ type Props = {
   /** 移住可能な島のリスト */
   islandList?: { uuid: string; island_name: string }[];
   /** 現在のターンデータ */
-  turnData?: turnLogSchemaType;
+  turnData?: turnStateSchemaType;
   /** 計画データ読み込み中フラグ */
   isPlanLoading: boolean;
   /** 初期計画データ */

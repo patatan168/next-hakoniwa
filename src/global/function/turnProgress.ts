@@ -122,7 +122,10 @@ export function updateTurn(
   db: { client: sqlite.Database; [Symbol.dispose]: () => void },
   nextTurn: number
 ) {
-  db.client.prepare(`UPDATE turn_state SET turn = ?`).run(nextTurn);
+  // DBにはUnix Timestamp(ミリ秒)を保存する
+  db.client
+    .prepare(`UPDATE turn_state SET turn = ?, last_updated_at = ?`)
+    .run(nextTurn, Date.now());
 }
 
 /**

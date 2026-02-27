@@ -41,5 +41,7 @@ migrateTable('refresh_token', refreshTokenSchema);
 // レコードが1つもない場合のみinsert
 const count = db.client.prepare(`SELECT COUNT(*) as cnt FROM turn_state`).get() as { cnt: number };
 if (count.cnt === 0) {
-  db.client.prepare(`INSERT INTO turn_state (turn, turn_processing) VALUES (0, 0)`).run();
+  db.client
+    .prepare(`INSERT INTO turn_state (turn, turn_processing, last_updated_at) VALUES (0, 0, 0)`)
+    .run();
 }
