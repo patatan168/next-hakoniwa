@@ -13,7 +13,6 @@ let snapshot: WindowSize = initSnapshot;
 const listeners = new Set<() => void>();
 
 let cleanup: (() => void) | null = null;
-let rafId: number | null = null;
 
 const updateSnapshot = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -36,27 +35,20 @@ const updateSnapshot = () => {
   }
 };
 
-const throttledUpdate = () => {
-  if (rafId) return; // 既にスケジュールされている場合はスキップ
-  rafId = requestAnimationFrame(() => {
-    updateSnapshot();
-    rafId = null;
-  });
-};
+// スロットリング・デバウンスを行わず、イベントに即座に反応させる
 
 const subscribe = (callback: () => void) => {
   listeners.add(callback);
   if (listeners.size === 1) {
     // First listener added, start observing
     updateSnapshot(); // Initial update
-    const resizeObserver = new ResizeObserver(throttledUpdate);
+    const resizeObserver = new ResizeObserver(updateSnapshot);
     resizeObserver.observe(document.documentElement);
-    window.addEventListener('resize', throttledUpdate);
+    window.addEventListener('resize', updateSnapshot, { passive: true });
 
     cleanup = () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', throttledUpdate);
-      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', updateSnapshot);
     };
   }
 

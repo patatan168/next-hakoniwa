@@ -13,32 +13,24 @@ export const useClientRect = <T extends HTMLElement = HTMLElement>() => {
     (onStoreChange: () => void) => {
       if (!node) return () => {};
 
-      let rafId: number | null = null;
-      let isActive = true; // クリーンアップ実行後の不要な更新を防ぐフラグ
+      let isActive = true;
 
-      const throttledUpdate = () => {
-        if (!isActive || rafId) return;
-        rafId = window.requestAnimationFrame(() => {
-          if (!isActive) return;
-          onStoreChange();
-          rafId = null;
-        });
+      const triggerUpdate = () => {
+        if (!isActive) return;
+        onStoreChange();
       };
 
-      const resizeObserver = new ResizeObserver(throttledUpdate);
+      const resizeObserver = new ResizeObserver(triggerUpdate);
       resizeObserver.observe(node);
 
-      window.addEventListener('resize', throttledUpdate);
-      window.addEventListener('scroll', throttledUpdate, true);
+      window.addEventListener('resize', triggerUpdate, { passive: true });
+      window.addEventListener('scroll', triggerUpdate, { capture: true, passive: true });
 
       return () => {
         isActive = false;
-        if (rafId !== null) {
-          window.cancelAnimationFrame(rafId);
-        }
         resizeObserver.disconnect();
-        window.removeEventListener('resize', throttledUpdate);
-        window.removeEventListener('scroll', throttledUpdate, true);
+        window.removeEventListener('resize', triggerUpdate);
+        window.removeEventListener('scroll', triggerUpdate, { capture: true });
       };
     },
     [node] // nodeがセットされた際にsubscribeを再構築してリスナーをアタッチする
