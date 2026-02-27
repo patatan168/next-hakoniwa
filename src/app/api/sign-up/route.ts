@@ -6,6 +6,7 @@ import { dbConn } from '@/global/function/db';
 import { createUuid25, sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { profanityCheck } from '@/global/function/profanity';
+import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { userInfoSchema } from '@/global/valid/server/userInfo';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -14,6 +15,10 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
+  if (isTurnProcessing()) {
+    return turnProcessingResponse();
+  }
+
   const valid = await asyncRequestValid(request, userInfoSchema, 201);
 
   if (valid.data !== null) {

@@ -9,6 +9,7 @@ import { dbConn } from '@/global/function/db';
 import { createUuid25, sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { abandonIsland } from '@/global/function/turnProgress';
+import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { deleteAccountSchema } from '@/global/valid/server/account';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -18,6 +19,10 @@ export async function OPTIONS() {
 
 /** アカウント削除（島の放棄） */
 export async function DELETE(request: NextRequest) {
+  if (isTurnProcessing()) {
+    return turnProcessingResponse();
+  }
+
   using db = dbConn('./src/db/data/main.db');
   const uuid = await validAuthCookie(db.client, true);
   if (!uuid) {

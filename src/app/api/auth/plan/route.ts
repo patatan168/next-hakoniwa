@@ -1,5 +1,6 @@
 import { asyncRequestValid } from '@/global/function/api';
 import { dbConn } from '@/global/function/db';
+import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { planInfoZodValid } from '@/global/valid/planInfo';
 import { NextRequest, NextResponse } from 'next/server';
 import z from 'zod';
@@ -19,6 +20,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (isTurnProcessing()) {
+    return turnProcessingResponse();
+  }
+
   const uuid = request.headers.get('x-verified-uuid');
   if (!uuid) {
     return NextResponse.json(

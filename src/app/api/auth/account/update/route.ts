@@ -5,6 +5,7 @@ import { validAuthCookie } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
+import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { changeAccountSchema } from '@/global/valid/server/account';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -14,6 +15,10 @@ export async function OPTIONS() {
 
 /** アカウント情報一括更新（ID / ユーザー名 / パスワード） */
 export async function PUT(request: NextRequest) {
+  if (isTurnProcessing()) {
+    return turnProcessingResponse();
+  }
+
   using db = dbConn('./src/db/data/main.db');
   const uuid = await validAuthCookie(db.client, true);
   if (!uuid) {

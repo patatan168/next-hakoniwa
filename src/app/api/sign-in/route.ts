@@ -6,6 +6,7 @@ import { createJwtToken } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
+import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { signInUserInfoSchema } from '@/global/valid/userInfo';
 import sqlite from 'better-sqlite3';
 import { NextRequest, NextResponse } from 'next/server';
@@ -33,6 +34,10 @@ function updateLoginFailCount(
 }
 
 export async function POST(request: NextRequest) {
+  if (isTurnProcessing()) {
+    return turnProcessingResponse();
+  }
+
   using db = dbConn('./src/db/data/main.db');
 
   const valid = await asyncRequestValid(request, signInUserInfoSchema);
