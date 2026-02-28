@@ -1,4 +1,4 @@
-import { isEqual, merge } from 'es-toolkit';
+import { isEqual } from 'es-toolkit';
 import { createStore, StoreApi } from 'zustand/vanilla';
 import { getCookie } from '../cookie';
 import { CSRF_COOKIE_NAME } from '../csrf';
@@ -105,7 +105,7 @@ function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge:
   if (isEqual(current, next)) return current;
 
   if (Array.isArray(current) && Array.isArray(next)) {
-    return merge(current, next) as T;
+    return [...current, ...next] as T;
   }
   if (!Array.isArray(current) && !Array.isArray(next)) {
     return { ...current, ...next } as T;
