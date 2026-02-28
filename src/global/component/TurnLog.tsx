@@ -35,7 +35,7 @@ export default memo(
         atBottomStateChange={(atBottom) => {
           setLazyFlag(atBottom);
         }}
-        atBottomThreshold={700}
+        atBottomThreshold={150}
         itemContent={(index, log) => {
           const logText = log.secret_log ? log.secret_log : (log.log ?? '');
           return (

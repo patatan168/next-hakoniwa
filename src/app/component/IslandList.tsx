@@ -24,7 +24,7 @@ const tabTest: Array<TabType> = [
 export default function IslandList() {
   const [tab, setTab] = useState(0);
   const { data, isLoading, fetch } = useClientFetch(islandListStore);
-  const { data: logData, fetch: logFetch, isLoading: logLoading } = useClientFetch(turnLogStore);
+  const { data: logData, fetch: logFetch } = useClientFetch(turnLogStore);
   const [listRect, listCallback] = useClientRect<HTMLDivElement>();
   const listHeight = listRect
     ? `calc(var(--real-vh-minus-footer) - ${listRect.y}px)`
@@ -42,13 +42,13 @@ export default function IslandList() {
   }, []);
 
   useEffect(() => {
-    if (lazyFlag && logData.get && logLoading.get === false) {
+    if (lazyFlag && logData.get) {
       const lastUuid = logData.get.at(-1)?.log_uuid ?? '';
       if (lastUuid === prevLastUuid.current) return;
       prevLastUuid.current = lastUuid;
       logFetch({ method: 'GET' }, { query: `log_uuid=${lastUuid}` });
     }
-  }, [lazyFlag, logData.get, logLoading.get]);
+  }, [lazyFlag]);
 
   return (
     <>

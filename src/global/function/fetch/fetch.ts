@@ -189,7 +189,7 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
 
         const now = Date.now();
         const isWaitTime = now - state.fetchedAt[method] < waitTime;
-        const isLastGetSucceed = method === 'get' && state.error.get !== undefined;
+        const isLastGetSucceed = method === 'get' && state.error.get === undefined;
         // NOTE: 前回の取得が成功しており、waitTime以内の場合は何もしない
         if (isLastGetSucceed && isWaitTime) return;
 

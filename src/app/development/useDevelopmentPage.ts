@@ -21,7 +21,11 @@ export const useDevelopmentPage = () => {
     fetchIfNeeded: fetchPlan,
   } = useClientFetch(planStore);
   const { data: islandList, fetchIfNeeded: fetchIslandList } = useClientFetch(islandListStore);
-  const { data: turnLog, fetchIfNeeded: fetchTurnLog } = useClientFetch(turnLogAuthStore);
+  const {
+    data: turnLog,
+    fetchIfNeeded: fetchTurnLogIfNeeded,
+    fetch: fetchTurnLog,
+  } = useClientFetch(turnLogAuthStore);
 
   const [view, setView] = useState<'plan' | 'log'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
@@ -49,11 +53,15 @@ export const useDevelopmentPage = () => {
 
   useEffect(() => {
     if (view === 'log') {
-      const lastLogUuid =
-        turnLog.get && turnLog.get.length > 0
-          ? turnLog.get[turnLog.get.length - 1].log_uuid
-          : undefined;
-      fetchTurnLog({ method: 'GET' }, { query: lastLogUuid ? `log_uuid=${lastLogUuid}` : '' });
+      if (turnLog.get === undefined) {
+        fetchTurnLogIfNeeded({ method: 'GET' });
+      } else if (lazyFlag) {
+        const lastLogUuid =
+          turnLog.get.length > 0 ? turnLog.get[turnLog.get.length - 1].log_uuid : undefined;
+        if (lastLogUuid) {
+          fetchTurnLog({ method: 'GET' }, { query: `log_uuid=${lastLogUuid}` });
+        }
+      }
     }
   }, [view, lazyFlag]);
 
