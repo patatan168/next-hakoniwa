@@ -1313,3 +1313,24 @@ export const logMissileBoatPeople = (
   const coefficient = people.coefficient ?? 1;
   return `難民船が${islandName(island)}に到着しました。（${coefficient * achieve}人）`;
 };
+
+/**
+ * ターン処理結果（非公開ログ）
+ * @param moneySign 資金の増減符号
+ * @param diffMoney 資金の変動量
+ * @param foodSign 食料の増減符号
+ * @param diffFood 食料の変動量
+ * @param popSign 人口の増減符号
+ * @param diffPopulation 人口の変動量
+ * @returns ターン処理結果のログ
+ */
+export const logTurnResult = (
+  moneySign: string,
+  diffMoney: number,
+  foodSign: string,
+  diffFood: number,
+  popSign: string,
+  diffPopulation: number
+): string => {
+  return `<b>(収支)</b>人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食糧: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
+};

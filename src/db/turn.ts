@@ -1,8 +1,10 @@
+import { logTurnResult } from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
+import { createUuid25 } from '@/global/function/encrypt';
 import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
@@ -294,10 +296,46 @@ function processTurnForIslands(
     const island = islandList[index];
     const uuid = island.uuid;
 
+    // 変動量を計算するために元の値を保持
+    const prevMoney = island.money;
+    const prevFood = island.food;
+    const prevPopulation = island.population;
+
     incomeAndEatenPhase(uuid);
     planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
+
+    // 最新の島情報を取得して差分計算
+    const currentIsland = islandDataStore.getState().islandGet(uuid);
+    if (currentIsland) {
+      const diffMoney = currentIsland.money - prevMoney;
+      const diffFood = currentIsland.food - prevFood;
+      const diffPopulation = currentIsland.population - prevPopulation;
+
+      const moneySign = diffMoney >= 0 ? '+' : '';
+      const foodSign = diffFood >= 0 ? '+' : '';
+      const popSign = diffPopulation >= 0 ? '+' : '';
+      const log_uuid = createUuid25();
+
+      const secretLogMessage = logTurnResult(
+        moneySign,
+        diffMoney,
+        foodSign,
+        diffFood,
+        popSign,
+        diffPopulation
+      );
+
+      logArray.push({
+        log_uuid: log_uuid,
+        from_uuid: uuid,
+        to_uuid: uuid,
+        turn: turnInfo.turn + 1,
+        secret_log: secretLogMessage,
+        log: null,
+      });
+    }
   }
 }
 
