@@ -117,6 +117,8 @@ const META_DATA = Object.freeze({
   RP_ID: process.env.NEXT_PUBLIC_RP_ID!,
   /** アプリケーションのオリジンURL（WebAuthn origin検証用） */
   ORIGIN_URL: process.env.NEXT_PUBLIC_ORIGIN_URL!,
+  /** 1ユーザーあたりのPasskey最大登録数 */
+  MAX_PASSKEYS: Number(process.env.NEXT_PUBLIC_MAX_PASSKEYS ?? 5),
 });
 
 export default META_DATA;

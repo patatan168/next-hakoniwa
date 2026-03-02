@@ -2,6 +2,7 @@
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
+import META_DATA from '@/global/define/metadata';
 import { getCookie } from '@/global/function/cookie';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { deleteAccountStore } from '@/global/store/api/account/delete';
@@ -469,6 +470,18 @@ function PasskeySection() {
       </p>
       {status && <p className="mb-3 rounded-md bg-blue-50 p-3 text-sm text-blue-700">{status}</p>}
       <ul className="mb-4 space-y-2">
+        <li className="flex items-center justify-between text-sm text-gray-500">
+          <span>登録済みPasskey</span>
+          <span
+            className={
+              passkeys.length >= META_DATA.MAX_PASSKEYS
+                ? 'font-semibold text-red-500'
+                : 'font-semibold'
+            }
+          >
+            {passkeys.length} / {META_DATA.MAX_PASSKEYS} 件
+          </span>
+        </li>
         {passkeys.length === 0 && (
           <li className="text-sm text-gray-400">登録済みのPasskeyがありません</li>
         )}
@@ -487,15 +500,21 @@ function PasskeySection() {
             <button
               type="button"
               aria-label="Passkeyを削除"
-              className="text-red-400 transition-colors hover:text-red-600"
+              className="flex cursor-pointer items-center gap-1 text-sm text-red-400 transition-colors hover:text-red-600"
               onClick={() => handleDelete(pk.credential_id)}
             >
-              <TbFingerprintOff size={18} />
+              <TbFingerprintOff size={16} />
+              削除
             </button>
           </li>
         ))}
       </ul>
-      <Button type="button" icons={<TbFingerprint />} disabled={loading} onClick={handleRegister}>
+      <Button
+        type="button"
+        icons={<TbFingerprint />}
+        disabled={loading || passkeys.length >= META_DATA.MAX_PASSKEYS}
+        onClick={handleRegister}
+      >
         {loading ? '登録中...' : '新しいPasskeyを登録'}
       </Button>
     </section>

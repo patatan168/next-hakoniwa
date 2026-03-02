@@ -1,4 +1,5 @@
 import { userSchemaType } from '@/db/schema/userTable';
+import META_DATA from '@/global/define/metadata';
 import { validAuthCookie } from '@/global/function/auth';
 import { dbConn } from '@/global/function/db';
 import { createRegistrationOptions, getPasskeysByUuid } from '@/global/function/passkey';
@@ -23,8 +24,14 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 });
 
   const existingKeys = getPasskeysByUuid(db.client, uuid);
-  const existingIds = existingKeys.map((k) => k.credential_id);
+  if (existingKeys.length >= META_DATA.MAX_PASSKEYS) {
+    return NextResponse.json(
+      { error: `Passkeyの登録数が上限（${META_DATA.MAX_PASSKEYS}件）に達しています` },
+      { status: 400 }
+    );
+  }
 
+  const existingIds = existingKeys.map((k) => k.credential_id);
   const options = await createRegistrationOptions(uuid, user.user_name, existingIds);
   return NextResponse.json(options);
 }
