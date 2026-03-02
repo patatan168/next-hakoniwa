@@ -1,4 +1,4 @@
-import { islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfo, islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
 import { isEqual } from 'es-toolkit';
 import { differenceWith } from 'es-toolkit/array';
 import {
@@ -8,7 +8,7 @@ import {
   logSubmersion,
 } from '../define/logType';
 import { sea } from '../define/mapCategory/mapLand';
-import { getMapDefine, landType, mapType } from '../define/mapType';
+import { getMapDefine, getMapLevel, landType, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { islandDataGetSet } from '../store/turnProgress';
 import { getBaseLog } from './turnProgress';
@@ -19,6 +19,74 @@ import { getBaseLog } from './turnProgress';
  * @param y Y座標
  * @returns 外海かどうか
  */
+// 面積計算の対象となる基盤地形の集合
+const AREA_TARGET_LANDS = new Set(['plains', 'mountain', 'monster', 'sanjira', 'kujira']);
+
+/** 単一ターン処理で集計する島の統計情報 */
+export type IslandStats = {
+  /** 面積 (万坪) */
+  area: number;
+  /** 人口 */
+  population: number;
+  /** 農場規模 */
+  farm: number;
+  /** 工場規模 */
+  factory: number;
+  /** 採掘規模 */
+  mining: number;
+  /** ミサイル保有数 */
+  missile: number;
+};
+
+/**
+ * 空の統計情報オブジェクトを生成する
+ * @returns 初期化済みの IslandStats
+ */
+export const createIslandStats = (): IslandStats => ({
+  area: 0,
+  population: 0,
+  farm: 0,
+  factory: 0,
+  mining: 0,
+  missile: 0,
+});
+
+/**
+ * 単一セルの統計情報を IslandStats に加算する
+ * @param item 対象セルのマップ情報
+ * @param mapDef マップタイプ定義（事前取得してキャッシュ済みのもの）
+ * @param stats 集計先の統計情報オブジェクト
+ */
+export const accumulateCellStats = (item: islandInfo, mapDef: mapType, stats: IslandStats) => {
+  if (AREA_TARGET_LANDS.has(mapDef.baseLand)) {
+    stats.area += 100;
+  }
+
+  const { type, coefficient } = mapDef;
+  const currentCoefficient = coefficient ?? 1;
+
+  if (type === 'missile' || type === 'submarine_missile') {
+    stats.missile += currentCoefficient * getMapLevel(type, item.landValue);
+    return;
+  }
+
+  const val = currentCoefficient * item.landValue;
+  switch (type) {
+    case 'farm':
+      stats.farm += val;
+      break;
+    case 'factory':
+      stats.factory += val;
+      break;
+    case 'mining':
+      stats.mining += val;
+      break;
+    case 'people':
+      stats.population += val;
+      break;
+  }
+};
+
 export const isOpenSea = (x: number, y: number) => {
   const bellowMap = x < 0 || y < 0;
   const aboveMap = x >= META_DATA.MAP_SIZE || y >= META_DATA.MAP_SIZE;
@@ -129,21 +197,26 @@ export const countBaseLandAround = (
  */
 export const countArea = (data: islandInfoData) => {
   let count = 0;
-  for (let y = 0; y < META_DATA.MAP_SIZE; y++) {
-    for (let x = 0; x < META_DATA.MAP_SIZE; x++) {
-      const islandInfo = getIslandInfo(data, x, y, true);
-      const { baseLand } = getMapDefine(islandInfo.type);
-      switch (baseLand) {
-        case 'plains':
-        case 'mountain':
-        case 'monster':
-        case 'sanjira':
-        case 'kujira':
-          count++;
-          break;
-        default:
-          break;
-      }
+  // 定義のキャッシュ
+  const typeCache: Record<string, mapType> = {};
+
+  for (let i = 0; i < data.length; i++) {
+    const islandInfo = data[i];
+
+    let mapDef = typeCache[islandInfo.type];
+    if (!mapDef) {
+      mapDef = getMapDefine(islandInfo.type);
+      typeCache[islandInfo.type] = mapDef;
+    }
+
+    switch (mapDef.baseLand) {
+      case 'plains':
+      case 'mountain':
+      case 'monster':
+      case 'sanjira':
+      case 'kujira':
+        count++;
+        break;
     }
   }
 

@@ -45,9 +45,11 @@ import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
 import { allDbColumns } from './dbUtility';
 import { createUuid25 } from './encrypt';
 import {
+  accumulateCellStats,
   changeMapData,
   countBaseLandAround,
   countMapAround,
+  createIslandStats,
   getMapAround,
   isOpenSea,
   mapArrayConverter,
@@ -882,4 +884,38 @@ export const eruptionExecute = (islandUuid: string, turn: number) => {
     });
     return eruptionLogs;
   }
+};
+
+/**
+ * 島の全統計情報を設定する
+ * @param uuid 島のUUID
+ */
+export const setAllIslandStats = (uuid: string) => {
+  using island = islandDataGetSet(uuid);
+  const islandData = island.islandData;
+  if (!islandData) return;
+
+  const data = islandData.island_info;
+  const stats = createIslandStats();
+  const typeCache: Record<string, mapType> = {};
+
+  for (let i = 0; i < data.length; i++) {
+    const islandInfo = data[i];
+
+    let mapDef = typeCache[islandInfo.type];
+    if (!mapDef) {
+      mapDef = getMapDefine(islandInfo.type);
+      typeCache[islandInfo.type] = mapDef;
+    }
+
+    accumulateCellStats(islandInfo, mapDef, stats);
+  }
+
+  // 統計情報の反映
+  islandData.area = stats.area;
+  islandData.population = stats.population;
+  islandData.farm = stats.farm;
+  islandData.factory = stats.factory;
+  islandData.mining = stats.mining;
+  islandData.missile = stats.missile;
 };

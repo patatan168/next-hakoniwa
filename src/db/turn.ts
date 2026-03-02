@@ -5,6 +5,7 @@ import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
 import { dbConn } from '@/global/function/db';
 import { createUuid25 } from '@/global/function/encrypt';
+import { IslandStats, accumulateCellStats, createIslandStats } from '@/global/function/island';
 import { turnProceedLogger } from '@/global/function/logger';
 import {
   earthquakeExecute,
@@ -19,6 +20,7 @@ import {
   meteoriteExecute,
   monumentAttackExecute,
   popMonsterExecute,
+  setAllIslandStats,
   tsunamiExecute,
   typhoonExecute,
   updateIslands,
@@ -40,14 +42,6 @@ const MAX_RECURSIVE = 3;
 const WAIT_TIME = 2000;
 
 /** 各島情報 */
-type IslandStats = {
-  areaCount: number;
-  factoryCount: number;
-  miningCount: number;
-  farmCount: number;
-  missileCount: number;
-  populationCount: number;
-};
 
 // -----------------------------------------------------------------------------
 // Phases
@@ -133,9 +127,6 @@ function planPhase(
   }
 }
 
-/**
- * 単一セルの処理（イベント実行と統計計算）
- */
 function processSingleCell(
   item: islandInfo,
   nextTurn: number,
@@ -150,23 +141,7 @@ function processSingleCell(
     typeCache.set(item.type, mapDef);
   }
 
-  // 面積カウント
-  if (['plains', 'mountain', 'monster', 'sanjira', 'kujira'].includes(mapDef.baseLand)) {
-    stats.areaCount++;
-  }
-
-  // 統計加算
-  const coefficient = mapDef.coefficient ?? 1;
-  const level = mapDef.level ?? [0, 1];
-  const levelIndex = level.findLastIndex((l) => item.landValue >= l) + 1;
-
-  const val = coefficient * item.landValue;
-  if (item.type === 'factory') stats.factoryCount += val;
-  else if (item.type === 'mining') stats.miningCount += val;
-  else if (item.type === 'farm') stats.farmCount += val;
-  else if (item.type === 'people') stats.populationCount += val;
-  else if (item.type === 'missile') stats.missileCount += coefficient * levelIndex;
-  else if (item.type === 'submarine_missile') stats.missileCount += coefficient * levelIndex;
+  accumulateCellStats(item, mapDef, stats);
 
   // イベント実行
   if (mapDef.event) {
@@ -190,14 +165,7 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
   if (!islandInfo) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
 
   const nextTurn = currentTurn + 1;
-  const stats: IslandStats = {
-    areaCount: 0,
-    factoryCount: 0,
-    miningCount: 0,
-    farmCount: 0,
-    missileCount: 0,
-    populationCount: 0,
-  };
+  const stats = createIslandStats();
   const typeCache = new Map<string, mapType>();
 
   for (const item of islandInfo.island_info) {
@@ -206,12 +174,12 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
   }
 
   // 統計情報の反映
-  islandInfo.area = 100 * stats.areaCount;
-  islandInfo.factory = Math.trunc(stats.factoryCount);
-  islandInfo.mining = Math.trunc(stats.miningCount);
-  islandInfo.farm = Math.trunc(stats.farmCount);
-  islandInfo.population = Math.trunc(stats.populationCount);
-  islandInfo.missile = Math.trunc(stats.missileCount);
+  islandInfo.area = stats.area;
+  islandInfo.factory = Math.trunc(stats.factory);
+  islandInfo.mining = Math.trunc(stats.mining);
+  islandInfo.farm = Math.trunc(stats.farm);
+  islandInfo.population = Math.trunc(stats.population);
+  islandInfo.missile = Math.trunc(stats.missile);
 
   // 食料と資金の処理
   if (islandInfo.food > META_DATA.MAX_FOOD) {
@@ -292,26 +260,43 @@ function processTurnForIslands(
   );
   const randomIndices = arrayRandomInt(islandList.length);
 
+  // ターン開始前の値を保持するマップ
+  const prevStats = new Map<string, { money: number; food: number; population: number }>();
+
+  // フェーズ1: 実際のターン処理を全島に対して実行
   for (const index of randomIndices) {
     const island = islandList[index];
     const uuid = island.uuid;
 
     // 変動量を計算するために元の値を保持
-    const prevMoney = island.money;
-    const prevFood = island.food;
-    const prevPopulation = island.population;
+    prevStats.set(uuid, {
+      money: island.money,
+      food: island.food,
+      population: island.population,
+    });
 
     incomeAndEatenPhase(uuid);
     planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
+  }
+
+  // フェーズ2: 全島の処理が完了した後、最終的な変動量を計算してログ出力
+  for (const island of islandList) {
+    const uuid = island.uuid;
+    const prev = prevStats.get(uuid);
+    if (!prev) continue;
+
+    // 再度統計情報を設定
+    // NOTE: 災害等で破壊された施設を再計算するため
+    setAllIslandStats(uuid);
 
     // 最新の島情報を取得して差分計算
     const currentIsland = islandDataStore.getState().islandGet(uuid);
     if (currentIsland) {
-      const diffMoney = currentIsland.money - prevMoney;
-      const diffFood = currentIsland.food - prevFood;
-      const diffPopulation = currentIsland.population - prevPopulation;
+      const diffMoney = currentIsland.money - prev.money;
+      const diffFood = currentIsland.food - prev.food;
+      const diffPopulation = currentIsland.population - prev.population;
 
       const moneySign = diffMoney >= 0 ? '+' : '';
       const foodSign = diffFood >= 0 ? '+' : '';
