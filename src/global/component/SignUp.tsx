@@ -12,6 +12,26 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoSendSharp } from 'react-icons/io5';
 
+/**
+ * フィンガープリントを生成する
+ * 収集項目: UA / タイムゾーン / 言語 / CPUコア数 / 画面情報 / プラットフォーム
+ * クライアント内でSHA-256ハッシュ化、生データはサーバーに送信しない
+ */
+async function buildFpHash(): Promise<string> {
+  const raw = JSON.stringify({
+    ua: navigator.userAgent,
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    lang: navigator.language,
+    cpu: navigator.hardwareConcurrency,
+    screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+    platform: navigator.platform,
+  });
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 const POST_HEADER = {
   method: 'POST',
   headers: {
@@ -43,8 +63,13 @@ function SignUpForm() {
   const [body, setBody] = useState(JSON.stringify(defaultValues));
   const { fetch, data, error } = useClientFetch(signUpStore);
 
-  const onSubmit = () => {
-    fetch({ ...POST_HEADER, body: body });
+  const onSubmit = async () => {
+    const fpHash = await buildFpHash();
+    fetch({
+      ...POST_HEADER,
+      headers: { ...POST_HEADER.headers, 'x-fp-hash': fpHash },
+      body,
+    });
   };
 
   useEffect(() => {

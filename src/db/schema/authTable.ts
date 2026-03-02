@@ -14,6 +14,11 @@ export const authSchema: DbSchema = [
   { name: 'created_at', type: 'INTEGER', defVal: 'unixepoch()' },
   { name: 'login_fail_count', type: 'INTEGER', defVal: '0' },
   { name: 'locked_until', type: 'DATETIME', defVal: 'NULL', nullable: true },
+  /**
+   * ブラウザフィンガープリントのサーバーハッシュ値
+   * NOTE: 本番環境でのみ多重登録検知に使用する
+   */
+  { name: 'fp_hash', type: 'TEXT', defVal: "''" },
 ];
 
 export type authSchemaType = {
@@ -23,4 +28,5 @@ export type authSchemaType = {
   created_at: number;
   login_fail_count: number;
   locked_until: string | null;
+  fp_hash: string;
 };

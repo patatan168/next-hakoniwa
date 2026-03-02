@@ -85,3 +85,12 @@ export const randomString = (length: number) => {
   }
   return result;
 };
+
+/**
+ * クライアントハッシュにペッパーを付加して再ハッシュする（二段ハッシュ）
+ * @param clientHash クライアントがSHA-256でハッシュ済みのフィンガープリント文字列
+ * @param pepper サーバーシークレット
+ * @returns SAH-256ハッシュ（16進数文字列）
+ */
+export const hashFingerprintWithPepper = (clientHash: string, pepper: string): string =>
+  crypto.createHash('sha256').update(`${clientHash}${pepper}`).digest('hex');

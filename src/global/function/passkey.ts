@@ -15,9 +15,9 @@ import {
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import sqlite from 'better-sqlite3';
-import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
 import META_DATA from '../define/metadata';
+import { hashFingerprintWithPepper } from './encrypt';
 
 /**
  * クライアントハッシュにペッパーを付加して再ハッシュする（二段ハッシュ）
@@ -25,7 +25,7 @@ import META_DATA from '../define/metadata';
  * @returns サーバー側ペッパー付きのSHA-256ハッシュ（16進数文字列）
  */
 export const hashFingerprint = (clientHash: string): string =>
-  createHash('sha256').update(`${clientHash}${META_DATA.FP_PEPPER}`).digest('hex');
+  hashFingerprintWithPepper(clientHash, META_DATA.FP_PEPPER);
 
 /**
  * 同一デバイスが別アカウントに登録済みかを確認する
