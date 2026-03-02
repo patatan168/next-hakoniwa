@@ -22,7 +22,7 @@ export const farm: mapType = {
   baseLand: 'plains',
   name: '農場',
   imgPath: '/img/facility/farm.gif',
-  defVal: 1,
+  defVal: 5,
   maxVal: 25,
   coefficient: 2000,
   unit: facilityUnit,
