@@ -15,8 +15,36 @@ import {
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import sqlite from 'better-sqlite3';
+import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
 import META_DATA from '../define/metadata';
+
+/**
+ * クライアントハッシュにペッパーを付加して再ハッシュする（二段ハッシュ）
+ * @param clientHash クライアントがSHA-256でハッシュ済みのフィンガープリント文字列
+ * @returns サーバー側ペッパー付きのSHA-256ハッシュ（16進数文字列）
+ */
+export const hashFingerprint = (clientHash: string): string =>
+  createHash('sha256').update(`${clientHash}${META_DATA.FP_PEPPER}`).digest('hex');
+
+/**
+ * 同一デバイスが別アカウントに登録済みかを確認する
+ * @param client DBクライアント
+ * @param fpHash サーバー側で計算したフィンガープリントハッシュ
+ * @param uuid 現在の登録ユーザーのUUID（自分自身は除外する）
+ * @returns 別ユーザーに同じハッシュが存在すればtrue
+ */
+export const isFpDuplicate = (client: sqlite.Database, fpHash: string, uuid: string): boolean => {
+  // 空文字は未収集として重複チェックをスキップ
+  if (!fpHash) return false;
+  const row = client
+    .prepare<
+      [string, string],
+      { cnt: number }
+    >(`SELECT COUNT(*) AS cnt FROM passkey WHERE fp_hash = ? AND uuid != ?`)
+    .get(fpHash, uuid);
+  return (row?.cnt ?? 0) > 0;
+};
 
 /**
  * challenge Cookieのキー名を取得する

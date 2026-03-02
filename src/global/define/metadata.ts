@@ -119,6 +119,8 @@ const META_DATA = Object.freeze({
   ORIGIN_URL: process.env.NEXT_PUBLIC_ORIGIN_URL!,
   /** 1ユーザーあたりのPasskey最大登録数 */
   MAX_PASSKEYS: Number(process.env.NEXT_PUBLIC_MAX_PASSKEYS ?? 5),
+  /** フィンガープリントのサーバーシークレット（二段ハッシュ用ペッパー） */
+  FP_PEPPER: process.env.PASSKEY_FP_PEPPER!,
 });
 
 export default META_DATA;

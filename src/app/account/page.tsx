@@ -417,6 +417,26 @@ function PasskeySection() {
     return fetch(url, { ...init, headers });
   };
 
+  /**
+   * フィンガープリントを生成する
+   * 収集項目: UA / タイムゾーン / 言語 / CPUコア数 / 画面情報 / プラットフォーム
+   * クライアント内でSHA-256ハッシュ化、生データはサーバーに送信しない
+   */
+  const buildFpHash = async (): Promise<string> => {
+    const raw = JSON.stringify({
+      ua: navigator.userAgent,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lang: navigator.language,
+      cpu: navigator.hardwareConcurrency,
+      screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+      platform: navigator.platform,
+    });
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
   /** Passkeyを登録する */
   const handleRegister = async () => {
     setStatus(null);
@@ -429,10 +449,11 @@ function PasskeySection() {
       const regResult = await startRegistration({ optionsJSON: options });
 
       const deviceName = navigator.platform || 'デバイス';
+      const fpHash = await buildFpHash();
       const finishRes = await csrfFetch('/api/auth/passkey/register/finish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response: regResult, deviceName }),
+        body: JSON.stringify({ response: regResult, deviceName, fpHash }),
       });
 
       if (finishRes.ok) {
