@@ -8,11 +8,13 @@ import { signInStore } from '@/global/store/api/sign-in';
 import { signInUserInfo, signInUserInfoSchema } from '@/global/valid/userInfo';
 import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { startAuthentication } from '@simplewebauthn/browser';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoSendSharp } from 'react-icons/io5';
 import { PiIslandFill } from 'react-icons/pi';
+import { TbFingerprint } from 'react-icons/tb';
 
 const POST_HEADER = {
   method: 'POST',
@@ -40,10 +42,51 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
-  const { fetch, data, error } = useClientFetch(signInStore);
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const { fetch: signInFetch, data, error } = useClientFetch(signInStore);
 
   const onSubmit = () => {
-    fetch({ ...POST_HEADER, body: body });
+    signInFetch({ ...POST_HEADER, body: body });
+  };
+
+  /** CSRFトークン付きのfetchヘルパー */
+  const csrfFetch = (url: string, init: RequestInit) => {
+    const csrf = getCookie('csrf-token') ?? getCookie('__Host-csrf-token') ?? '';
+    const headers = new Headers(init.headers);
+    headers.set('x-csrf-token', csrf);
+    return fetch(url, { ...init, headers });
+  };
+
+  /** Passkeyで認証する */
+  const handlePasskeySignIn = async () => {
+    setPasskeyError(null);
+    setPasskeyLoading(true);
+    try {
+      const startRes = await csrfFetch('/api/passkey/auth/start', { method: 'POST' });
+      const options = await startRes.json();
+
+      const assertion = await startAuthentication({ optionsJSON: options });
+
+      const finishRes = await csrfFetch('/api/passkey/auth/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assertion),
+      });
+
+      if (finishRes.ok) {
+        reset();
+        openToggle(false);
+        router.push('/development');
+      } else {
+        const json = (await finishRes.json()) as { error?: string };
+        setPasskeyError(json.error ?? 'Passkey認証に失敗しました');
+      }
+    } catch {
+      setPasskeyError('Passkey認証がキャンセルされたか、対応していません');
+    } finally {
+      setPasskeyLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -75,9 +118,28 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
     <form onSubmit={handleSubmit(onSubmit)}>
       <ul className="w-[500] max-w-[96vw] list-none">
         <li>
-          {error.post && (
-            <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">{error.post.detail}</p>
+          {(error.post || passkeyError) && (
+            <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">
+              {error.post?.detail ?? passkeyError}
+            </p>
           )}
+        </li>
+        <li className="mb-3">
+          <Button
+            className="w-full"
+            type="button"
+            color="gray"
+            icons={<TbFingerprint />}
+            disabled={passkeyLoading}
+            onClick={handlePasskeySignIn}
+          >
+            {passkeyLoading ? '認証中...' : 'Passkeyでログイン'}
+          </Button>
+        </li>
+        <li className="mb-3 flex items-center gap-2 text-xs text-gray-400">
+          <hr className="flex-1" />
+          <span>またはID/パスワードでログイン</span>
+          <hr className="flex-1" />
         </li>
         <li className="flex justify-end">
           <Button className="mb-4" disabled={!isValid} type="submit" icons={<IoSendSharp />}>

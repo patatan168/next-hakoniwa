@@ -36,6 +36,7 @@ export const LicenseMenu = () => {
       <LinkList href="/license/winston">winston</LinkList>
       <LinkList href="/license/zod">zod</LinkList>
       <LinkList href="/license/zustand">zustand</LinkList>
+      <LinkList href="/license/simpleWebAuthn">SimpleWebAuthn</LinkList>
     </ul>
   );
 };

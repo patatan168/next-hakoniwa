@@ -8,6 +8,7 @@ import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { lastLoginSchema } from './schema/lastLoginTable';
+import { passkeySchema } from './schema/passkeyTable';
 import { planSchema } from './schema/planTable';
 import { refreshTokenSchema } from './schema/refreshTokenTable';
 import { roleSchema } from './schema/roleTable';
@@ -38,6 +39,8 @@ migrateTable('turn_state', turnStateSchema);
 migrateTable('access_token', accessTokenSchema);
 // refresh_tokenテーブルを移行
 migrateTable('refresh_token', refreshTokenSchema);
+// passkeyテーブルを移行
+migrateTable('passkey', passkeySchema);
 // レコードが1つもない場合のみinsert
 const count = db.client.prepare(`SELECT COUNT(*) as cnt FROM turn_state`).get() as { cnt: number };
 if (count.cnt === 0) {

@@ -111,6 +111,12 @@ const META_DATA = Object.freeze({
   LOGIN_LOCK_MINUTE: Number(process.env.LOGIN_LOCK_MINUTE!),
   /** 最大セッション数 */
   MAX_SESSIONS: Number(process.env.MAX_SESSIONS!),
+  /** WebAuthn RPの名称 */
+  RP_NAME: process.env.NEXT_PUBLIC_RP_NAME!,
+  /** WebAuthn RPのID（ドメイン名） */
+  RP_ID: process.env.NEXT_PUBLIC_RP_ID!,
+  /** アプリケーションのオリジンURL（WebAuthn origin検証用） */
+  ORIGIN_URL: process.env.NEXT_PUBLIC_ORIGIN_URL!,
 });
 
 export default META_DATA;

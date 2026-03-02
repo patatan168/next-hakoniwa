@@ -60,3 +60,4 @@ Open [http://localhost:6006](http://localhost:6006) with your browser to see the
 | auto-animate              | 0.9.0   |
 | zustand                   | 5.0.11  |
 | croner                    | 10.0.1  |
+| simpleWebAuthn            | 13.2.2  |

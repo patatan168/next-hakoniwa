@@ -25,6 +25,8 @@
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",
     "@hookform/resolvers": "^5.2.2",
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.3",
     "argon2": "^0.44.0",
     "better-sqlite3": "^12.6.2",
     "croner": "^10.0.1",

@@ -4,6 +4,7 @@ import { authSchema } from './schema/authTable';
 import { eventRateSchema } from './schema/eventRateTable';
 import { islandSchema } from './schema/islandTable';
 import { lastLoginSchema } from './schema/lastLoginTable';
+import { passkeySchema } from './schema/passkeyTable';
 import { planSchema } from './schema/planTable';
 import { refreshTokenSchema } from './schema/refreshTokenTable';
 import { roleSchema } from './schema/roleTable';
@@ -35,6 +36,8 @@ createTable('event_rate', eventRateSchema);
 createTable('access_token', accessTokenSchema);
 // refresh_tokenテーブル作成
 createTable('refresh_token', refreshTokenSchema);
+// passkeyテーブル作成
+createTable('passkey', passkeySchema);
 // turn_stateテーブル作成
 createTable('turn_state', turnStateSchema);
 // レコードが1つもない場合のみinsert

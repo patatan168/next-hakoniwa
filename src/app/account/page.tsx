@@ -2,6 +2,7 @@
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
+import { getCookie } from '@/global/function/cookie';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { deleteAccountStore } from '@/global/store/api/account/delete';
 import { changeAccountStore } from '@/global/store/api/account/update';
@@ -9,11 +10,13 @@ import type { changeAccountForm, deleteAccountForm } from '@/global/valid/accoun
 import { changeAccountSchema, deleteAccountSchema } from '@/global/valid/account';
 import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { IoSendSharp } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
+import { TbFingerprint, TbFingerprintOff } from 'react-icons/tb';
 
 const POST_HEADER = {
   headers: { 'Content-Type': 'application/json' },
@@ -380,6 +383,125 @@ function DeleteAccountSection() {
   );
 }
 
+// --- Passkey管理セクション ---
+
+type PasskeyInfo = {
+  credential_id: string;
+  device_name: string;
+  created_at: number;
+};
+
+function PasskeySection() {
+  const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
+  const [status, setStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  /** Passkey一覧を取得する */
+  const loadPasskeys = async () => {
+    const res = await fetch('/api/auth/passkey/list');
+    if (!res.ok) return;
+    const json = (await res.json()) as { passkeys: PasskeyInfo[] };
+    setPasskeys(json.passkeys);
+  };
+
+  useEffect(() => {
+    loadPasskeys();
+  }, []);
+
+  /** CSRFトークン付きのfetchヘルパー */
+  const csrfFetch = (url: string, init: RequestInit) => {
+    const csrf = getCookie('csrf-token') ?? getCookie('__Host-csrf-token') ?? '';
+    const headers = new Headers(init.headers);
+    headers.set('x-csrf-token', csrf);
+    return fetch(url, { ...init, headers });
+  };
+
+  /** Passkeyを登録する */
+  const handleRegister = async () => {
+    setStatus(null);
+    setLoading(true);
+    try {
+      const startRes = await csrfFetch('/api/auth/passkey/register/start', { method: 'POST' });
+      if (!startRes.ok) throw new Error('登録オプションの取得に失敗しました');
+      const options = await startRes.json();
+
+      const regResult = await startRegistration({ optionsJSON: options });
+
+      const deviceName = navigator.platform || 'デバイス';
+      const finishRes = await csrfFetch('/api/auth/passkey/register/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ response: regResult, deviceName }),
+      });
+
+      if (finishRes.ok) {
+        setStatus('Passkeyを登録しました');
+        await loadPasskeys();
+      } else {
+        const json = (await finishRes.json()) as { error?: string };
+        setStatus(json.error ?? '登録に失敗しました');
+      }
+    } catch {
+      setStatus('Passkeyの登録がキャンセルされたか、対応していません');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Passkeyを削除する */
+  const handleDelete = async (credentialId: string) => {
+    const res = await csrfFetch('/api/auth/passkey/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential_id: credentialId }),
+    });
+    if (res.ok) {
+      setStatus('Passkeyを削除しました');
+      await loadPasskeys();
+    }
+  };
+
+  return (
+    <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <SectionHeader title="Passkey管理" />
+      <p className="mb-4 text-sm text-gray-600">
+        指紋・顔認証などを使ったパスワードレスログインを設定できます。
+      </p>
+      {status && <p className="mb-3 rounded-md bg-blue-50 p-3 text-sm text-blue-700">{status}</p>}
+      <ul className="mb-4 space-y-2">
+        {passkeys.length === 0 && (
+          <li className="text-sm text-gray-400">登録済みのPasskeyがありません</li>
+        )}
+        {passkeys.map((pk) => (
+          <li
+            key={pk.credential_id}
+            className="flex items-center justify-between rounded-md border border-gray-200 p-3"
+          >
+            <div className="flex items-center gap-2 text-sm">
+              <TbFingerprint className="text-blue-500" size={18} />
+              <span className="font-medium text-gray-800">{pk.device_name}</span>
+              <span className="text-gray-400">
+                {new Date(pk.created_at * 1000).toLocaleDateString('ja-JP')}
+              </span>
+            </div>
+            <button
+              type="button"
+              aria-label="Passkeyを削除"
+              className="text-red-400 transition-colors hover:text-red-600"
+              onClick={() => handleDelete(pk.credential_id)}
+            >
+              <TbFingerprintOff size={18} />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <Button type="button" icons={<TbFingerprint />} disabled={loading} onClick={handleRegister}>
+        {loading ? '登録中...' : '新しいPasskeyを登録'}
+      </Button>
+    </section>
+  );
+}
+
 // --- メインページ ---
 
 export default function AccountPage() {
@@ -387,6 +509,7 @@ export default function AccountPage() {
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold text-gray-900">アカウント設定</h1>
       <ChangeAccountSection />
+      <PasskeySection />
       <DeleteAccountSection />
     </div>
   );
