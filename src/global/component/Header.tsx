@@ -84,7 +84,7 @@ export default function Header() {
                 ホーム
               </Button>
               <Button
-                href="/"
+                href="/manual"
                 size="xs"
                 className="hidden sm:block sm:text-sm"
                 category="outline"

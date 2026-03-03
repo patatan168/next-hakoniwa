@@ -27,77 +27,77 @@ const META_DATA = Object.freeze({
   /** 面積の単位 */
   UNIT_AREA: process.env.NEXT_PUBLIC_UNIT_AREA!,
   /** 初期資金 (億円) */
-  INIT_MONEY: Number(process.env.INIT_MONEY!),
+  INIT_MONEY: Number(process.env.NEXT_PUBLIC_INIT_MONEY!),
   /** 最大資金 (億円) */
-  MAX_MONEY: Number(process.env.MAX_MONEY!),
+  MAX_MONEY: Number(process.env.NEXT_PUBLIC_MAX_MONEY!),
   /** 初期食料 (トン) */
-  INIT_FOOD: Number(process.env.INIT_FOOD!),
+  INIT_FOOD: Number(process.env.NEXT_PUBLIC_INIT_FOOD!),
   /** 最大食料 (トン) */
-  MAX_FOOD: Number(process.env.MAX_FOOD!),
+  MAX_FOOD: Number(process.env.NEXT_PUBLIC_MAX_FOOD!),
   /** 1人規模あたりの農場が生み出す食料 */
-  FARM_PER_PEOPLE: Number(process.env.EARN_FARM_PER_PEOPLE!),
+  FARM_PER_PEOPLE: Number(process.env.NEXT_PUBLIC_EARN_FARM_PER_PEOPLE!),
   /** 1人規模あたりの工場が生み出す資金 */
-  FACTORY_PER_PEOPLE: Number(process.env.EARN_FACTORY_PER_PEOPLE!),
+  FACTORY_PER_PEOPLE: Number(process.env.NEXT_PUBLIC_EARN_FACTORY_PER_PEOPLE!),
   /** 1人規模あたりの鉱山が生み出す資金 */
-  MINING_PER_PEOPLE: Number(process.env.EARN_MINING_PER_PEOPLE!),
+  MINING_PER_PEOPLE: Number(process.env.NEXT_PUBLIC_EARN_MINING_PER_PEOPLE!),
   /** 食料から資金への変換率 */
-  FOOD_TO_MONEY_RATE: Number(process.env.FOOD_TO_MONEY_RATE!),
+  FOOD_TO_MONEY_RATE: Number(process.env.NEXT_PUBLIC_FOOD_TO_MONEY_RATE!),
   /** 食料不足で施設が破壊される確率 (%) */
-  LACK_FOOD_DESTROY_RATE: Number(process.env.LACK_FOOD_DESTROY_RATE!),
+  LACK_FOOD_DESTROY_RATE: Number(process.env.NEXT_PUBLIC_LACK_FOOD_DESTROY_RATE!),
   /** 食料消費量 (トン/人) */
-  EATEN_FOOD_PER_PEOPLE: Number(process.env.EATEN_FOOD_PER_PEOPLE!),
+  EATEN_FOOD_PER_PEOPLE: Number(process.env.NEXT_PUBLIC_EATEN_FOOD_PER_PEOPLE!),
   /** 木の売値 (X億円/100本) */
-  FOREST_VALUE: Number(process.env.FOREST_VALUE!),
+  FOREST_VALUE: Number(process.env.NEXT_PUBLIC_FOREST_VALUE!),
   /** 地震の確率 (%) */
-  EARTHQUAKE_RATE: Number(process.env.EARTHQUAKE_RATE!),
+  EARTHQUAKE_RATE: Number(process.env.NEXT_PUBLIC_EARTHQUAKE_RATE!),
   /** 地震で全壊する確率 (%) */
-  EARTHQUAKE_DESTROY_RATE: Number(process.env.EARTHQUAKE_DESTROY_RATE!),
+  EARTHQUAKE_DESTROY_RATE: Number(process.env.NEXT_PUBLIC_EARTHQUAKE_DESTROY_RATE!),
   /** 津波の確率 (%) */
-  TSUNAMI_RATE: Number(process.env.TSUNAMI_RATE!),
+  TSUNAMI_RATE: Number(process.env.NEXT_PUBLIC_TSUNAMI_RATE!),
   /** 台風の確率 (%) */
-  TYPHOON_RATE: Number(process.env.TYPHOON_RATE!),
+  TYPHOON_RATE: Number(process.env.NEXT_PUBLIC_TYPHOON_RATE!),
   /** 隕石の確率 (%) */
-  METEORITE_RATE: Number(process.env.METEORITE_RATE!),
+  METEORITE_RATE: Number(process.env.NEXT_PUBLIC_METEORITE_RATE!),
   /** 隕石の連続発生確率 (%) */
-  CONTINUOUS_METEORITE_RATE: Number(process.env.CONTINUOUS_METEORITE_RATE!),
+  CONTINUOUS_METEORITE_RATE: Number(process.env.NEXT_PUBLIC_CONTINUOUS_METEORITE_RATE!),
   /** 巨大隕石の確率 (%) */
-  HUGE_METEORITE_RATE: Number(process.env.HUGE_METEORITE_RATE!),
+  HUGE_METEORITE_RATE: Number(process.env.NEXT_PUBLIC_HUGE_METEORITE_RATE!),
   /** 噴火の確率 (%) */
-  ERUPTION_RATE: Number(process.env.ERUPTION_RATE!),
+  ERUPTION_RATE: Number(process.env.NEXT_PUBLIC_ERUPTION_RATE!),
   /** 火災の確率 (%) */
-  FIRE_RATE: Number(process.env.FIRE_RATE!),
+  FIRE_RATE: Number(process.env.NEXT_PUBLIC_FIRE_RATE!),
   /** 地盤沈下の確率 */
-  FALL_DOWN_RATE: Number(process.env.FALL_DOWN_RATE!),
+  FALL_DOWN_RATE: Number(process.env.NEXT_PUBLIC_FALL_DOWN_RATE!),
   /** 地盤沈下のボーダー (万坪) */
-  FALL_DOWN_BORDER: Number(process.env.FALL_DOWN_BORDER!),
+  FALL_DOWN_BORDER: Number(process.env.NEXT_PUBLIC_FALL_DOWN_BORDER!),
   /** 埋蔵金の確率 (%) */
-  BURIED_TREASURE_RATE: Number(process.env.BURIED_TREASURE_RATE!),
+  BURIED_TREASURE_RATE: Number(process.env.NEXT_PUBLIC_BURIED_TREASURE_RATE!),
   /** 海底油田の確率 (%) */
-  OIL_FIELD_RATE: Number(process.env.OIL_FIELD_RATE!),
+  OIL_FIELD_RATE: Number(process.env.NEXT_PUBLIC_OIL_FIELD_RATE!),
   /** 油田の枯渇率 (%) */
-  OIL_EXHAUSTION_RATE: Number(process.env.OIL_EXHAUSTION_RATE!),
+  OIL_EXHAUSTION_RATE: Number(process.env.NEXT_PUBLIC_OIL_EXHAUSTION_RATE!),
   /** 油田の収入 */
-  OIL_EARN: Number(process.env.OIL_EARN!),
+  OIL_EARN: Number(process.env.NEXT_PUBLIC_OIL_EARN!),
   /** 平地に村が出現する確率 (%) */
-  VILLAGE_APPEARANCE_RATE: Number(process.env.VILLAGE_APPEARANCE_RATE!),
+  VILLAGE_APPEARANCE_RATE: Number(process.env.NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE!),
   /** 面積あたりの怪獣出現率 ( % / 100万坪 ) */
-  MONSTER_RATE: Number(process.env.MONSTER_RATE!),
+  MONSTER_RATE: Number(process.env.NEXT_PUBLIC_MONSTER_RATE!),
   /** ターンあたりの最大人口増加量 ( 百人 / Turn ) */
   PEOPLE_GROWTH: {
-    VILLAGE: Number(process.env.PEOPLE_GROWTH_VILLAGE!),
-    TOWN: Number(process.env.PEOPLE_GROWTH_TOWN!),
-    CITY: Number(process.env.PEOPLE_GROWTH_CITY!),
+    VILLAGE: Number(process.env.NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE!),
+    TOWN: Number(process.env.NEXT_PUBLIC_PEOPLE_GROWTH_TOWN!),
+    CITY: Number(process.env.NEXT_PUBLIC_PEOPLE_GROWTH_CITY!),
   },
   /** 誘致活動時のターンあたりの最大人口増加量 ( 百人 / Turn ) */
   PEOPLE_PROPAGANDA: {
-    VILLAGE: Number(process.env.PEOPLE_PROPAGANDA_VILLAGE!),
-    TOWN: Number(process.env.PEOPLE_PROPAGANDA_TOWN!),
-    CITY: Number(process.env.PEOPLE_PROPAGANDA_CITY!),
+    VILLAGE: Number(process.env.NEXT_PUBLIC_PEOPLE_PROPAGANDA_VILLAGE!),
+    TOWN: Number(process.env.NEXT_PUBLIC_PEOPLE_PROPAGANDA_TOWN!),
+    CITY: Number(process.env.NEXT_PUBLIC_PEOPLE_PROPAGANDA_CITY!),
   },
   /** ターンあたりの人口最大減少量 ( 百人 / Turn ) */
   PEOPLE_LOSS: {
     /** 飢饉時 */
-    FAMINE: Number(process.env.PEOPLE_LOSS_FAMINE!),
+    FAMINE: Number(process.env.NEXT_PUBLIC_PEOPLE_LOSS_FAMINE!),
   },
   /** トークンの発行者 */
   ISSUER: process.env.ISSUER!,
