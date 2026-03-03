@@ -61,6 +61,7 @@ function SignUpForm() {
   });
   const router = useRouter();
   const [body, setBody] = useState(JSON.stringify(defaultValues));
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { fetch, data, error } = useClientFetch(signUpStore);
 
   const onSubmit = async () => {
@@ -104,8 +105,33 @@ function SignUpForm() {
             <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">{error.post.detail}</p>
           )}
         </li>
+        <li className="mb-3 flex items-start gap-2 rounded-md border border-gray-200 bg-gray-50 p-3">
+          <input
+            type="checkbox"
+            id="agree-to-terms"
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-blue-600"
+            checked={agreeToTerms}
+            onChange={(e) => setAgreeToTerms(e.target.checked)}
+          />
+          <label htmlFor="agree-to-terms" className="cursor-pointer text-sm text-gray-600">
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              利用規約
+            </a>
+            （Cookie・フィンガープリントの使用を含む）に同意する
+          </label>
+        </li>
         <li className="flex justify-end">
-          <Button className="mb-4" disabled={!isValid} type="submit" icons={<IoSendSharp />}>
+          <Button
+            className="mb-4"
+            disabled={!isValid || !agreeToTerms}
+            type="submit"
+            icons={<IoSendSharp />}
+          >
             新規登録
           </Button>
         </li>

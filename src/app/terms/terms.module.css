@@ -1,0 +1,98 @@
+/* MDXコンテンツ用スタイル */
+
+.article {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  color: #1f2937;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+}
+
+.h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #111827;
+}
+
+.h2 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #e5e7eb;
+  color: #111827;
+}
+
+.h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: #374151;
+}
+
+.p {
+  margin-bottom: 0.75rem;
+}
+
+.ul {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.li {
+  list-style-type: disc;
+  margin-bottom: 0.2rem;
+}
+
+.hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+.strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* MDX内のHTML要素（components上書き対象外）をbody子孫セレクタで指定 */
+.body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.body th,
+.body td {
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.body th {
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.body tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.body tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-family: ui-monospace, monospace;
+  color: #374151;
+}
