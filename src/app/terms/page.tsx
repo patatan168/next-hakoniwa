@@ -1,3 +1,5 @@
+// Next.jsのmetadataと default コンポーネントの両エクスポートのため
+/* eslint-disable react-refresh/only-export-components */
 import fs from 'fs';
 import type { MDXComponents } from 'mdx/types';
 import type { Metadata } from 'next';
