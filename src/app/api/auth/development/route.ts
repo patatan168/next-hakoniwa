@@ -3,6 +3,7 @@ import { userSchemaType } from '@/db/schema/userTable';
 import { dbConn } from '@/global/function/db';
 import { allDbColumns } from '@/global/function/dbUtility';
 import { accessLogger } from '@/global/function/logger';
+import { grantLoginBonus } from '@/global/function/loginBonus';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -38,5 +39,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });
   }
   parseJsonIslandData(islandData, false);
-  return NextResponse.json(islandData);
+
+  const loginBonus = grantLoginBonus(uuid, islandData);
+
+  return NextResponse.json({ ...islandData, loginBonus });
 }

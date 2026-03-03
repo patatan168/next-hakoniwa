@@ -36,6 +36,15 @@ export const useDevelopmentPage = () => {
   const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
   const [listRect, listCallback] = useClientRect<HTMLDivElement>();
 
+  const [isLoginBonusClosed, setIsLoginBonusClosed] = useState(false);
+  const showLoginBonus = !!developData.get?.loginBonus && !isLoginBonusClosed;
+
+  const setShowLoginBonus = (show: boolean) => {
+    if (!show) {
+      setIsLoginBonusClosed(true);
+    }
+  };
+
   const mapSize = mapRect
     ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
     : 'min(var(--real-vw), var(--real-vh-minus-footer))';
@@ -84,5 +93,7 @@ export const useDevelopmentPage = () => {
     mapCallback,
     listCallback,
     isLoading,
+    showLoginBonus,
+    setShowLoginBonus,
   };
 };

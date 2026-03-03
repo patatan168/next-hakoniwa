@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { createPortal } from 'react-dom';
 import { GrNotes } from 'react-icons/gr';
 import { RxCross1 } from 'react-icons/rx';
+import { LoginBonusModal } from './LoginBonusModal';
 import { MenuContent } from './MenuContent';
 import { useDevelopmentPage } from './useDevelopmentPage';
 
@@ -28,6 +29,8 @@ export default function IslandList() {
     mapCallback,
     listCallback,
     isLoading,
+    showLoginBonus,
+    setShowLoginBonus,
   } = useDevelopmentPage();
 
   return (
@@ -113,6 +116,12 @@ export default function IslandList() {
           </>
         )}
       </div>
+
+      <LoginBonusModal
+        showLoginBonus={showLoginBonus}
+        setShowLoginBonus={setShowLoginBonus}
+        loginBonus={developData.get?.loginBonus}
+      />
     </>
   );
 }

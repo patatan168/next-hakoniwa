@@ -1,10 +1,10 @@
 import { islandSchemaType } from '@/db/schema/islandTable';
 import { FetchStore } from '@/global/function/fetch/fetch';
+import { LoginBonusResult } from '@/global/function/loginBonus';
 import { turnStore } from '../public/turn';
 
-const store = new FetchStore<islandSchemaType & { island_name: string } & { rank: number }>(
-  '/api/auth/development',
-  { dependsOn: [turnStore] }
-);
+const store = new FetchStore<
+  islandSchemaType & { island_name: string; rank: number; loginBonus: LoginBonusResult | null }
+>('/api/auth/development', { dependsOn: [turnStore] });
 
 export const developmentStore = store.store;
