@@ -11,6 +11,8 @@ export const afforest: planType = {
   coordinate: true,
   category: '建設',
   name: '植林',
+  description:
+    '平地に木を植え、森にします。森は伐採で資金をることができる他、周辺の火災・台風による被害を軽減します。',
   otherIsland: false,
   immediate: false,
   mapType: ['plains'],
@@ -52,6 +54,8 @@ export const immediateAfforest: planType = {
   coordinate: true,
   category: '建設',
   name: '高速植林',
+  description:
+    '即座に平地を森にします。通常の植林より早く完了しますが、より多くの費用がかかります。',
   otherIsland: false,
   immediate: true,
   mapType: ['plains'],
@@ -94,6 +98,8 @@ export const farmDev: planType = {
   coordinate: true,
   category: '建設',
   name: '農場整備',
+  description:
+    '平地に農場を建設し、人口に応じた食料を生産します。すでに農場の場合は規模を拡大し、一度により多くの食料を生産できるようにします。',
   otherIsland: false,
   immediate: false,
   mapType: ['plains', 'farm'],
@@ -153,6 +159,8 @@ export const immediateFarmDev: planType = {
   coordinate: true,
   category: '建設',
   name: '高速農場整備',
+  description:
+    '即座に農場の建設または規模拡大を行います。指定した回数分だけターンを消費せずに連続で実行できますが、費用は割高です。',
   otherIsland: false,
   immediate: true,
   mapType: ['plains', 'farm'],
@@ -224,6 +232,8 @@ export const factoryDev: planType = {
   coordinate: true,
   category: '建設',
   name: '工場建設',
+  description:
+    '平地に工場を建設し、人口に応じた資金を生産します。すでに工場の場合は規模を拡大し、一度により多くの資金を生産できるようにします。',
   otherIsland: false,
   immediate: false,
   mapType: ['plains', 'factory'],
@@ -283,6 +293,8 @@ export const immediateFactoryDev: planType = {
   coordinate: true,
   category: '建設',
   name: '高速工場建設',
+  description:
+    '即座に工場の建設または規模拡大を行います。指定した回数分だけターンを消費せずに連続で実行できますが、費用は割高です。',
   otherIsland: false,
   immediate: true,
   mapType: ['plains', 'factory'],
@@ -354,6 +366,7 @@ export const miningDev: planType = {
   coordinate: true,
   category: '建設',
   name: '採掘場整備',
+  description: '山を採掘場にします。すでに採掘場の場合は規模を拡大します。',
   otherIsland: false,
   immediate: false,
   mapType: ['mountain', 'mining'],
@@ -413,6 +426,8 @@ export const immediateMiningDev: planType = {
   coordinate: true,
   category: '建設',
   name: '高速採掘場整備',
+  description:
+    '即座に採掘場の建設または規模拡大を行います。指定した回数分だけ連続で実行できますが、通常の整備より費用がかかります。',
   otherIsland: false,
   immediate: true,
   mapType: ['mountain', 'mining'],
@@ -484,6 +499,8 @@ export const missileDev: planType = {
   coordinate: true,
   category: '建設',
   name: 'ミサイル基地建設',
+  description:
+    '平地にミサイル基地を建設します。ミサイル攻撃を行うために必要となり、レベルが高いほど、多くのミサイルを発射できます。',
   otherIsland: false,
   immediate: false,
   mapType: ['plains'],
@@ -526,6 +543,8 @@ export const immediateMissileDev: planType = {
   coordinate: true,
   category: '建設',
   name: '高速ミサイル基地建設',
+  description:
+    '即座にミサイル基地を建設します。ターンの経過を待たずに建設できますが、割高な費用がかかります。',
   otherIsland: false,
   immediate: true,
   mapType: ['plains'],
@@ -569,6 +588,8 @@ export const defenseBaseDev: planType = {
   coordinate: true,
   category: '建設',
   name: '防衛施設建設',
+  description:
+    '平地に防衛施設を建設し、他島からのミサイル攻撃を一定確率で迎撃できるようにします。すでに防衛施設がある場合は、周囲を巻き込んで自爆します。',
   otherIsland: false,
   immediate: false,
   mapType: ['plains', 'defense_base'],
@@ -626,6 +647,7 @@ export const immediateDefenseBaseDev: planType = {
   coordinate: true,
   category: '建設',
   name: '高速防衛施設建設',
+  description: '即座に防衛施設を建設、または自爆を行います。',
   otherIsland: false,
   immediate: true,
   mapType: ['plains', 'defense_base'],
@@ -685,6 +707,8 @@ export const submarineMissileDev: planType = {
   coordinate: true,
   category: '建設',
   name: '海底基地建設',
+  description:
+    '海に特殊な海底基地を建設します。海中に存在するため、ミサイル発射能力を持ちながらも怪獣に踏まれて破壊されることがありません。',
   otherIsland: false,
   immediate: false,
   mapType: ['sea'],

@@ -13,6 +13,8 @@ export const leveling: planType = {
   coordinate: true,
   category: '開発',
   name: '整地',
+  description:
+    '対象の土地（森や町など）を破壊し、更地にします。ごく稀に埋蔵金を発見できることがあります。',
   otherIsland: false,
   immediate: false,
   mapType: [
@@ -85,6 +87,8 @@ export const immediateLeveling: planType = {
   coordinate: true,
   category: '開発',
   name: '地ならし',
+  description:
+    '即座に整地を行いますが、通常の整地より費用が高く、島の「地震発生率」がわずかに上昇する副作用があります。',
   otherIsland: false,
   immediate: true,
   mapType: [
@@ -136,6 +140,8 @@ export const landfill: planType = {
   coordinate: true,
   category: '開発',
   name: '埋め立て',
+  description:
+    '浅瀬を荒地に、海を浅瀬に埋め立てて陸地を広げます。対象の周囲に陸地が存在しない場合は失敗します。',
   otherIsland: false,
   immediate: false,
   mapType: ['oil_field', 'sea', 'shallows', 'submarine_missile'],
@@ -208,6 +214,7 @@ export const immediateLandfill: planType = {
   coordinate: true,
   category: '開発',
   name: '高速埋め立て',
+  description: '即座に埋め立てを行います。ターンの経過を待たずに実行できますが、費用は割高です。',
   otherIsland: false,
   immediate: true,
   mapType: ['oil_field', 'sea', 'shallows', 'submarine_missile'],
@@ -276,6 +283,8 @@ export const drilling: planType = {
   coordinate: true,
   category: '開発',
   name: '掘削',
+  description:
+    '陸地を掘削して浅瀬に戻します。浅瀬の場合は、海になります。すでに海である場所を掘削すると、確率で「油田」を発見できることがあります。',
   otherIsland: false,
   immediate: false,
   mapType: 'all',
@@ -381,6 +390,7 @@ export const immediateDrilling: planType = {
   coordinate: true,
   category: '開発',
   name: '高速掘削',
+  description: '即座に掘削を行います。費用は割高です。',
   otherIsland: false,
   immediate: true,
   mapType: 'all',
@@ -486,6 +496,8 @@ export const logging: planType = {
   coordinate: true,
   category: '開発',
   name: '伐採',
+  description:
+    '指定した森を伐採して平地にします。伐採した木材の価値に応じて一時的な「資金」を獲得できます。',
   otherIsland: false,
   immediate: false,
   mapType: ['forest'],
@@ -526,6 +538,8 @@ export const immediateLogging: planType = {
   coordinate: true,
   category: '開発',
   name: '高速伐採',
+  description:
+    '即座に森を伐採し資金を獲得します。手早く平地を確保できますが、作業に費用がかかります。',
   otherIsland: false,
   immediate: true,
   mapType: ['forest'],

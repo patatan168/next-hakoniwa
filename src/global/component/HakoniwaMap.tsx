@@ -176,12 +176,12 @@ const MapClickModal = ({
     return Math.min(mapWidth, mapHeight) * 0.8;
   }, [mapWidth, mapHeight]);
 
-  // 選択中の計画のmaxTimesを取得
-  const maxTimes = useMemo(() => {
-    if (!planOptions.length || plan === '') return 1;
+  // 選択中の計画の情報を取得
+  const { maxTimes, planDescription } = useMemo(() => {
+    if (!planOptions.length || plan === '') return { maxTimes: 1, planDescription: '' };
     const planDefine = getPlanDefine(plan);
-    return planDefine.maxTimes;
-  }, [plan]);
+    return { maxTimes: planDefine.maxTimes, planDescription: planDefine.description };
+  }, [plan, planOptions]);
 
   useEffect(() => {
     // planが変更された場合はtimesを1に戻す
@@ -331,7 +331,16 @@ const MapClickModal = ({
         <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
           計画を選択
         </label>
-        <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
+        <Tooltip
+          position="bottom"
+          tooltipComp={
+            <p className="max-w-sm min-w-64 text-left text-sm whitespace-pre-wrap md:text-base">
+              {planDescription}
+            </p>
+          }
+        >
+          <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
+        </Tooltip>
       </div>
       <div className="flex items-center gap-2">
         <label className="text-sm whitespace-nowrap" htmlFor={`times`}>

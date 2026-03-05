@@ -8,6 +8,7 @@ export const normaMissile: planType = {
   coordinate: true,
   category: '攻撃',
   name: 'ミサイル発射',
+  description: '対象の島に誤差2HEXの範囲でミサイルを発射します。',
   otherIsland: true,
   immediate: false,
   mapType: 'none',
@@ -50,6 +51,7 @@ export const ppMissile: planType = {
   coordinate: true,
   category: '攻撃',
   name: 'PPミサイル発射',
+  description: '対象の島に誤差1HEXの範囲でPPミサイルを発射します。',
   otherIsland: true,
   immediate: false,
   mapType: 'none',
@@ -91,6 +93,8 @@ export const stMissile: planType = {
   coordinate: true,
   category: '攻撃',
   name: 'STミサイル発射',
+  description:
+    '対象の島に誤差1HEXの範囲でステルスミサイルを発射します。相手の島はどの島から発射されたか分かリません。',
   otherIsland: true,
   immediate: false,
   mapType: 'none',
@@ -132,6 +136,8 @@ export const ldMissile: planType = {
   coordinate: true,
   category: '攻撃',
   name: '陸地破壊爆弾発射',
+  description:
+    '対象の島の陸地を海に沈める誤差2HEXの範囲で着弾する爆弾を発射します。海底基地も破壊可能です。',
   otherIsland: true,
   immediate: false,
   mapType: 'none',

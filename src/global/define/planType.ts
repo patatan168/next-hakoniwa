@@ -52,6 +52,8 @@ export type planType = {
   readonly category: '開発' | '建設' | '攻撃' | '運営';
   /** 名称 */
   readonly name: string;
+  /** 詳細説明 */
+  readonly description: string;
   /** 他島へのコマンドか */
   readonly otherIsland: boolean;
   /** 即時コマンドか */

@@ -10,6 +10,7 @@ import { planInfoZod, planInfoZodValid } from '../valid/planInfo';
 import { PlanItemProps } from './PlanList.types';
 import { RangeSliderRHF } from './RangeSliderRHF';
 import { SelectRHF } from './SelectRHF';
+import Tooltip from './Tooltip';
 
 // -----------------------------------------------------------------------------
 // Component: PlanItem
@@ -31,7 +32,7 @@ const PlanItem = memo(
       itemRef
     ) => {
       const { id, x, y, plan, times, edit } = item;
-      const { name, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
+      const { name, description, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
 
       const { control, subscribe, reset, setValue } = useForm<Omit<planInfoZod, 'from_uuid'>>({
         defaultValues: item,
@@ -103,14 +104,23 @@ const PlanItem = memo(
             {edit ? (
               <div className="grid w-full grid-cols-1 gap-2 p-1 md:grid-cols-2 md:gap-4">
                 <div className="flex items-center gap-2">
-                  <SelectRHF
-                    name="plan"
-                    control={control}
-                    id={`plan-${item.id}`}
-                    options={getPlanSelect()}
-                    isBottomSpace={false}
-                    className="w-full flex-1"
-                  />
+                  <Tooltip
+                    position="bottom"
+                    tooltipComp={
+                      <p className="max-w-sm min-w-64 text-left text-sm whitespace-pre-wrap md:text-base">
+                        {description}
+                      </p>
+                    }
+                  >
+                    <SelectRHF
+                      name="plan"
+                      control={control}
+                      id={`plan-${item.id}`}
+                      options={getPlanSelect()}
+                      isBottomSpace={false}
+                      className="w-full flex-1"
+                    />
+                  </Tooltip>
                 </div>
                 <div className="flex items-center gap-2">
                   <label
@@ -186,11 +196,20 @@ const PlanItem = memo(
                 </div>
               </div>
             ) : (
-              <span
-                className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+              <Tooltip
+                position="bottom"
+                tooltipComp={
+                  <p className="max-w-sm min-w-64 text-left text-sm whitespace-pre-wrap md:text-base">
+                    {description}
+                  </p>
+                }
               >
-                {name}
-              </span>
+                <span
+                  className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+                >
+                  {name}
+                </span>
+              </Tooltip>
             )}
           </div>
 
