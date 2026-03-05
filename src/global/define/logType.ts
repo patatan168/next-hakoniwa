@@ -15,7 +15,7 @@ import { planType } from './planType';
  */
 const coordinate = (x: number, y: number, isSecret = false): string => {
   const char = isSecret ? '(?, ?)' : `(${x}, ${y})`;
-  return `<font color="#a06040"><b>${char}</b></font>`;
+  return `[c]${char}[/c]`;
 };
 
 const islandName = (
@@ -23,23 +23,23 @@ const islandName = (
   link = true
 ) => {
   if (link) {
-    return `<a href="/sight?uuid=${island.uuid}"><font color="#a06040"><b>${island.island_name}島</b></font></a>`;
+    return `[ui:${island.uuid}]${island.island_name}島[/ui]`;
   }
-  return `<font color="#a06040"><b>${island.island_name}島</b></font>`;
+  return `[i]${island.island_name}島[/i]`;
 };
 
 const planName = (plan: planType | string) => {
   const name = typeof plan === 'string' ? plan : plan.name;
-  return `<font color="#d08000"><b>${name}</b></font>`;
+  return `[p]${name}[/p]`;
 };
 
 const disaster = (char: string) => {
-  return `<font color="#ff0000"><b>${char}</b></font>`;
+  return `[d]${char}[/d]`;
 };
 
 const mapName = (info: islandInfo) => {
   const name = getMapName(info.type, info.landValue, getMapDefine(info.type).name);
-  return `<b>${name}</b>`;
+  return `[b]${name}[/b]`;
 };
 
 /**
@@ -144,7 +144,7 @@ export const logCommonAid = (
 ): string => {
   const unit = plan.costType === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
   const cost = plan.cost * times;
-  return `${islandName(fromIsland)}が${islandName(toIsland)}へ<b>${cost}${unit}</b>の${planName(plan)}を行いました。`;
+  return `${islandName(fromIsland)}が${islandName(toIsland)}へ[b]${cost}${unit}[/b]の${planName(plan)}を行いました。`;
 };
 
 /**
@@ -401,7 +401,7 @@ export const logMonsterMove = (
   const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
   const { name: moveName } = getMapDefine(moveMapInfo.type);
 
-  return `${islandName(island)}${coordinate(moveX, moveY)}の${moveName}が<b>怪獣${name}</b>に踏み荒らされました。`;
+  return `${islandName(island)}${coordinate(moveX, moveY)}の${moveName}が[b]怪獣${name}[/b]に踏み荒らされました。`;
 };
 
 /**
@@ -485,7 +485,7 @@ export const logLackFoodsDamage = (
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
-  return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}に<b>食料を求めて住民が殺到</b>。${mapName(mapInfo)}は壊滅しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}に[b]食料を求めて住民が殺到[/b]。${mapName(mapInfo)}は壊滅しました。`;
 };
 
 /**
@@ -535,7 +535,7 @@ export const logPopMonster = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
   const monsterName = popMonsterType.name;
-  return `${islandName(island)}${coordinate(x, y)}に<b>怪獣${monsterName}</b>が出現！！${coordinate(x, y)}の${mapName(mapInfo)}が踏み荒らされました。`;
+  return `${islandName(island)}${coordinate(x, y)}に[b]怪獣${monsterName}[/b]が出現！！${coordinate(x, y)}の${mapName(mapInfo)}が踏み荒らされました。`;
 };
 
 /**
@@ -699,7 +699,7 @@ export const logMeteoriteToMonster = (
   // マップ情報の取得
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
 
-  return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}に${disaster('隕石が')}落下、陸地は<b>怪獣${name}</b>もろとも水没しました。`;
+  return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}に${disaster('隕石が')}落下、陸地は[b]怪獣${name}[/b]もろとも水没しました。`;
 };
 
 /**
@@ -714,7 +714,7 @@ export const logEruption = (
   x: number,
   y: number
 ): string => {
-  return `${islandName(island)}${coordinate(x, y)}地点${disaster('で火山が噴火')}、<b>山</b>が出来ました。`;
+  return `${islandName(island)}${coordinate(x, y)}地点${disaster('で火山が噴火')}、[b]山[/b]が出来ました。`;
 };
 
 /**
@@ -789,7 +789,7 @@ export const logTreasure = (
   const mapInfo = island.island_info[mapArrayConverter(x, y)];
   const name = getMapName(mapInfo.type, mapInfo.landValue, getMapDefine(mapInfo.type).name);
 
-  return `${islandName(island)}${coordinate(x, y)}での${name}中に、<b>${earn}${META_DATA.UNIT_MONEY}</b>もの埋蔵金が発見されました。`;
+  return `${islandName(island)}${coordinate(x, y)}での${name}中に、[b]${earn}${META_DATA.UNIT_MONEY}[/b]もの埋蔵金が発見されました。`;
 };
 
 /**
@@ -800,7 +800,7 @@ export const logTreasure = (
 export const logIslandDeath = (
   island: islandSchemaType & Pick<userSchemaType, 'island_name'>
 ): string => {
-  return `${islandName(island, false)}から人がいなくなり、<b>無人島</b>になりました。`;
+  return `${islandName(island, false)}から人がいなくなり、[b]無人島[/b]になりました。`;
 };
 
 /**
@@ -811,7 +811,7 @@ export const logIslandDeath = (
 export const logIslandDelete = (
   island: islandSchemaType & Pick<userSchemaType, 'island_name'>
 ): string => {
-  return `${islandName(island, false)}は放棄され、<b>無人島</b>になりました。`;
+  return `${islandName(island, false)}は放棄され、[b]無人島[/b]になりました。`;
 };
 
 /**
@@ -829,7 +829,7 @@ export const logResourceExport = (
   earn: { unit: string; amount: number }
 ): string => {
   const unit = plan.unit === 'money' ? META_DATA.UNIT_MONEY : META_DATA.UNIT_FOOD;
-  return `${islandName(fromIsland)}が<b>${cost}${unit}</b>の${planName(plan)}を行い<b>${earn.amount}${earn.unit}</b>を得ました。`;
+  return `${islandName(fromIsland)}が[b]${cost}${unit}[/b]の${planName(plan)}を行い[b]${earn.amount}${earn.unit}[/b]を得ました。`;
 };
 
 /**
@@ -1332,5 +1332,5 @@ export const logTurnResult = (
   popSign: string,
   diffPopulation: number
 ): string => {
-  return `<b>(収支)</b>人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食糧: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
+  return `[b](収支)[/b]人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食糧: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
 };
