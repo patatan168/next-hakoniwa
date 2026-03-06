@@ -21,6 +21,7 @@ export const afforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'plains' ? 'forest' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -64,6 +65,7 @@ export const immediateAfforest: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'plains' ? 'forest' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -109,6 +111,7 @@ export const farmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'farm' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -170,6 +173,7 @@ export const immediateFarmDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'farm' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -243,6 +247,7 @@ export const factoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'factory' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -304,6 +309,7 @@ export const immediateFactoryDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'factory' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -376,6 +382,7 @@ export const miningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) => (t === 'mountain' ? 'mining' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -437,6 +444,7 @@ export const immediateMiningDev: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
+  predictLandType: (t) => (t === 'mountain' ? 'mining' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -510,6 +518,7 @@ export const missileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'missile' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -554,6 +563,7 @@ export const immediateMissileDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'missile' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -599,6 +609,8 @@ export const defenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) =>
+    t === 'plains' ? 'defense_base' : t === 'defense_base' ? 'wasteland' : t,
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -657,6 +669,8 @@ export const immediateDefenseBaseDev: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: (t) =>
+    t === 'plains' ? 'defense_base' : t === 'defense_base' ? 'wasteland' : t,
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -717,6 +731,7 @@ export const submarineMissileDev: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'sea' ? 'submarine_missile' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;

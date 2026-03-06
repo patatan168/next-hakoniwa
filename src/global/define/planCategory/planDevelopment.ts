@@ -33,6 +33,7 @@ export const leveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: () => 'plains',
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -107,6 +108,7 @@ export const immediateLeveling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
+  predictLandType: () => 'plains',
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -150,6 +152,12 @@ export const landfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) =>
+    ['sea', 'oil_field', 'submarine_missile'].includes(t)
+      ? 'shallows'
+      : t === 'shallows'
+        ? 'wasteland'
+        : t,
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -223,6 +231,12 @@ export const immediateLandfill: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) =>
+    ['sea', 'oil_field', 'submarine_missile'].includes(t)
+      ? 'shallows'
+      : t === 'shallows'
+        ? 'wasteland'
+        : t,
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -295,6 +309,7 @@ export const drilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'shallows' : t === 'mountain' ? 'wasteland' : 'sea'),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -401,6 +416,7 @@ export const immediateDrilling: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 'infinity',
   unit: '回',
+  predictLandType: (t) => (t === 'plains' ? 'shallows' : t === 'mountain' ? 'wasteland' : 'sea'),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -506,6 +522,7 @@ export const logging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
@@ -548,6 +565,7 @@ export const immediateLogging: planType = {
   minTimes: 1,
   maxTimes: 1,
   maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
   changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;

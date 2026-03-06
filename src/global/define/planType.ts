@@ -80,6 +80,8 @@ export type planType = {
    * @returns ログ
    */
   readonly changeData: ({ plan, turn, uuid }: changeDataArgs) => planResult;
+  /** (機能予測用) この計画が実行された後の地形タイプを予測して返す */
+  readonly predictLandType?: (currentType: string) => string;
 };
 
 /**

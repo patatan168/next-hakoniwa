@@ -111,6 +111,9 @@ type HakoniwaMapProps = {
   uuid?: string;
 };
 
+/* Mapのピクセルサイズ */
+const baseMapPixel = 32;
+
 type MapClickModalProps = {
   x: number;
   y: number;
@@ -122,106 +125,20 @@ type MapClickModalProps = {
   openToggle: (open: boolean) => void;
 };
 
-const MapClickModal = ({
-  x,
-  y,
-  mapWidth,
-  mapHeight,
-  uuid,
-  data,
-  open,
-  openToggle,
-}: MapClickModalProps) => {
-  const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃'>('優先');
-
-  // 選択可能な計画リストを作成
-  const planOptions = useMemo(() => {
-    const allPlans = getPlanSelect();
-    const currentIslandMap = structuredClone(data);
-    // validLandTypeはisland_infoのみ参照するためキャストで対応
-    const dummyIsland = {
-      island_info: currentIslandMap,
-    } as islandSchemaType;
-
-    return allPlans.filter((option) => {
-      const planDefine = getPlanDefine(option.value);
-      if (category === '優先') {
-        return validLandType(dummyIsland, planDefine, x, y);
-      }
-      return planDefine.category === category;
-    });
-  }, [x, y, data, category]);
-
-  const { control, setValue } = useForm<{ plan: string; times: number; position: number }>({
-    defaultValues: {
-      plan: '',
-      times: 1,
-      position: 1,
-    },
-  });
-
-  // planOptionsが変わったときにplanをリセット
-  useEffect(() => {
-    if (planOptions.length > 0) {
-      setValue('plan', planOptions[0].value);
-    } else {
-      setValue('plan', '');
-    }
-  }, [planOptions, setValue]);
-
-  const plan = useWatch({ control, name: 'plan' });
-  const times = useWatch({ control, name: 'times' });
-  const position = useWatch({ control, name: 'position' });
-  const modalMapSize = useMemo(() => {
-    return Math.min(mapWidth, mapHeight) * 0.8;
-  }, [mapWidth, mapHeight]);
-
-  // 選択中の計画の情報を取得
-  const { maxTimes, planDescription } = useMemo(() => {
-    if (!planOptions.length || plan === '') return { maxTimes: 1, planDescription: '' };
-    const planDefine = getPlanDefine(plan);
-    return { maxTimes: planDefine.maxTimes, planDescription: planDefine.description };
-  }, [plan, planOptions]);
-
-  useEffect(() => {
-    // planが変更された場合はtimesを1に戻す
-    setValue('times', 1);
-  }, [plan]);
-
-  const currentItems = usePlanDataStore((state) => state.items);
-  const setItems = usePlanDataStore((state) => state.setItems);
-
-  const handleInsertPlan = () => {
-    if (!planOptions.length || plan === '') return;
-
-    const newPlan = {
-      id: -1, // 一時的なID
-      plan_no: -1, // 一時的なNo
-      edit: false,
-      from_uuid: uuid,
-      to_uuid: uuid,
-      times: times,
-      x: x,
-      y: y,
-      plan: plan,
-    };
-
-    // 指定位置に挿入
-    const newItems = [...currentItems];
-    newItems.splice(position - 1, 0, newPlan);
-
-    // PLAN_LENGTH に収めて、IDとNoを振り直す
-    const reindexed = newItems.slice(0, META.PLAN_LENGTH).map((item, index) => ({
-      ...item,
-      id: index,
-      plan_no: index,
-    }));
-
-    setItems(reindexed, true);
-    openToggle(false);
-  };
-
-  const renderCell = (cx: number, cy: number, isCenter = false) => {
+const MapCellPreview = memo(
+  ({
+    data,
+    cx,
+    cy,
+    isCenter,
+    modalMapSize,
+  }: {
+    data: islandInfoData;
+    cx: number;
+    cy: number;
+    isCenter?: boolean;
+    modalMapSize: number;
+  }) => {
     const cell = data.find((d) => d.x === cx && d.y === cy);
     if (!cell) {
       return (
@@ -258,60 +175,228 @@ const MapClickModal = ({
         )}
       </div>
     );
-  };
+  }
+);
+MapCellPreview.displayName = 'MapCellPreview';
 
-  // 六角形グリッドの隣接セル座標を計算
-  const isEvenY = y % 2 === 0;
-  const topRow = isEvenY
-    ? [
-        { x: x, y: y - 1 },
-        { x: x + 1, y: y - 1 },
-      ]
-    : [
-        { x: x - 1, y: y - 1 },
-        { x: x, y: y - 1 },
-      ];
-  const centerRow = [
-    { x: x - 1, y },
-    { x, y },
-    { x: x + 1, y },
-  ];
-  const bottomRow = isEvenY
-    ? [
-        { x: x, y: y + 1 },
-        { x: x + 1, y: y + 1 },
-      ]
-    : [
-        { x: x - 1, y: y + 1 },
-        { x: x, y: y + 1 },
-      ];
+const NeighboringCellsPreview = memo(
+  ({
+    x,
+    y,
+    data,
+    modalMapSize,
+  }: {
+    x: number;
+    y: number;
+    data: islandInfoData;
+    modalMapSize: number;
+  }) => {
+    const isEvenY = y % 2 === 0;
+    const topRow = isEvenY
+      ? [
+          { x: x, y: y - 1 },
+          { x: x + 1, y: y - 1 },
+        ]
+      : [
+          { x: x - 1, y: y - 1 },
+          { x: x, y: y - 1 },
+        ];
+    const centerRow = [
+      { x: x - 1, y },
+      { x, y },
+      { x: x + 1, y },
+    ];
+    const bottomRow = isEvenY
+      ? [
+          { x: x, y: y + 1 },
+          { x: x + 1, y: y + 1 },
+        ]
+      : [
+          { x: x - 1, y: y + 1 },
+          { x: x, y: y + 1 },
+        ];
+
+    return (
+      <div className="flex justify-center">
+        <div style={{ width: modalMapSize * 3 }} className="border border-gray-400">
+          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
+            {topRow.map((pos, i) => (
+              <Fragment key={`top-${i}`}>
+                <MapCellPreview data={data} cx={pos.x} cy={pos.y} modalMapSize={modalMapSize} />
+              </Fragment>
+            ))}
+          </div>
+          <div className="flex">
+            {centerRow.map((pos, i) => (
+              <Fragment key={`center-${i}`}>
+                <MapCellPreview
+                  data={data}
+                  cx={pos.x}
+                  cy={pos.y}
+                  modalMapSize={modalMapSize}
+                  isCenter={i === 1}
+                />
+              </Fragment>
+            ))}
+          </div>
+          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
+            {bottomRow.map((pos, i) => (
+              <Fragment key={`bottom-${i}`}>
+                <MapCellPreview data={data} cx={pos.x} cy={pos.y} modalMapSize={modalMapSize} />
+              </Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+NeighboringCellsPreview.displayName = 'NeighboringCellsPreview';
+
+const MapClickModal = ({
+  x,
+  y,
+  mapWidth,
+  mapHeight,
+  uuid,
+  data,
+  open,
+  openToggle,
+}: MapClickModalProps) => {
+  const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃'>('優先');
+  const [isContinuous, setIsContinuous] = useState(true);
+
+  const { control, setValue, getValues } = useForm<{
+    plan: string;
+    times: number;
+    position: number;
+  }>({
+    defaultValues: {
+      plan: '',
+      times: 1,
+      position: 1,
+    },
+  });
+
+  const plan = useWatch({ control, name: 'plan' });
+  const times = useWatch({ control, name: 'times' });
+  const position = useWatch({ control, name: 'position' });
+
+  const currentItems = usePlanDataStore((state) => state.items);
+  const setItems = usePlanDataStore((state) => state.setItems);
+
+  // 予測マップタイプ
+  const predictedType = useMemo(() => {
+    let currentType = data.find((d) => d.x === x && d.y === y)?.type || 'sea';
+
+    // 挿入先(position)より前にある、同じ座標の計画を抽出
+    const previousPlans = currentItems
+      .slice(0, Number(position) - 1)
+      .filter((item) => item.x === x && item.y === y);
+
+    for (const item of previousPlans) {
+      const planTimes = Number(item.times);
+      const pd = getPlanDefine(item.plan);
+      for (let i = 0; i < planTimes; i++) {
+        currentType = pd.predictLandType ? pd.predictLandType(currentType) : currentType;
+      }
+    }
+    return currentType;
+  }, [data, x, y, currentItems, position]);
+
+  // 選択可能な計画リストを作成
+  const planOptions = useMemo(() => {
+    const allPlans = getPlanSelect();
+    const currentIslandMap = structuredClone(data);
+
+    // 予測地形を反映
+    const targetCellIndex = currentIslandMap.findIndex((d) => d.x === x && d.y === y);
+    if (targetCellIndex !== -1) {
+      currentIslandMap[targetCellIndex].type = predictedType;
+    }
+
+    // validLandTypeはisland_infoのみ参照するためキャストで対応
+    const dummyIsland = {
+      island_info: currentIslandMap,
+    } as islandSchemaType;
+
+    return allPlans.filter((option) => {
+      const planDefine = getPlanDefine(option.value);
+      if (category === '優先') {
+        return validLandType(dummyIsland, planDefine, x, y);
+      }
+      return planDefine.category === category;
+    });
+  }, [x, y, data, category, predictedType]);
+
+  // planOptionsが変わったときに、現在のplanが選択肢になければリセット
+  useEffect(() => {
+    const currentPlan = getValues('plan');
+    if (planOptions.length > 0) {
+      if (!currentPlan || !planOptions.find((p) => p.value === currentPlan)) {
+        setValue('plan', planOptions[0].value);
+      }
+    } else {
+      setValue('plan', '');
+    }
+  }, [planOptions, setValue, getValues]);
+
+  const modalMapSize = useMemo(() => {
+    return Math.min(mapWidth, mapHeight) * 0.8;
+  }, [mapWidth, mapHeight]);
+
+  // 選択中の計画の情報を取得
+  const { maxTimes, planDescription } = useMemo(() => {
+    if (!planOptions.length || plan === '') return { maxTimes: 1, planDescription: '' };
+    const planDefine = getPlanDefine(plan);
+    return { maxTimes: planDefine.maxTimes, planDescription: planDefine.description };
+  }, [plan, planOptions]);
+
+  useEffect(() => {
+    // planが変更された場合はtimesを1に戻す
+    setValue('times', 1);
+  }, [plan, setValue]);
+
+  const handleInsertPlan = () => {
+    if (!planOptions.length || plan === '') return;
+
+    const newPlan = {
+      id: -1, // 一時的なID
+      plan_no: -1, // 一時的なNo
+      edit: false,
+      from_uuid: uuid,
+      to_uuid: uuid,
+      times: Number(times),
+      x: x,
+      y: y,
+      plan: plan,
+    };
+
+    // 指定位置に挿入
+    const newItems = [...currentItems];
+    newItems.splice(Number(position) - 1, 0, newPlan);
+
+    // PLAN_LENGTH に収めて、IDとNoを振り直す
+    const reindexed = newItems.slice(0, META.PLAN_LENGTH).map((item, index) => ({
+      ...item,
+      id: index,
+      plan_no: index,
+    }));
+
+    setItems(reindexed, true);
+    if (!isContinuous) {
+      openToggle(false);
+    } else {
+      setValue('position', Number(position) + 1);
+      setCategory('優先');
+    }
+  };
 
   const categories = ['優先', '開発', '建設', '運営', '攻撃'] as const;
 
   const body = (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-center">
-        <div style={{ width: modalMapSize * 3 }} className="border border-gray-400">
-          {/* 上段: 2セル、半ブロックオフセット */}
-          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
-            {topRow.map((pos, i) => (
-              <Fragment key={`top-${i}`}>{renderCell(pos.x, pos.y)}</Fragment>
-            ))}
-          </div>
-          {/* 中段: 3セル（中央を光らせる） */}
-          <div className="flex">
-            {centerRow.map((pos, i) => (
-              <Fragment key={`center-${i}`}>{renderCell(pos.x, pos.y, i === 1)}</Fragment>
-            ))}
-          </div>
-          {/* 下段: 2セル、半ブロックオフセット */}
-          <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
-            {bottomRow.map((pos, i) => (
-              <Fragment key={`bottom-${i}`}>{renderCell(pos.x, pos.y)}</Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
+      <NeighboringCellsPreview x={x} y={y} data={data} modalMapSize={modalMapSize} />
       <div>
         <div className="mb-2 flex border-b border-gray-200 dark:border-gray-700">
           {categories.map((cat) => (
@@ -360,24 +445,41 @@ const MapClickModal = ({
   );
 
   const footer = (
-    <div className="grid w-full grid-cols-2">
-      {currentItems.length > 0 && (
+    <div className="flex w-full items-center justify-between">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <label className="text-sm whitespace-nowrap" htmlFor={`position`}>
-            挿入先
-          </label>
-          <TextFieldRHF
-            name="position"
-            type="number"
-            className="w-[4em]"
-            control={control}
-            min={1}
-            max={currentItems.length}
-            isBottomSpace={false}
+          <input
+            id="continuous-input"
+            type="checkbox"
+            checked={isContinuous}
+            onChange={(e) => setIsContinuous(e.target.checked)}
+            className="h-4 w-4 cursor-pointer rounded border-gray-300 text-green-600 focus:ring-green-500"
           />
+          <label
+            htmlFor="continuous-input"
+            className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            連続入力
+          </label>
         </div>
-      )}
-      <div className="flex justify-end">
+      </div>
+      <div className="flex items-center gap-3">
+        {currentItems.length > 0 && (
+          <>
+            <label className="text-sm whitespace-nowrap" htmlFor={`position`}>
+              挿入先
+            </label>
+            <TextFieldRHF
+              name="position"
+              type="number"
+              className="w-[4em]"
+              control={control}
+              min={1}
+              max={currentItems.length + 1}
+              isBottomSpace={false}
+            />
+          </>
+        )}
         <Button onClick={handleInsertPlan}>計画の挿入</Button>
       </div>
     </div>
@@ -398,9 +500,6 @@ const MapClickModal = ({
     />
   );
 };
-
-/* Mapのピクセルサイズ */
-const baseMapPixel = 32;
 
 export default memo(
   forwardRef<HTMLDivElement, HakoniwaMapProps>(function HakoniwaMap(
