@@ -32,9 +32,23 @@ const Children = memo(
 );
 
 const Tips = memo(
-  function Tips({ positionStyle, children }: { positionStyle: string; children: ReactNode }) {
+  function Tips({
+    positionStyle,
+    children,
+    tooltipRef,
+    style,
+  }: {
+    positionStyle: string;
+    children: ReactNode;
+    tooltipRef: React.RefObject<HTMLSpanElement | null>;
+    style: React.CSSProperties;
+  }) {
     return (
-      <span className={`absolute ${positionStyle} flex flex-col items-center whitespace-nowrap`}>
+      <span
+        ref={tooltipRef}
+        style={style}
+        className={`absolute ${positionStyle} flex flex-col items-center whitespace-nowrap`}
+      >
         <span className="whitespace-no-wrap md:text-md relative z-10 rounded-md bg-gray-600/85 p-2 leading-none text-white shadow-lg sm:text-sm lg:text-lg xl:text-xl 2xl:text-2xl">
           {children}
         </span>
@@ -58,6 +72,10 @@ export const Tooltip = memo(
     const [visible, setVisible] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 });
     const triggerRef = useRef<HTMLDivElement>(null);
+    const tooltipRef = useRef<HTMLSpanElement>(null);
+    const [adjustedStyle, setAdjustedStyle] = useState<React.CSSProperties>({
+      visibility: 'hidden',
+    });
 
     const updatePosition = () => {
       if (triggerRef.current) {
@@ -69,6 +87,7 @@ export const Tooltip = memo(
     const handleMouseEnter = () => {
       updatePosition();
       setVisible(true);
+      setAdjustedStyle({ visibility: 'hidden' });
     };
 
     const handleMouseLeave = () => {
@@ -77,15 +96,46 @@ export const Tooltip = memo(
 
     useEffect(() => {
       if (!visible) return;
+
+      const timer = requestAnimationFrame(() => {
+        if (tooltipRef.current) {
+          const rect = tooltipRef.current.getBoundingClientRect();
+          const margin = 8;
+          let translateX = 0;
+          let translateY = 0;
+
+          // 画面右端・左端の判定
+          if (rect.right > window.innerWidth - margin) {
+            translateX = window.innerWidth - margin - rect.right;
+          } else if (rect.left < margin) {
+            translateX = margin - rect.left;
+          }
+
+          // 画面下端・上端の判定
+          if (rect.bottom > window.innerHeight - margin) {
+            translateY = window.innerHeight - margin - rect.bottom;
+          } else if (rect.top < margin) {
+            translateY = margin - rect.top;
+          }
+
+          setAdjustedStyle({
+            visibility: 'visible',
+            transform: `translate(${translateX}px, ${translateY}px)`,
+          });
+        }
+      });
+
       const handleScroll = () => {
         setVisible(false);
       };
       // 画面内のいかなるスクロールでもツールチップを消すために capture: true
       window.addEventListener('scroll', handleScroll, true);
+
       return () => {
+        cancelAnimationFrame(timer);
         window.removeEventListener('scroll', handleScroll, true);
       };
-    }, [visible]);
+    }, [visible, coords]);
 
     return (
       <div
@@ -107,7 +157,9 @@ export const Tooltip = memo(
                 height: coords.height,
               }}
             >
-              <Tips positionStyle={positionStyle}>{tooltipComp}</Tips>
+              <Tips tooltipRef={tooltipRef} positionStyle={positionStyle} style={adjustedStyle}>
+                {tooltipComp}
+              </Tips>
             </div>,
             document.body
           )}
