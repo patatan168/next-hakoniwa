@@ -98,10 +98,14 @@ export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPub
   if ('prize' in island && typeof island.prize === 'string') {
     island.prize = JSON.parse(island.prize);
   }
-  if ('island_info' in island && typeof island.island_info === 'string') {
+  if ('island_info' in island) {
+    // NOTE: ParseJSONResultsPlugin により既にオブジェクト化されている場合と
+    // まだ文字列の場合（turn処理など）の両方に対応する
+    const rawInfo: unknown = island.island_info;
+    const parsed = typeof rawInfo === 'string' ? JSON.parse(rawInfo) : rawInfo;
     island.island_info = isPublic
-      ? getPublicIslandInfo(JSON.parse(island.island_info))
-      : JSON.parse(island.island_info);
+      ? getPublicIslandInfo(parsed as islandInfoData)
+      : (parsed as islandInfoData);
   }
   if (isPublic) {
     island.missile = 0;
