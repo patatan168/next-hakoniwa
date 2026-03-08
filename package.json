@@ -20,6 +20,7 @@
     "db:codegen": "kysely-codegen --dialect=${DB_TYPE:-sqlite} --url=${DB_CONNECTION_STRING:-./src/db/data/prod.db} --out-file=./src/db/generated.d.ts",
     "db:init": "npx tsx ./src/db/migrate.ts && npm run db:codegen",
     "db:migrate": "npx tsx ./src/db/migrate.ts && npm run db:codegen",
+    "db:rollback": "npx tsx ./src/db/migrate.ts down",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
