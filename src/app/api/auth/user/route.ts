@@ -1,5 +1,4 @@
-import { dbConn } from '@/global/function/db';
-import sqlite from 'better-sqlite3';
+import { db } from '@/db/kysely';
 import { NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -7,8 +6,7 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  using db = dbConn('./src/db/data/main.db');
-  const user = getAlluser(db);
+  const user = await getAlluser();
   return NextResponse.json(user);
 }
 
@@ -16,7 +14,7 @@ export async function GET() {
  * ユーザー情報取得
  * @returns 全ユーザー情報
  */
-function getAlluser(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
-  const user = db.client.prepare('SELECT * FROM user').all();
+async function getAlluser() {
+  const user = await db.selectFrom('user').selectAll().execute();
   return user;
 }

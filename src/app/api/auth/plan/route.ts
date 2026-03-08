@@ -1,5 +1,5 @@
+import { db } from '@/db/kysely';
 import { asyncRequestValid } from '@/global/function/api';
-import { dbConn } from '@/global/function/db';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { planInfoZodValid } from '@/global/valid/planInfo';
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,13 +14,17 @@ export async function GET(request: NextRequest) {
   if (!uuid) {
     return new Response('Unauthorized', { status: 401 });
   }
-  using db = dbConn('./src/db/data/main.db');
-  const planData = db.client.prepare('SELECT * FROM plan WHERE from_uuid=?').all(uuid);
+  const planData = await db
+    .selectFrom('plan')
+    .selectAll()
+    .where('from_uuid', '=', uuid)
+    .orderBy('plan_no', 'asc')
+    .execute();
   return NextResponse.json(planData);
 }
 
 export async function POST(request: NextRequest) {
-  if (isTurnProcessing()) {
+  if (await isTurnProcessing()) {
     return turnProcessingResponse();
   }
 
@@ -31,7 +35,6 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
-  using db = dbConn('./src/db/data/main.db');
   const cloned = request.clone();
   const requestBody = await cloned.json();
   if (requestBody instanceof Array) {
@@ -43,18 +46,21 @@ export async function POST(request: NextRequest) {
     );
     const { response, data } = await asyncRequestValid(request, postDataZod);
     if (data !== null) {
-      const insertPlan = db.client.prepare(
-        `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
-      );
-      const deletePlan = db.client.prepare(`DELETE FROM plan WHERE from_uuid=?`);
-      const upsertManyPlans = db.client.transaction((plans) => {
-        // NOTE: 既存の計画を削除してから追加
-        deletePlan.run(uuid);
-        for (const plan of plans) {
-          insertPlan.run(uuid, plan.to_uuid, plan.plan_no, plan.times, plan.x, plan.y, plan.plan);
+      await db.transaction().execute(async (trx) => {
+        await trx.deleteFrom('plan').where('from_uuid', '=', uuid).execute();
+        if (data.length > 0) {
+          const insertData = data.map((plan) => ({
+            from_uuid: uuid,
+            to_uuid: plan.to_uuid,
+            plan_no: plan.plan_no,
+            times: plan.times,
+            x: plan.x,
+            y: plan.y,
+            plan: plan.plan,
+          }));
+          await trx.insertInto('plan').values(insertData).execute();
         }
       });
-      upsertManyPlans(data);
     }
     return response;
   } else {
@@ -66,16 +72,25 @@ export async function POST(request: NextRequest) {
       })
     );
     if (data !== null) {
-      const insertPlan = db.client.prepare(
-        `INSERT INTO plan(from_uuid, to_uuid, plan_no, times, x, y, plan) values(?, ?, ?, ?, ? ,?, ?)`
-      );
-      const deletePlan = db.client.prepare(`DELETE FROM plan WHERE from_uuid=? AND plan_no=?`);
-      const upsertPlan = db.client.transaction((plan) => {
-        // NOTE: 既存の計画を削除してから追加
-        deletePlan.run(uuid, plan.plan_no);
-        insertPlan.run(uuid, plan.to_uuid, plan.plan_no, plan.times, plan.x, plan.y, plan.plan);
+      await db.transaction().execute(async (trx) => {
+        await trx
+          .deleteFrom('plan')
+          .where('from_uuid', '=', uuid)
+          .where('plan_no', '=', data.plan_no)
+          .execute();
+        await trx
+          .insertInto('plan')
+          .values({
+            from_uuid: uuid,
+            to_uuid: data.to_uuid,
+            plan_no: data.plan_no,
+            times: data.times,
+            x: data.x,
+            y: data.y,
+            plan: data.plan,
+          })
+          .execute();
       });
-      upsertPlan(data);
     }
     return response;
   }

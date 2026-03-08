@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { db } from './db/kysely';
 import { validAuthCookie } from './global/function/auth';
 import { CSRF_COOKIE_NAME, generateCsrfToken, verifyCsrfToken } from './global/function/csrf';
-import { dbConn } from './global/function/db';
 
 const authPaths = ['/api/auth/'];
 const sessionPaths = ['/development', '/account'];
@@ -108,8 +108,7 @@ function crateNonceResponse(request: NextRequest) {
 }
 
 async function authCheck(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
 
   if (uuid) {
     const requestHeaders = new Headers(request.headers);
@@ -121,8 +120,7 @@ async function authCheck(request: NextRequest) {
 }
 
 async function sessionCheck(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
 
   if (uuid) {
     return crateNonceResponse(request);

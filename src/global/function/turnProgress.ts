@@ -1,4 +1,4 @@
-import { eventRateSchemaType } from '@/db/schema/eventRateTable';
+import { Database } from '@/db/kysely';
 import {
   islandData,
   islandInfo,
@@ -10,8 +10,8 @@ import { planSchemaType } from '@/db/schema/planTable';
 import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { turnStateSchemaType } from '@/db/schema/turnStateTable';
 import { userSchemaType } from '@/db/schema/userTable';
-import sqlite from 'better-sqlite3';
 import { differenceWith, isEqual } from 'es-toolkit';
+import { Kysely, Transaction } from 'kysely';
 import {
   logEarthquake,
   logEarthquakeDamage,
@@ -42,7 +42,6 @@ import { people } from '../define/mapCategory/mapOther';
 import { getMapDefine, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
-import { allDbColumns } from './dbUtility';
 import { createUuid25 } from './encrypt';
 import {
   accumulateCellStats,
@@ -55,35 +54,22 @@ import {
   mapArrayConverter,
   wideDamage,
 } from './island';
-import {
-  arrayRandomInt,
-  checkProbability,
-  parseDbData,
-  randomIntInRange,
-  valueOrSafeLimit,
-} from './utility';
+import { arrayRandomInt, checkProbability, randomIntInRange, valueOrSafeLimit } from './utility';
 
 /**
  * 全島情報の取得
  * @param db DB接続情報
  * @returns 全ユーザー情報
  */
-export function getAllIslands(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
-  const islands = db.client
-    .prepare<[], islandInfoTurnProgress>(
-      `SELECT 
-        user.island_name,
-        ${allDbColumns(db.client, 'island')},
-        ${allDbColumns(db.client, 'event_rate')}
-      FROM
-        user
-      INNER JOIN island
-        ON user.uuid = island.uuid
-      INNER JOIN event_rate
-        ON island.uuid = event_rate.uuid
-      WHERE user.inhabited = 1`
-    )
-    .all();
+export async function getAllIslands(db: Kysely<Database> | Transaction<Database>) {
+  const islands = (await db
+    .selectFrom('user')
+    .innerJoin('island', 'user.uuid', 'island.uuid')
+    .innerJoin('event_rate', 'island.uuid', 'event_rate.uuid')
+    .selectAll()
+    .select('user.island_name')
+    .where('user.inhabited', '=', 1)
+    .execute()) as unknown as islandInfoTurnProgress[];
   if (islands) {
     islands.forEach((island) => parseJsonIslandDataTurnProgress(island, false));
     return islands;
@@ -96,13 +82,13 @@ export function getAllIslands(db: { client: sqlite.Database; [Symbol.dispose]: (
  * @param uuid ユーザーUUID
  * @returns 全ユーザー情報
  */
-export function getUserPlanInfo(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
-  uuid: string
-) {
-  const plans = db.client
-    .prepare(`SELECT * FROM plan WHERE from_uuid=? ORDER BY plan_no ASC`)
-    .all(uuid) as planSchemaType[];
+export async function getUserPlanInfo(db: Kysely<Database> | Transaction<Database>, uuid: string) {
+  const plans = await db
+    .selectFrom('plan')
+    .selectAll()
+    .where('from_uuid', '=', uuid)
+    .orderBy('plan_no', 'asc')
+    .execute();
   return plans;
 }
 
@@ -111,8 +97,8 @@ export function getUserPlanInfo(
  * @param db DB接続情報
  * @returns 全ユーザー情報
  */
-export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () => void }) {
-  return db.client.prepare(`SELECT * FROM turn_state`).get() as turnStateSchemaType;
+export async function getTurnInfo(db: Kysely<Database> | Transaction<Database>) {
+  return (await db.selectFrom('turn_state').selectAll().executeTakeFirst()) as turnStateSchemaType;
 }
 /**
  * ターンを更新
@@ -120,14 +106,9 @@ export function getTurnInfo(db: { client: sqlite.Database; [Symbol.dispose]: () 
  * @param nextTurn 次のターン数
  * @returns 全ユーザー情報
  */
-export function updateTurn(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
-  nextTurn: number
-) {
+export async function updateTurn(db: Kysely<Database> | Transaction<Database>, nextTurn: number) {
   // DBにはUnix Timestamp(ミリ秒)を保存する
-  db.client
-    .prepare(`UPDATE turn_state SET turn = ?, last_updated_at = ?`)
-    .run(nextTurn, Date.now());
+  await db.updateTable('turn_state').set({ turn: nextTurn, last_updated_at: Date.now() }).execute();
 }
 
 /**
@@ -136,11 +117,14 @@ export function updateTurn(
  * @param turnProgress ターン処理中かどうか
  * @returns 全ユーザー情報
  */
-export function updateTurnProgressing(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+export async function updateTurnProgressing(
+  db: Kysely<Database> | Transaction<Database>,
   turnProgress: boolean
 ) {
-  db.client.prepare(`UPDATE turn_state SET turn_processing = ?`).run(parseDbData(turnProgress));
+  await db
+    .updateTable('turn_state')
+    .set({ turn_processing: turnProgress ? 1 : 0 })
+    .execute();
 }
 
 /**
@@ -160,78 +144,56 @@ export const getIslandData = (islandData: islandInfoTurnProgress[], uuid: string
  * @param uuid ユーザーUUID
  * @returns イベント発生率
  */
-export const getEventRate = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
-  uuid: string
-) =>
-  db.client
-    .prepare<string, eventRateSchemaType>(
-      `SELECT
-        *
-      FROM
-        event_rate
-      WHERE uuid=?`
-    )
-    .get(uuid);
+export const getEventRate = async (db: Kysely<Database> | Transaction<Database>, uuid: string) =>
+  await db.selectFrom('event_rate').selectAll().where('uuid', '=', uuid).executeTakeFirst();
 
 /**
  * 島情報の一括更新
  * @param islandData 全島情報
  * @param uuid UUID
  */
-export const updateIslands = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+export const updateIslands = async (
+  db: Kysely<Database> | Transaction<Database>,
   islandData: islandData
 ) => {
-  const updateIsland = db.client.prepare<unknown[], islandSchemaType>(
-    `UPDATE island
-      SET 
-        prize = jsonb(@prize),
-        money = @money,
-        area = @area,
-        population = @population,
-        food = @food,
-        farm = @farm,
-        factory = @factory,
-        mining = @mining,
-        missile = @missile,
-        island_info = jsonb(@island_info)
-      WHERE
-        uuid = @uuid`
-  );
-  const updateManyIslands = db.client.transaction((tmpArray: islandData) => {
-    for (const tmp of tmpArray) {
-      updateIsland.run({
-        ...tmp,
-        ...{ prize: JSON.stringify(tmp.prize), island_info: JSON.stringify(tmp.island_info) },
-      });
+  await db.transaction().execute(async (trx) => {
+    for (const tmp of islandData) {
+      await trx
+        .updateTable('island')
+        .set({
+          prize: JSON.stringify(tmp.prize),
+          money: tmp.money,
+          area: tmp.area,
+          population: tmp.population,
+          food: tmp.food,
+          farm: tmp.farm,
+          factory: tmp.factory,
+          mining: tmp.mining,
+          missile: tmp.missile,
+          island_info: JSON.stringify(tmp.island_info),
+        })
+        .where('uuid', '=', tmp.uuid)
+        .execute();
     }
   });
-
-  updateManyIslands(islandData);
 };
 
-/**
- * 島関連データの物理削除とinhabited=0更新
- * @param client DB接続クライアント
- * @param uuid ユーザーUUID
- */
-export const abandonIsland = (client: sqlite.Database, uuid: string) => {
-  const deleteStatements = [
-    'DELETE FROM island WHERE uuid = @uuid',
-    'DELETE FROM event_rate WHERE uuid = @uuid',
-    'DELETE FROM plan WHERE from_uuid = @uuid OR to_uuid = @uuid',
-    'DELETE FROM access_token WHERE uuid = @uuid',
-    'DELETE FROM auth WHERE uuid = @uuid',
-    'DELETE FROM last_login WHERE uuid = @uuid',
-    'DELETE FROM refresh_token WHERE uuid = @uuid',
-    'DELETE FROM role WHERE uuid = @uuid',
-  ].map((sql) => client.prepare(sql));
-
-  client.prepare<string, void>('UPDATE user SET inhabited = 0 WHERE uuid = ?').run(uuid);
-  for (const stmt of deleteStatements) {
-    stmt.run({ uuid });
-  }
+export const abandonIsland = async (
+  client: Kysely<Database> | Transaction<Database>,
+  uuid: string
+) => {
+  await client.updateTable('user').set({ inhabited: 0 }).where('uuid', '=', uuid).execute();
+  await client.deleteFrom('island').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('event_rate').where('uuid', '=', uuid).execute();
+  await client
+    .deleteFrom('plan')
+    .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]))
+    .execute();
+  await client.deleteFrom('access_token').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('auth').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('last_login').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('refresh_token').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('role').where('uuid', '=', uuid).execute();
 };
 
 /**
@@ -239,8 +201,8 @@ export const abandonIsland = (client: sqlite.Database, uuid: string) => {
  * @param db DB接続情報
  * @param islandData 全島情報
  */
-export const updateUserInhabited = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+export const updateUserInhabited = async (
+  db: Kysely<Database> | Transaction<Database>,
   islandData: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[],
   logArray: turnLogSchemaType[],
   turn: number
@@ -248,23 +210,20 @@ export const updateUserInhabited = (
   const deadIslands = islandData.filter((island) => island.population <= 0);
   if (deadIslands.length === 0) return;
 
-  const updateMany = db.client.transaction(
-    (islands: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[]) => {
-      for (const island of islands) {
-        abandonIsland(db.client, island.uuid);
-        // 無人化ログ
-        logArray.push({
-          log_uuid: createUuid25(),
-          from_uuid: island.uuid,
-          to_uuid: null,
-          turn: turn + 1,
-          secret_log: '',
-          log: logIslandDeath(island),
-        });
-      }
+  await db.transaction().execute(async (trx) => {
+    for (const island of deadIslands) {
+      await abandonIsland(trx, island.uuid);
+      // 無人化ログ
+      logArray.push({
+        log_uuid: createUuid25(),
+        from_uuid: island.uuid,
+        to_uuid: null,
+        turn: turn + 1,
+        secret_log: '',
+        log: logIslandDeath(island),
+      });
     }
-  );
-  updateMany(deadIslands);
+  });
 };
 
 /**
@@ -272,24 +231,23 @@ export const updateUserInhabited = (
  * @param islandData 全島情報
  * @param logData ログ情報
  */
-export const insertLogs = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+export const insertLogs = async (
+  db: Kysely<Database> | Transaction<Database>,
   logData: turnLogSchemaType[]
 ) => {
-  const insert = db.client.prepare(
-    'INSERT INTO turn_log (log_uuid, from_uuid, to_uuid, turn, secret_log, log) VALUES (@log_uuid, @from_uuid, @to_uuid, @turn, @secret_log, @log)'
-  );
-
-  const insertManyLogs = db.client.transaction((logs) => {
-    for (const log of logs) insert.run(log);
-  });
-
+  if (logData.length === 0) return;
   try {
-    insertManyLogs(logData);
+    await db.transaction().execute(async (trx) => {
+      const chunkSize = 500;
+      for (let i = 0; i < logData.length; i += chunkSize) {
+        await trx
+          .insertInto('turn_log')
+          .values(logData.slice(i, i + chunkSize))
+          .execute();
+      }
+    });
   } catch (e) {
-    throw new Error(
-      `ログの挿入に失敗しました。message: ${(e as Error).message}, log: ${JSON.stringify(logData)}`
-    );
+    throw new Error(`ログの挿入に失敗しました。message: ${(e as Error).message}`);
   }
 };
 
@@ -300,27 +258,22 @@ export const insertLogs = (
  * @param deleteLength 削除する計画の数
  * @param uuid ユーザーUUID
  */
-export const insertDeletePlan = (
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+export const insertDeletePlan = async (
+  db: Kysely<Database> | Transaction<Database>,
   updatePlan: planSchemaType[],
   deleteLength: number,
   uuid: string
 ) => {
-  const insertPlan = db.client.prepare(
-    `INSERT INTO plan
-      (from_uuid,to_uuid, plan_no, times, x, y, plan)
-    VALUES
-      (@from_uuid, @to_uuid, @plan_no, @times, @x, @y, @plan)`
-  );
-  const insertManyPlan = db.client.transaction((tmpArray: planSchemaType[]) => {
-    for (const tmp of tmpArray) {
-      insertPlan.run({ ...tmp, plan_no: tmp.plan_no - deleteLength });
+  await db.transaction().execute(async (trx) => {
+    // 計画の削除
+    await trx.deleteFrom('plan').where('from_uuid', '=', uuid).execute();
+
+    // 計画の挿入
+    const insertPlans = updatePlan.map((tmp) => ({ ...tmp, plan_no: tmp.plan_no - deleteLength }));
+    if (insertPlans.length > 0) {
+      await trx.insertInto('plan').values(insertPlans).execute();
     }
   });
-  // 計画の削除
-  db.client.prepare('DELETE FROM plan WHERE from_uuid=?').run(uuid);
-  // 計画の挿入
-  insertManyPlan(updatePlan);
 };
 
 /**

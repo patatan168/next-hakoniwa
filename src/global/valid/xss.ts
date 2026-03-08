@@ -60,8 +60,11 @@ export function sanitizeJsonStringify(data: object): string {
   return JSON.stringify(tmp);
 }
 
-export function sanitizeWithSchema<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer<T> {
-  const parsed = schema.parse(data);
+export async function sanitizeWithSchema<T extends z.ZodTypeAny>(
+  schema: T,
+  data: unknown
+): Promise<z.infer<T>> {
+  const parsed = await schema.parseAsync(data);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sanitize = (value: any): any => {

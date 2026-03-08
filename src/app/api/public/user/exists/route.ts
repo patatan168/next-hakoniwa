@@ -1,4 +1,4 @@
-import { existsDbDate } from '@/global/function/db';
+import { db } from '@/db/kysely';
 import { sha256Gen } from '@/global/function/encrypt';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -14,33 +14,30 @@ export async function GET(request: NextRequest) {
     switch (key) {
       case 'id': {
         const hashId = await sha256Gen(query);
-        const result = existsDbDate({
-          dbPath: './src/db/data/main.db',
-          table: 'auth',
-          key: key,
-          data: hashId,
-        });
-        return NextResponse.json({ result: result });
+        const result = await db
+          .selectFrom('auth')
+          .select('id')
+          .where('id', '=', hashId)
+          .executeTakeFirst();
+        return NextResponse.json({ result: result !== undefined });
       }
       case 'user_name': {
-        const result = existsDbDate({
-          dbPath: './src/db/data/main.db',
-          table: 'user',
-          key: key,
-          data: query,
-          condition: 'AND inhabited = 1',
-        });
-        return NextResponse.json({ result: result });
+        const result = await db
+          .selectFrom('user')
+          .select('user_name')
+          .where('user_name', '=', query)
+          .where('inhabited', '=', 1)
+          .executeTakeFirst();
+        return NextResponse.json({ result: result !== undefined });
       }
       case 'island_name': {
-        const result = existsDbDate({
-          dbPath: './src/db/data/main.db',
-          table: 'user',
-          key: key,
-          data: query,
-          condition: 'AND inhabited = 1',
-        });
-        return NextResponse.json({ result: result });
+        const result = await db
+          .selectFrom('user')
+          .select('island_name')
+          .where('island_name', '=', query)
+          .where('inhabited', '=', 1)
+          .executeTakeFirst();
+        return NextResponse.json({ result: result !== undefined });
       }
     }
   }

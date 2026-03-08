@@ -1,5 +1,5 @@
+import { db } from '@/db/kysely';
 import { createJwtToken } from '@/global/function/auth';
-import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import { getPasskeyByCredentialId, verifyPasskeyAuthentication } from '@/global/function/passkey';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
@@ -14,11 +14,9 @@ export async function OPTIONS() {
  * @note 認証前に呼ばれるため /api/auth/ の外に配置
  */
 export async function POST(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-
   const body = (await request.json()) as AuthenticationResponseJSON;
 
-  const passkey = getPasskeyByCredentialId(db.client, body.id);
+  const passkey = await getPasskeyByCredentialId(db, body.id);
   if (!passkey) {
     return NextResponse.json({ error: 'Passkeyが見つかりません' }, { status: 401 });
   }
@@ -29,13 +27,15 @@ export async function POST(request: NextRequest) {
   }
 
   // カウンタ更新（リプレイアタック防止）
-  db.client
-    .prepare(`UPDATE passkey SET counter = ? WHERE credential_id = ?`)
-    .run(newCounter, passkey.credential_id);
+  await db
+    .updateTable('passkey')
+    .set({ counter: newCounter })
+    .where('credential_id', '=', passkey.credential_id)
+    .execute();
 
   // 既存の認証システムと同様にJWT Cookieを発行
-  await createJwtToken(db.client, passkey.uuid, false);
-  await createJwtToken(db.client, passkey.uuid, true);
+  await createJwtToken(db, passkey.uuid, false);
+  await createJwtToken(db, passkey.uuid, true);
 
   accessLogger(request).info(`Passkey sign in uuid=${passkey.uuid}`);
   return NextResponse.json({ result: true });

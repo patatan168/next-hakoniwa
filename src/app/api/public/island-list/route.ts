@@ -1,4 +1,4 @@
-import { dbConn } from '@/global/function/db';
+import { db } from '@/db/kysely';
 import { NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -6,9 +6,10 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  using db = dbConn('./src/db/data/main.db');
-  const user = db.client
-    .prepare('SELECT uuid, user_name, island_name FROM user WHERE inhabited = 1')
-    .all();
+  const user = await db
+    .selectFrom('user')
+    .select(['uuid', 'user_name', 'island_name'])
+    .where('inhabited', '=', 1)
+    .execute();
   return NextResponse.json(user);
 }

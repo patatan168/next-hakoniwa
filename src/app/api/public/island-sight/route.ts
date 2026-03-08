@@ -1,8 +1,8 @@
+import { db } from '@/db/kysely';
 import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { uuid25Regex } from '@/global/define/regex';
-import { dbConn } from '@/global/function/db';
-import { allDbColumns } from '@/global/function/dbUtility';
+import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -21,23 +21,22 @@ export async function GET(request: NextRequest) {
     );
     return response;
   }
-  using db = dbConn('./src/db/data/main.db');
   if (uuid !== null) {
-    const islandData = db.client
-      .prepare<string, islandSchemaType & userSchemaType>(
-        `SELECT * FROM (
-          SELECT
-            ${allDbColumns(db.client, 'user')},
-            ${allDbColumns(db.client, 'island')},
-            RANK() OVER (ORDER BY island.population DESC) AS rank
-          FROM user
-          INNER JOIN island
-            ON user.uuid = island.uuid
-          WHERE user.inhabited = 1
-        ) AS ranked
-        WHERE ranked.uuid = ?;`
+    const islandDataRaw = await db
+      .selectFrom((eb) =>
+        eb
+          .selectFrom('user')
+          .innerJoin('island', 'user.uuid', 'island.uuid')
+          .selectAll('user')
+          .selectAll('island')
+          .select(sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'))
+          .where('user.inhabited', '=', 1)
+          .as('ranked')
       )
-      .get(uuid);
+      .selectAll()
+      .where('uuid', '=', uuid)
+      .executeTakeFirst();
+    const islandData = islandDataRaw as unknown as islandSchemaType & userSchemaType;
     if (islandData === undefined) {
       return NextResponse.json({ error: 'その島は存在しません。' }, { status: 404 });
     }

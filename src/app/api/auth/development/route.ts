@@ -1,9 +1,9 @@
+import { db } from '@/db/kysely';
 import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
-import { dbConn } from '@/global/function/db';
-import { allDbColumns } from '@/global/function/dbUtility';
 import { accessLogger } from '@/global/function/logger';
 import { grantLoginBonus } from '@/global/function/loginBonus';
+import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -18,29 +18,31 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
-  using db = dbConn('./src/db/data/main.db');
-  const islandData = db.client
-    .prepare<string, islandSchemaType & Pick<userSchemaType, 'island_name'>>(
-      `SELECT * FROM (
-        SELECT
-          user.island_name,
-          ${allDbColumns(db.client, 'island')},
-          RANK() OVER (ORDER BY island.population DESC) AS rank
-        FROM
-          user INNER JOIN island 
-        ON
-          user.uuid = island.uuid
-          ) AS ranked
-        WHERE ranked.uuid = ?;`
+  const islandDataRaw = await db
+    .selectFrom((eb) =>
+      eb
+        .selectFrom('user')
+        .innerJoin('island', 'user.uuid', 'island.uuid')
+        .selectAll('island')
+        .select([
+          'user.island_name',
+          sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
+        ])
+        .as('ranked')
     )
-    .get(uuid);
+    .selectAll()
+    .where('uuid', '=', uuid)
+    .executeTakeFirst();
+
+  const islandData = islandDataRaw as unknown as islandSchemaType &
+    Pick<userSchemaType, 'island_name'>;
   if (islandData === undefined) {
     accessLogger(request).warn(`Internal Server Error: Development uuid=${uuid}`);
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });
   }
   parseJsonIslandData(islandData, false);
 
-  const loginBonus = grantLoginBonus(uuid, islandData);
+  const loginBonus = await grantLoginBonus(uuid, islandData);
 
   return NextResponse.json({ ...islandData, loginBonus });
 }

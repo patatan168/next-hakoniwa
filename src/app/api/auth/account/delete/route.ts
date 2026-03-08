@@ -1,11 +1,10 @@
-import { authSchemaType } from '@/db/schema/authTable';
+import { db } from '@/db/kysely';
 import { islandSchemaType } from '@/db/schema/islandTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { logIslandDelete } from '@/global/define/logType';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Verify } from '@/global/function/argon2';
 import { signOutDeleteJwtDbCookie, validAuthCookie } from '@/global/function/auth';
-import { dbConn } from '@/global/function/db';
 import { createUuid25, sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { abandonIsland } from '@/global/function/turnProgress';
@@ -19,12 +18,11 @@ export async function OPTIONS() {
 
 /** アカウント削除（島の放棄） */
 export async function DELETE(request: NextRequest) {
-  if (isTurnProcessing()) {
+  if (await isTurnProcessing()) {
     return turnProcessingResponse();
   }
 
-  using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
   if (!uuid) {
     return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
   }
@@ -36,12 +34,12 @@ export async function DELETE(request: NextRequest) {
 
   // 現在のID・パスワード検証
   const hashCurrentId = await sha256Gen(currentId);
-  const auth = db.client
-    .prepare<
-      [string, string],
-      Pick<authSchemaType, 'password'>
-    >('SELECT password FROM auth WHERE uuid = ? AND id = ?')
-    .get(uuid, hashCurrentId);
+  const auth = await db
+    .selectFrom('auth')
+    .select('password')
+    .where('uuid', '=', uuid)
+    .where('id', '=', hashCurrentId)
+    .executeTakeFirst();
   if (!auth) {
     return NextResponse.json({ error: 'IDまたはパスワードが正しくありません。' }, { status: 401 });
   }
@@ -52,31 +50,40 @@ export async function DELETE(request: NextRequest) {
   }
 
   // 島の放棄処理（共通関数）
-  db.client.transaction(() => {
+  await db.transaction().execute(async (trx) => {
     // 削除前に島情報を取得（ログ用）
-    const island = db.client
-      .prepare<
-        string,
-        islandSchemaType & Pick<userSchemaType, 'island_name'>
-      >('SELECT user.island_name, island.* FROM user INNER JOIN island ON user.uuid = island.uuid WHERE user.uuid = ?')
-      .get(uuid);
+    const island = await trx
+      .selectFrom('island')
+      .innerJoin('user', 'user.uuid', 'island.uuid')
+      .selectAll('island')
+      .select('user.island_name')
+      .where('user.uuid', '=', uuid)
+      .executeTakeFirst();
 
     // 島の放棄
-    abandonIsland(db.client, uuid);
+    await abandonIsland(trx, uuid);
 
     // 放棄ログの挿入
     if (island) {
-      const turn = db.client.prepare<[], { turn: number }>('SELECT turn FROM turn_state').get();
-      db.client
-        .prepare(
-          'INSERT INTO turn_log (log_uuid, from_uuid, to_uuid, turn, secret_log, log) VALUES (?, ?, ?, ?, ?, ?)'
-        )
-        .run(createUuid25(), uuid, null, turn?.turn ?? 0, '', logIslandDelete(island));
+      const turnState = await trx.selectFrom('turn_state').select('turn').executeTakeFirst();
+      await trx
+        .insertInto('turn_log')
+        .values({
+          log_uuid: createUuid25(),
+          from_uuid: uuid,
+          to_uuid: null,
+          turn: turnState?.turn ?? 0,
+          secret_log: '',
+          log: logIslandDelete(
+            island as unknown as islandSchemaType & Pick<userSchemaType, 'island_name'>
+          ),
+        })
+        .execute();
     }
-  })();
+  });
 
   // サインアウト処理（Cookie/DB削除）
-  await signOutDeleteJwtDbCookie(db.client);
+  await signOutDeleteJwtDbCookie(db);
 
   accessLogger(request).info(`Delete Account uuid=${uuid}`);
   return NextResponse.json({ result: true });

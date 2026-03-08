@@ -1,19 +1,18 @@
-import { turnStateSchemaType } from '@/db/schema/turnStateTable';
+import { db } from '@/db/kysely';
 import { NextResponse } from 'next/server';
-import { dbConn } from './db';
 
 /**
  * ターン処理中かどうかを判定する
  * @returns ターン処理中であれば true、それ以外は false
  */
-export function isTurnProcessing(): boolean {
-  using db = dbConn('./src/db/data/main.db');
-  const user = db.client.prepare('SELECT turn_processing FROM turn_state Limit 1').get() as Pick<
-    turnStateSchemaType,
-    'turn_processing'
-  >;
+export async function isTurnProcessing(): Promise<boolean> {
+  const state = await db
+    .selectFrom('turn_state')
+    .select('turn_processing')
+    .limit(1)
+    .executeTakeFirst();
 
-  return user?.turn_processing === 1;
+  return state?.turn_processing === 1;
 }
 
 /**

@@ -1,8 +1,7 @@
-import { authSchemaType } from '@/db/schema/authTable';
+import { db } from '@/db/kysely';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Gen, argon2Verify } from '@/global/function/argon2';
 import { validAuthCookie } from '@/global/function/auth';
-import { dbConn } from '@/global/function/db';
 import { sha256Gen } from '@/global/function/encrypt';
 import { accessLogger } from '@/global/function/logger';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
@@ -15,12 +14,11 @@ export async function OPTIONS() {
 
 /** アカウント情報一括更新（ID / ユーザー名 / パスワード） */
 export async function PUT(request: NextRequest) {
-  if (isTurnProcessing()) {
+  if (await isTurnProcessing()) {
     return turnProcessingResponse();
   }
 
-  using db = dbConn('./src/db/data/main.db');
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
   if (!uuid) {
     return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
   }
@@ -41,12 +39,12 @@ export async function PUT(request: NextRequest) {
 
   // 現在のID・パスワード検証
   const hashCurrentId = await sha256Gen(currentId);
-  const auth = db.client
-    .prepare<
-      [string, string],
-      Pick<authSchemaType, 'password'>
-    >('SELECT password FROM auth WHERE uuid = ? AND id = ?')
-    .get(uuid, hashCurrentId);
+  const auth = await db
+    .selectFrom('auth')
+    .select('password')
+    .where('uuid', '=', uuid)
+    .where('id', '=', hashCurrentId)
+    .executeTakeFirst();
   if (!auth) {
     return NextResponse.json({ error: 'IDまたはパスワードが正しくありません。' }, { status: 401 });
   }
@@ -60,18 +58,22 @@ export async function PUT(request: NextRequest) {
   let newHashId: string | null = null;
   if (changeId) {
     newHashId = await sha256Gen(newId!);
-    const exists = db.client
-      .prepare<string, { uuid: string }>('SELECT uuid FROM auth WHERE id = ?')
-      .get(newHashId);
+    const exists = await db
+      .selectFrom('auth')
+      .select('uuid')
+      .where('id', '=', newHashId)
+      .executeTakeFirst();
     if (exists) {
       return NextResponse.json({ error: 'そのIDは使用できません。' }, { status: 409 });
     }
   }
 
   if (changeUserName) {
-    const exists = db.client
-      .prepare<string, { uuid: string }>('SELECT uuid FROM user WHERE user_name = ?')
-      .get(newUserName!);
+    const exists = await db
+      .selectFrom('user')
+      .select('uuid')
+      .where('user_name', '=', newUserName!)
+      .executeTakeFirst();
     if (exists) {
       return NextResponse.json({ error: 'そのユーザー名は使用できません。' }, { status: 409 });
     }
@@ -80,23 +82,25 @@ export async function PUT(request: NextRequest) {
   const newHashPass = changePassword ? await argon2Gen(newPassword!) : null;
 
   // トランザクション内で一括更新
-  db.client.transaction(() => {
+  await db.transaction().execute(async (trx) => {
     if (newHashId) {
-      db.client
-        .prepare<[string, string], void>('UPDATE auth SET id = ? WHERE uuid = ?')
-        .run(newHashId, uuid);
+      await trx.updateTable('auth').set({ id: newHashId }).where('uuid', '=', uuid).execute();
     }
     if (changeUserName) {
-      db.client
-        .prepare<[string, string], void>('UPDATE user SET user_name = ? WHERE uuid = ?')
-        .run(newUserName!, uuid);
+      await trx
+        .updateTable('user')
+        .set({ user_name: newUserName! })
+        .where('uuid', '=', uuid)
+        .execute();
     }
     if (newHashPass) {
-      db.client
-        .prepare<[string, string], void>('UPDATE auth SET password = ? WHERE uuid = ?')
-        .run(newHashPass, uuid);
+      await trx
+        .updateTable('auth')
+        .set({ password: newHashPass })
+        .where('uuid', '=', uuid)
+        .execute();
     }
-  })();
+  });
 
   accessLogger(request).info(`Update Account uuid=${uuid}`);
   return NextResponse.json({ result: true });

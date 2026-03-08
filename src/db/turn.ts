@@ -1,9 +1,9 @@
+import { Database, db } from '@/db/kysely';
 import { logTurnResult } from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
 import { getPlanDefine } from '@/global/define/planType';
-import { dbConn } from '@/global/function/db';
 import { createUuid25 } from '@/global/function/encrypt';
 import { IslandStats, accumulateCellStats, createIslandStats } from '@/global/function/island';
 import { turnProceedLogger } from '@/global/function/logger';
@@ -30,7 +30,7 @@ import {
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
-import sqlite from 'better-sqlite3';
+import { Kysely, Transaction } from 'kysely';
 import { islandInfo, islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
 import { planSchemaType } from './schema/planTable';
 import { turnLogSchemaType } from './schema/turnLogTable';
@@ -71,8 +71,8 @@ function incomeAndEatenPhase(fromUuid: string) {
 /**
  * 計画実行フェーズ
  */
-function planPhase(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+async function planPhase(
+  db: Kysely<Database> | Transaction<Database>,
   currentTurn: number,
   fromUuid: string,
   plans: planSchemaType[],
@@ -123,7 +123,7 @@ function planPhase(
   const insertPlans = plans.filter((plan) => !dropPlans.includes(plan));
   if (plans.length > 0) {
     const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
-    insertDeletePlan(db, insertPlans, dropLength, fromUuid);
+    await insertDeletePlan(db, insertPlans, dropLength, fromUuid);
   }
 }
 
@@ -223,22 +223,23 @@ function wideIslandEventPhase(
 // Turn Controller
 // -----------------------------------------------------------------------------
 
-function fetchActivePlans(
-  db: { client: sqlite.Database },
+async function fetchActivePlans(
+  db: Kysely<Database> | Transaction<Database>,
   uuids: string[]
-): Record<string, planSchemaType[]> {
+): Promise<Record<string, planSchemaType[]>> {
   if (uuids.length === 0) return {};
   const CHUNK_SIZE = 900;
   const planMap: Record<string, planSchemaType[]> = {};
 
   for (let i = 0; i < uuids.length; i += CHUNK_SIZE) {
     const chunk = uuids.slice(i, i + CHUNK_SIZE);
-    const placeholders = chunk.map(() => '?').join(',');
-    const rows = db.client
-      .prepare(
-        `SELECT * FROM plan WHERE from_uuid IN (${placeholders}) ORDER BY from_uuid, plan_no ASC`
-      )
-      .all(...chunk) as planSchemaType[];
+    const rows = await db
+      .selectFrom('plan')
+      .selectAll()
+      .where('from_uuid', 'in', chunk)
+      .orderBy('from_uuid', 'asc')
+      .orderBy('plan_no', 'asc')
+      .execute();
 
     for (const row of rows) {
       if (!planMap[row.from_uuid]) planMap[row.from_uuid] = [];
@@ -248,13 +249,13 @@ function fetchActivePlans(
   return planMap;
 }
 
-function processTurnForIslands(
-  db: { client: sqlite.Database; [Symbol.dispose]: () => void },
+async function processTurnForIslands(
+  db: Kysely<Database> | Transaction<Database>,
   islandList: islandSchemaType[],
   turnInfo: { turn: number },
   logArray: turnLogSchemaType[]
 ) {
-  const allPlans = fetchActivePlans(
+  const allPlans = await fetchActivePlans(
     db,
     islandList.map((i) => i.uuid)
   );
@@ -276,7 +277,7 @@ function processTurnForIslands(
     });
 
     incomeAndEatenPhase(uuid);
-    planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
   }
@@ -324,9 +325,8 @@ function processTurnForIslands(
   }
 }
 
-function turnProceed(recursiveCount = 0) {
-  using db = dbConn('./src/db/data/main.db');
-  const turnInfo = getTurnInfo(db);
+async function turnProceed(recursiveCount = 0) {
+  const turnInfo = await getTurnInfo(db);
 
   if (turnInfo.turn_processing === 1) {
     if (recursiveCount < MAX_RECURSIVE) {
@@ -339,30 +339,30 @@ function turnProceed(recursiveCount = 0) {
     return;
   }
 
-  updateTurnProgressing(db, true);
+  await updateTurnProgressing(db, true);
 
   try {
-    let islandList = getAllIslands(db);
+    let islandList = await getAllIslands(db);
     if (!islandList || islandList.length === 0) return;
 
     const logArray: turnLogSchemaType[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
-    processTurnForIslands(db, islandList, turnInfo, logArray);
+    await processTurnForIslands(db, islandList, turnInfo, logArray);
 
     islandList = undefined;
     const finalData = islandDataStore.getState().data;
     if (!finalData) throw new Error('島データの取得に失敗しました。');
 
-    updateIslands(db, finalData);
-    updateUserInhabited(db, finalData, logArray, turnInfo.turn);
-    updateTurn(db, turnInfo.turn + 1);
-    insertLogs(db, logArray);
+    await updateIslands(db, finalData);
+    await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
+    await updateTurn(db, turnInfo.turn + 1);
+    await insertLogs(db, logArray);
   } catch (error) {
     const msg = error instanceof Error ? error.stack : `${error}`;
     turnProceedLogger.error(msg);
   } finally {
-    updateTurnProgressing(db, false);
+    await updateTurnProgressing(db, false);
     islandDataStore.getState().reset();
   }
 }
@@ -374,17 +374,19 @@ function turnProceed(recursiveCount = 0) {
 const startUsage = memoryUsage();
 const startTime = performance.now();
 
-turnProceed();
+(async () => {
+  await turnProceed();
 
-const endTime = performance.now();
-const endUsage = memoryUsage();
+  const endTime = performance.now();
+  const endUsage = memoryUsage();
 
-turnProceedLogger.info(`ExecuteTime: ${Math.round((endTime - startTime) * 100) / 100} msec`);
-turnProceedLogger.info(`Memory Usage: ${startUsage.messages} -> ${endUsage.messages}`);
-const mbDiff = (key: keyof typeof endUsage.values) =>
-  Math.round(((endUsage.values[key] - startUsage.values[key]) / 1024 / 1024) * 100) / 100;
+  turnProceedLogger.info(`ExecuteTime: ${Math.round((endTime - startTime) * 100) / 100} msec`);
+  turnProceedLogger.info(`Memory Usage: ${startUsage.messages} -> ${endUsage.messages}`);
+  const mbDiff = (key: keyof typeof endUsage.values) =>
+    Math.round(((endUsage.values[key] - startUsage.values[key]) / 1024 / 1024) * 100) / 100;
 
-turnProceedLogger.info(`Heap Total Diff: ${mbDiff('heapTotal')} MB`);
-turnProceedLogger.info(`Heap Used Diff: ${mbDiff('heapUsed')} MB`);
-turnProceedLogger.info(`External Diff: ${mbDiff('external')} MB`);
-turnProceedLogger.info(`Array Buffers Diff: ${mbDiff('arrayBuffers')} MB`);
+  turnProceedLogger.info(`Heap Total Diff: ${mbDiff('heapTotal')} MB`);
+  turnProceedLogger.info(`Heap Used Diff: ${mbDiff('heapUsed')} MB`);
+  turnProceedLogger.info(`External Diff: ${mbDiff('external')} MB`);
+  turnProceedLogger.info(`Array Buffers Diff: ${mbDiff('arrayBuffers')} MB`);
+})();

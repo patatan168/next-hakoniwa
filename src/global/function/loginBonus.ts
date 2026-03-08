@@ -1,6 +1,6 @@
+import { db } from '@/db/kysely';
 import { islandSchemaType } from '@/db/schema/islandTable';
-import { lastLoginSchemaType } from '@/db/schema/lastLoginTable';
-import { dbConn } from '@/global/function/db';
+import { sql } from 'kysely';
 
 export type LoginBonusResult = {
   money: number;
@@ -45,19 +45,19 @@ const getTzDayNumber = (unixSeconds: number) => {
  * @param islandData ユーザーの島データ（関数内で変更が反映されます）
  * @returns 獲得したログインボーナスの情報、または未発生の場合は null
  */
-export const grantLoginBonus = (
+export const grantLoginBonus = async (
   uuid: string,
   islandData: islandSchemaType
-): LoginBonusResult | null => {
+): Promise<LoginBonusResult | null> => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOGIN_BONUS === 'false') {
     return null;
   }
 
-  using db = dbConn('./src/db/data/main.db');
-
-  const lastLogin = db.client
-    .prepare<string, lastLoginSchemaType>('SELECT * FROM last_login WHERE uuid = ?')
-    .get(uuid);
+  const lastLogin = await db
+    .selectFrom('last_login')
+    .selectAll()
+    .where('uuid', '=', uuid)
+    .executeTakeFirst();
 
   if (!lastLogin) return null;
 
@@ -76,19 +76,27 @@ export const grantLoginBonus = (
     const bonusFood = Number.isNaN(envFood) ? 2000 : envFood;
 
     // トランザクションでDB更新
-    db.client.transaction(() => {
+    await db.transaction().execute(async (trx) => {
       // islandTableの更新
-      db.client
-        .prepare('UPDATE island SET money = money + ?, food = food + ? WHERE uuid = ?')
-        .run(bonusMoney, bonusFood, uuid);
+      await trx
+        .updateTable('island')
+        .set({
+          money: sql`money + ${bonusMoney}`,
+          food: sql`food + ${bonusFood}`,
+        })
+        .where('uuid', '=', uuid)
+        .execute();
 
       // lastLoginTableの更新
-      db.client
-        .prepare(
-          'UPDATE last_login SET last_bonus_received_at = ?, consecutive_login_days = ? WHERE uuid = ?'
-        )
-        .run(nowSeconds, newConsecutiveDays, uuid);
-    })();
+      await trx
+        .updateTable('last_login')
+        .set({
+          last_bonus_received_at: nowSeconds,
+          consecutive_login_days: newConsecutiveDays,
+        })
+        .where('uuid', '=', uuid)
+        .execute();
+    });
 
     // 引数の islandData を直接更新
     islandData.money += bonusMoney;

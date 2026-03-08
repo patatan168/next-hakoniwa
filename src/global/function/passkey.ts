@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { Database } from '@/db/kysely';
 import { passkeySchemaType } from '@/db/schema/passkeyTable';
 import type {
   AuthenticationResponseJSON,
@@ -14,7 +15,7 @@ import {
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import sqlite from 'better-sqlite3';
+import { Kysely } from 'kysely';
 import { cookies } from 'next/headers';
 import META_DATA from '../define/metadata';
 import { hashFingerprintWithPepper } from './encrypt';
@@ -34,15 +35,19 @@ export const hashFingerprint = (clientHash: string): string =>
  * @param uuid 現在の登録ユーザーのUUID（自分自身は除外する）
  * @returns 別ユーザーに同じハッシュが存在すればtrue
  */
-export const isFpDuplicate = (client: sqlite.Database, fpHash: string, uuid: string): boolean => {
+export const isFpDuplicate = async (
+  client: Kysely<Database>,
+  fpHash: string,
+  uuid: string
+): Promise<boolean> => {
   // 空文字は未収集として重複チェックをスキップ
   if (!fpHash) return false;
-  const row = client
-    .prepare<
-      [string, string],
-      { cnt: number }
-    >(`SELECT COUNT(*) AS cnt FROM passkey WHERE fp_hash = ? AND uuid != ?`)
-    .get(fpHash, uuid);
+  const row = await client
+    .selectFrom('passkey')
+    .select(client.fn.countAll<number>().as('cnt'))
+    .where('fp_hash', '=', fpHash)
+    .where('uuid', '!=', uuid)
+    .executeTakeFirst();
   return (row?.cnt ?? 0) > 0;
 };
 
@@ -221,23 +226,36 @@ export const verifyPasskeyAuthentication = async (
  * @param client DBクライアント
  * @param credentialId クレデンシャルID
  */
-export const getPasskeyByCredentialId = (
-  client: sqlite.Database,
+export const getPasskeyByCredentialId = async (
+  client: Kysely<Database>,
   credentialId: string
-): passkeySchemaType | undefined =>
-  client
-    .prepare<string, passkeySchemaType>(`SELECT * FROM passkey WHERE credential_id = ?`)
-    .get(credentialId);
+): Promise<passkeySchemaType | undefined> =>
+  await client
+    .selectFrom('passkey')
+    .selectAll()
+    .where('credential_id', '=', credentialId)
+    .executeTakeFirst();
 
 /**
  * ユーザーのPasskey一覧を取得する
  * @param client DBクライアント
  * @param uuid ユーザーUUID
  */
-export const getPasskeysByUuid = (client: sqlite.Database, uuid: string): passkeySchemaType[] =>
-  client
-    .prepare<
-      string,
-      passkeySchemaType
-    >(`SELECT credential_id, uuid, device_name, created_at FROM passkey WHERE uuid = ? ORDER BY created_at DESC`)
-    .all(uuid);
+export const getPasskeysByUuid = async (
+  client: Kysely<Database>,
+  uuid: string
+): Promise<passkeySchemaType[]> =>
+  await client
+    .selectFrom('passkey')
+    .select([
+      'credential_id',
+      'uuid',
+      'device_name',
+      'created_at',
+      'public_key',
+      'counter',
+      'fp_hash',
+    ])
+    .where('uuid', '=', uuid)
+    .orderBy('created_at', 'desc')
+    .execute();

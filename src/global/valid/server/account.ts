@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { existsDbDate } from '@/global/function/db';
+import { db } from '@/db/kysely';
 import * as z from 'zod';
 import { baseUserInfoSchema } from '../userInfo';
 
@@ -19,21 +19,35 @@ function addParseErrors(
 }
 
 /** スキーマとDB重複チェックでフィールドを検証 */
-function validateAndCheckDb(
+async function validateAndCheckDb(
   ctx: z.RefinementCtx,
   schema: z.ZodTypeAny,
   value: string,
   path: string,
-  table: string,
-  key: string,
+  table: 'user' | 'auth',
+  key: 'id' | 'user_name',
   duplicateError: string
-): void {
-  const result = schema.safeParse(value);
+): Promise<void> {
+  const result = await schema.safeParseAsync(value);
   if (!result.success) {
     addParseErrors(ctx, result as z.ZodSafeParseError<unknown>, path);
     return;
   }
-  if (existsDbDate({ dbPath: './src/db/data/main.db', table, key, data: value })) {
+
+  let exists = false;
+  if (table === 'user' && key === 'user_name') {
+    const res = await db
+      .selectFrom('user')
+      .select('user_name')
+      .where('user_name', '=', value)
+      .executeTakeFirst();
+    exists = res !== undefined;
+  } else if (table === 'auth' && key === 'id') {
+    const res = await db.selectFrom('auth').select('id').where('id', '=', value).executeTakeFirst();
+    exists = res !== undefined;
+  }
+
+  if (exists) {
     ctx.addIssue({ code: 'custom', message: duplicateError, path: [path] });
   }
 }
@@ -51,7 +65,7 @@ export const changeAccountSchema = z
     newPassword: z.string(),
     newPasswordConfirm: z.string(),
   })
-  .superRefine((data, ctx) => {
+  .superRefine(async (data, ctx) => {
     if (!data.changeId && !data.changeUserName && !data.changePassword) {
       ctx.addIssue({
         code: 'custom',
@@ -61,7 +75,7 @@ export const changeAccountSchema = z
       return;
     }
     if (data.changeId) {
-      validateAndCheckDb(
+      await validateAndCheckDb(
         ctx,
         baseUserInfoSchema.shape.id,
         data.newId,
@@ -72,7 +86,7 @@ export const changeAccountSchema = z
       );
     }
     if (data.changeUserName) {
-      validateAndCheckDb(
+      await validateAndCheckDb(
         ctx,
         baseUserInfoSchema.shape.userName,
         data.newUserName,
@@ -83,7 +97,7 @@ export const changeAccountSchema = z
       );
     }
     if (data.changePassword) {
-      const pwResult = baseUserInfoSchema.shape.password.safeParse(data.newPassword);
+      const pwResult = await baseUserInfoSchema.shape.password.safeParseAsync(data.newPassword);
       if (!pwResult.success)
         addParseErrors(ctx, pwResult as z.ZodSafeParseError<unknown>, 'newPassword');
       if (data.newPassword !== data.newPasswordConfirm) {

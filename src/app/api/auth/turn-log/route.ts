@@ -1,6 +1,5 @@
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { db } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
-import { dbConn } from '@/global/function/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -27,12 +26,13 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  using db = dbConn('./src/db/data/main.db');
-  const log = db.client
-    .prepare<
-      [string, string, string],
-      turnLogSchemaType
-    >('SELECT log_uuid, from_uuid, to_uuid, turn, secret_log FROM turn_log WHERE log_uuid < ? AND (from_uuid = ? OR to_uuid = ?) ORDER BY log_uuid DESC LIMIT 100;')
-    .all(logUuid, uuid, uuid);
+  const log = await db
+    .selectFrom('turn_log')
+    .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'secret_log'])
+    .where('log_uuid', '<', logUuid)
+    .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]))
+    .orderBy('log_uuid', 'desc')
+    .limit(100)
+    .execute();
   return NextResponse.json(log);
 }

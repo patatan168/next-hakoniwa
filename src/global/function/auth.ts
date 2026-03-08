@@ -1,9 +1,9 @@
 import 'server-only';
 
-import { refreshTokenSchemaType } from '@/db/schema/refreshTokenTable';
+import { Database } from '@/db/kysely';
 import { default as META } from '@/global/define/metadata';
-import sqlite from 'better-sqlite3';
 import * as jwt from 'jsonwebtoken';
+import { Kysely, sql, Transaction } from 'kysely';
 import { cookies } from 'next/headers';
 import { es256Gen, es384Gen, randomString } from './encrypt';
 
@@ -15,7 +15,7 @@ const tokenOptions = (
   isAccessToken: boolean
 ): {
   cookieKey: string;
-  tableName: string;
+  tableName: 'access_token' | 'refresh_token';
   algorithm: 'ES256' | 'ES384';
   sessionStrNum: number;
   expiresHour: number;
@@ -71,7 +71,7 @@ const jwtOptions = (uuid: string, jwi: string, expiresIn: number, isAccessToken:
  * @returns JWTトークン(署名付)
  */
 export const createJwtToken = async (
-  client: sqlite.Database,
+  client: Kysely<Database> | Transaction<Database>,
   uuid: string,
   isAccessToken: boolean
 ) => {
@@ -82,23 +82,28 @@ export const createJwtToken = async (
   const session_id = randomString(sessionStrNum);
   const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
-  const deleteSession = client.prepare(
-    `DELETE FROM ${tableName}
-      WHERE uuid = ? AND rowid NOT IN (
-        SELECT rowid FROM ${tableName}
-        WHERE uuid = ?
+  await client.transaction().execute(async (trx) => {
+    // Delete oldest if we reached MAX_SESSIONS
+    // subquery equivalent: delete where rowid not in (select rowid order by expires desc limit MAX_SESSIONS - 1)
+    // Kysely subqueries with rowid can be tricky, so we use raw sql for the delete part.
+    await sql`DELETE FROM ${sql.table(tableName)}
+      WHERE uuid = ${uuid} AND rowid NOT IN (
+        SELECT rowid FROM ${sql.table(tableName)}
+        WHERE uuid = ${uuid}
         ORDER BY expires DESC
-        LIMIT ${META.MAX_SESSIONS} - 1
-      )`
-  );
-  const insertSession = client.prepare(
-    `INSERT INTO ${tableName}(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${expiresHour} * 3600))`
-  );
+        LIMIT ${META.MAX_SESSIONS - 1}
+      )`.execute(trx);
 
-  client.transaction(() => {
-    deleteSession.run(uuid, uuid);
-    insertSession.run(uuid, session_id, publicKey);
-  })();
+    await trx
+      .insertInto(tableName)
+      .values({
+        uuid,
+        session_id,
+        public_key: publicKey,
+        expires: sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`,
+      })
+      .execute();
+  });
 
   const newToken = jwt.sign(
     jwtPayload(session_id),
@@ -118,7 +123,11 @@ export const createJwtToken = async (
  * @param isAccessToken アクセストークンorリフレッシュトークン
  * @param uuid UUID
  */
-async function reCreateJwtToken(client: sqlite.Database, uuid: string, isAccessToken: boolean) {
+async function reCreateJwtToken(
+  client: Kysely<Database> | Transaction<Database>,
+  uuid: string,
+  isAccessToken: boolean
+) {
   const { expiresHour, tableName, sessionStrNum } = tokenOptions(isAccessToken);
 
   const oldToken = await getAuthCookie(isAccessToken);
@@ -136,18 +145,23 @@ async function reCreateJwtToken(client: sqlite.Database, uuid: string, isAccessT
   const session_id = randomString(sessionStrNum);
   const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
-  const deleteSession = client.prepare(
-    `DELETE FROM ${tableName}
-      WHERE uuid = ? AND session_id = ?`
-  );
-  const insertSession = client.prepare(
-    `INSERT INTO ${tableName}(uuid, session_id, public_key, expires) values(?, ?, ?, (unixepoch() + ${expiresHour} * 3600))`
-  );
+  await client.transaction().execute(async (trx) => {
+    await trx
+      .deleteFrom(tableName)
+      .where('uuid', '=', uuid)
+      .where('session_id', '=', oldSessionId)
+      .execute();
 
-  client.transaction(() => {
-    deleteSession.run(uuid, oldSessionId);
-    insertSession.run(uuid, session_id, publicKey);
-  })();
+    await trx
+      .insertInto(tableName)
+      .values({
+        uuid,
+        session_id,
+        public_key: publicKey,
+        expires: sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`,
+      })
+      .execute();
+  });
 
   const newToken = jwt.sign(
     jwtPayload(session_id),
@@ -231,7 +245,7 @@ async function deleteExistsRefreshToken() {
  * 有効期限ギリギリのリフレッシュトークンで再認証された場合、新しいリフレッシュトークンを発行
  * @param client DBクライアント
  */
-async function reCreateRefreshToken(client: sqlite.Database) {
+async function reCreateRefreshToken(client: Kysely<Database> | Transaction<Database>) {
   const refreshToken = await getAuthCookie(false);
   if (refreshToken) {
     const rawRefreshToken = jwt.decode(refreshToken, { json: true });
@@ -254,7 +268,7 @@ async function reCreateRefreshToken(client: sqlite.Database) {
  * アクセストークンがない場合、リフレッシュトークンで再認証
  * @param client DBクライアント
  */
-async function reCreateAccessToken(client: sqlite.Database) {
+async function reCreateAccessToken(client: Kysely<Database> | Transaction<Database>) {
   const uuid = await validAuthCookie(client, false);
   if (uuid) {
     // リフレッシュトークンで再認証成功した場合は新しいアクセストークンを発行
@@ -271,7 +285,7 @@ async function reCreateAccessToken(client: sqlite.Database) {
  * @returns UUID
  */
 export const validAuthCookie = async (
-  client: sqlite.Database,
+  client: Kysely<Database> | Transaction<Database>,
   isAccessToken: boolean
 ): Promise<string | undefined> => {
   const jwtToken = await getAuthCookie(isAccessToken);
@@ -308,10 +322,12 @@ export const validAuthCookie = async (
     return await abortAuth('JWT Session Error');
   }
 
-  const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
-    `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
-  );
-  const tokenData = selectTokenTable.get(uuid, sessionId);
+  const tokenData = await client
+    .selectFrom(tableName)
+    .select(['public_key', 'created_at'])
+    .where('uuid', '=', uuid)
+    .where('session_id', '=', sessionId)
+    .executeTakeFirst();
 
   if (!tokenData) {
     return await abortAuth(`${tableName} Table Error`);
@@ -323,9 +339,11 @@ export const validAuthCookie = async (
     await deleteAuthCookie(isAccessToken);
 
     if (error instanceof jwt.TokenExpiredError) {
-      client
-        .prepare(`DELETE FROM ${tableName} WHERE uuid = ? AND session_id = ?`)
-        .run(uuid, sessionId);
+      await client
+        .deleteFrom(tableName)
+        .where('uuid', '=', uuid)
+        .where('session_id', '=', sessionId)
+        .execute();
       if (isAccessToken) return await reCreateAccessToken(client);
     }
 
@@ -356,14 +374,10 @@ export const validAuthCookie = async (
   }
 
   // 10分以内にログインしていなければ最終ログイン時間を更新
-  client
-    .prepare(
-      `UPDATE last_login
+  await sql`UPDATE last_login
        SET last_login_at = unixepoch()
-       WHERE uuid = ?
-         AND last_login_at < unixepoch() - 600`
-    )
-    .run(uuid);
+       WHERE uuid = ${uuid}
+         AND last_login_at < unixepoch() - 600`.execute(client);
 
   return uuid;
 };
@@ -372,7 +386,9 @@ export const validAuthCookie = async (
  * サインアウト時にDBとCookieを削除する関数
  * @param client
  */
-export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
+export const signOutDeleteJwtDbCookie = async (
+  client: Kysely<Database> | Transaction<Database>
+) => {
   const accessToken = await getAuthCookie(true);
   const refreshToken = await getAuthCookie(false);
 
@@ -382,7 +398,7 @@ export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
   await deleteExistsRefreshToken();
 
   // DBセッション削除用の内部ヘルパー関数
-  const deleteDbSession = (tokenStr: string, isAccessToken: boolean) => {
+  const deleteDbSession = async (tokenStr: string, isAccessToken: boolean) => {
     const { tableName, algorithm } = tokenOptions(isAccessToken);
     const rawToken = jwt.decode(tokenStr, { json: true }) as jwt.JwtPayload | null;
 
@@ -404,23 +420,27 @@ export const signOutDeleteJwtDbCookie = async (client: sqlite.Database) => {
       return;
     }
 
-    const selectTokenTable = client.prepare<[string, string], refreshTokenSchemaType>(
-      `SELECT public_key, created_at FROM ${tableName} WHERE uuid = ? AND session_id = ?`
-    );
-    const tokenData = selectTokenTable.get(uuid, sessionId);
+    const tokenData = await client
+      .selectFrom(tableName)
+      .select(['public_key', 'created_at'])
+      .where('uuid', '=', uuid)
+      .where('session_id', '=', sessionId)
+      .executeTakeFirst();
 
     if (!tokenData) return;
 
     try {
       jwt.verify(tokenStr, tokenData.public_key, { algorithms: [algorithm] });
-      client
-        .prepare(`DELETE FROM ${tableName} WHERE uuid = ? AND session_id = ?`)
-        .run(uuid, sessionId);
+      await client
+        .deleteFrom(tableName)
+        .where('uuid', '=', uuid)
+        .where('session_id', '=', sessionId)
+        .execute();
     } catch (error) {
       console.error(error);
     }
   };
 
-  if (accessToken) deleteDbSession(accessToken, true);
-  if (refreshToken) deleteDbSession(refreshToken, false);
+  if (accessToken) await deleteDbSession(accessToken, true);
+  if (refreshToken) await deleteDbSession(refreshToken, false);
 };

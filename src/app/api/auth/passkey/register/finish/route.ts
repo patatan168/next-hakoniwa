@@ -1,5 +1,5 @@
+import { db } from '@/db/kysely';
 import { validAuthCookie } from '@/global/function/auth';
-import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import {
   hashFingerprint,
@@ -17,9 +17,7 @@ export async function OPTIONS() {
  * Passkey登録完了 — attestationを検証してDBに保存する
  */
 export async function POST(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
   if (!uuid) return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
 
   const body = (await request.json()) as {
@@ -37,25 +35,24 @@ export async function POST(request: NextRequest) {
 
   // 本番環境のみフィンガープリントによる重複チェックを行う
   const fpHash = body.fpHash ? hashFingerprint(body.fpHash) : '';
-  if (process.env.NODE_ENV === 'production' && isFpDuplicate(db.client, fpHash, uuid)) {
+  if (process.env.NODE_ENV === 'production' && (await isFpDuplicate(db, fpHash, uuid))) {
     return NextResponse.json(
       { error: 'このデバイスは別のアカウントでPasskeyに登録されています' },
       { status: 409 }
     );
   }
 
-  db.client
-    .prepare(
-      `INSERT INTO passkey (credential_id, uuid, public_key, device_name, counter, fp_hash) VALUES (?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      passkey.credential_id,
+  await db
+    .insertInto('passkey')
+    .values({
+      credential_id: passkey.credential_id,
       uuid,
-      passkey.public_key,
-      passkey.device_name,
-      passkey.counter,
-      fpHash
-    );
+      public_key: passkey.public_key,
+      device_name: passkey.device_name,
+      counter: passkey.counter,
+      fp_hash: fpHash,
+    })
+    .execute();
 
   accessLogger(request).info(`Passkey registered uuid=${uuid} device="${passkey.device_name}"`);
   return NextResponse.json({ result: true });

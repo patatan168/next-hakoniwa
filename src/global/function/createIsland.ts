@@ -1,7 +1,8 @@
 import 'server-only';
 
+import { Database } from '@/db/kysely';
 import { islandInfoData } from '@/db/schema/islandTable';
-import sqlite from 'better-sqlite3';
+import { Kysely, sql, Transaction } from 'kysely';
 import { forest, mountain, plains, sea, shallows, wasteland } from '../define/mapCategory/mapLand';
 import { defenseBase } from '../define/mapCategory/mapMilitary';
 import { people } from '../define/mapCategory/mapOther';
@@ -165,7 +166,10 @@ const initDefenseBase = (data: islandInfoData, center: number) => {
 /**
  * 島を作成する
  */
-export const createIsland = (client: sqlite.Database, uuid: string) => {
+export const createIsland = async (
+  client: Kysely<Database> | Transaction<Database>,
+  uuid: string
+) => {
   const center = Math.trunc(META_DATA.MAP_SIZE / 2) - 1;
   const data: islandInfoData = initIsland();
 
@@ -175,30 +179,25 @@ export const createIsland = (client: sqlite.Database, uuid: string) => {
   initMountain(data, center);
   initDefenseBase(data, center);
 
-  // 島情報を初期化
-  const insertIsland = client.prepare(
-    `INSERT INTO island(uuid, prize, money, food, area, population, farm, factory, mining, missile, island_info) 
-      values(?, jsonb(?), ?, ?, ?, ?, ?, ?, ?, ?, jsonb(?))`
-  );
-  // イベント発生率を初期化
-  const insertEventRate = client.prepare(`INSERT INTO event_rate(uuid) values(?)`);
-
   // Transaction
-  client.transaction(() => {
-    insertIsland.run(
-      uuid,
-      JSON.stringify([]),
-      META_DATA.INIT_MONEY,
-      META_DATA.INIT_FOOD,
-      countArea(data),
-      calcAllTypeNum(data, 'people'),
-      calcAllTypeNum(data, 'farm'),
-      calcAllTypeNum(data, 'factory'),
-      calcAllTypeNum(data, 'mining'),
-      calcAllTypeNum(data, 'missile') + calcAllTypeNum(data, 'submarine_missile'),
-      JSON.stringify(data)
-    );
+  await client.transaction().execute(async (trx) => {
+    await trx
+      .insertInto('island')
+      .values({
+        uuid,
+        prize: sql<string>`jsonb(${JSON.stringify([])})`,
+        money: META_DATA.INIT_MONEY,
+        food: META_DATA.INIT_FOOD,
+        area: countArea(data),
+        population: calcAllTypeNum(data, 'people'),
+        farm: calcAllTypeNum(data, 'farm'),
+        factory: calcAllTypeNum(data, 'factory'),
+        mining: calcAllTypeNum(data, 'mining'),
+        missile: calcAllTypeNum(data, 'missile') + calcAllTypeNum(data, 'submarine_missile'),
+        island_info: sql<string>`jsonb(${JSON.stringify(data)})`,
+      })
+      .execute();
 
-    insertEventRate.run(uuid);
-  })();
+    await trx.insertInto('event_rate').values({ uuid }).execute();
+  });
 };

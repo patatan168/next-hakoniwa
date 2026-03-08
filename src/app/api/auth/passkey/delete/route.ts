@@ -1,5 +1,5 @@
+import { db } from '@/db/kysely';
 import { validAuthCookie } from '@/global/function/auth';
-import { dbConn } from '@/global/function/db';
 import { accessLogger } from '@/global/function/logger';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -11,9 +11,7 @@ export async function OPTIONS() {
  * 指定したPasskeyを削除する（認証必須）
  */
 export async function DELETE(request: NextRequest) {
-  using db = dbConn('./src/db/data/main.db');
-
-  const uuid = await validAuthCookie(db.client, true);
+  const uuid = await validAuthCookie(db, true);
   if (!uuid) return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
 
   const body = (await request.json()) as { credential_id: string };
@@ -22,11 +20,13 @@ export async function DELETE(request: NextRequest) {
   }
 
   // 自分のPasskeyのみ削除可能
-  const result = db.client
-    .prepare(`DELETE FROM passkey WHERE credential_id = ? AND uuid = ?`)
-    .run(body.credential_id, uuid);
+  const result = await db
+    .deleteFrom('passkey')
+    .where('credential_id', '=', body.credential_id)
+    .where('uuid', '=', uuid)
+    .executeTakeFirst();
 
-  if (result.changes === 0) {
+  if (Number(result.numDeletedRows) === 0) {
     return NextResponse.json({ error: '対象のPasskeyが見つかりません' }, { status: 404 });
   }
 
