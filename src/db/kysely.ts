@@ -1,5 +1,5 @@
 import sqlite from 'better-sqlite3';
-import { Kysely, SqliteDialect } from 'kysely';
+import { Kysely, ParseJSONResultsPlugin, SqliteDialect } from 'kysely';
 
 import type { DB } from './generated';
 
@@ -14,4 +14,6 @@ const dialect = new SqliteDialect({
 
 export const db = new Kysely<Database>({
   dialect,
+  // NOTE: SQLiteのJSONカラム（island_info, prize等）を自動でデシリアライズ
+  plugins: [new ParseJSONResultsPlugin()],
 });
