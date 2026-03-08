@@ -1,4 +1,5 @@
 import { EventRate, islandInfoTurnProgress, TurnLog } from '@/db/kysely';
+import { getBaseLog } from '../define/logType';
 import {
   changeMapData,
   countMapAround,
@@ -7,7 +8,6 @@ import {
   mapArrayConverter,
   wideDamage,
 } from '../function/island';
-import { getBaseLog } from '../function/turnProgress';
 import { checkProbability, randomIntInRange } from '../function/utility';
 import { logFire, logMonsterMove, logMonsterSuicideBombing } from './logType';
 import * as mapFacility from './mapCategory/mapFacility';

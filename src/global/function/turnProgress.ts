@@ -12,6 +12,7 @@ import {
 import { differenceWith, isEqual } from 'es-toolkit';
 import { Kysely, sql, Transaction } from 'kysely';
 import {
+  getBaseLog,
   logEarthquake,
   logEarthquakeDamage,
   logEruption,
@@ -41,7 +42,6 @@ import { people } from '../define/mapCategory/mapOther';
 import { getMapDefine, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { islandDataGetSet, islandDataStore } from '../store/turnProgress';
-import { createUuid25 } from './encrypt';
 import {
   accumulateCellStats,
   changeMapData,
@@ -54,6 +54,7 @@ import {
   wideDamage,
 } from './island';
 import { arrayRandomInt, checkProbability, randomIntInRange, valueOrSafeLimit } from './utility';
+import { createUuid25 } from './uuid';
 
 /**
  * 全島情報の取得
@@ -287,19 +288,6 @@ export const insertDeletePlan = async (
       await trx.insertInto('plan').values(insertPlans).execute();
     }
   });
-};
-
-/**
- * 基本ログ情報の取得
- * @note uuidの重複を防ぐため、ログごとにUUIDを生成すること
- * @param turn ターン数
- * @param fromIsland 送信元島情報
- * @param toIsland 送信先島情報
- * @returns 基本ログ情報
- */
-export const getBaseLog = (turn: number, fromIsland: Island, toIsland: Island = fromIsland) => {
-  const log_uuid = createUuid25();
-  return { log_uuid: log_uuid, to_uuid: toIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
 };
 
 /**

@@ -1,4 +1,4 @@
-import { getBaseLog } from '@/global/function/turnProgress';
+import { getBaseLog } from '@/global/define/logType';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logCommonAid, logNoCoordinateCommonDev, logResourceExport } from '../logType';
 import META_DATA from '../metadata';

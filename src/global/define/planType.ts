@@ -5,8 +5,7 @@
  */
 import { islandInfo, islandInfoTurnProgress, Plan, TurnLog, User } from '@/db/kysely';
 import { mapArrayConverter } from '../function/island';
-import { getBaseLog } from '../function/turnProgress';
-import { logLackCosts, logLandFail } from './logType';
+import { getBaseLog, logLackCosts, logLandFail } from './logType';
 import { getMapDefine, landType } from './mapType';
 import META_DATA from './metadata';
 import * as planAtack from './planCategory/planAtack';

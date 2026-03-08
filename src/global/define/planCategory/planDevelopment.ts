@@ -1,5 +1,5 @@
+import { getBaseLog } from '@/global/define/logType';
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
-import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logCommonDev, logLackCosts, logNoLandAround, logTreasure } from '../logType';

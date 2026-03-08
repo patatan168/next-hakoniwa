@@ -1,5 +1,5 @@
+import { getBaseLog } from '@/global/define/logType';
 import { changeMapData } from '@/global/function/island';
-import { getBaseLog } from '@/global/function/turnProgress';
 import { checkProbability } from '@/global/function/utility';
 import { logOilEarned, logOilEnd } from '../logType';
 import { mapType } from '../mapType';

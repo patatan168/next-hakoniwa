@@ -1,5 +1,5 @@
+import { getBaseLog } from '@/global/define/logType';
 import { mapArrayConverter, wideDamage } from '@/global/function/island';
-import { getBaseLog } from '@/global/function/turnProgress';
 import { logSelfCrash } from '../logType';
 import { mapType } from '../mapType';
 

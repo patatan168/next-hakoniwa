@@ -1,5 +1,5 @@
+import { getBaseLog } from '@/global/define/logType';
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
-import { getBaseLog } from '@/global/function/turnProgress';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
 import { getMapDefine } from '../mapType';

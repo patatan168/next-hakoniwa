@@ -1,5 +1,6 @@
 import { TurnLog, islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import {
+  getBaseLog,
   logMissileBoatPeople,
   logMissileCaught,
   logMissileCaughtS,
@@ -35,7 +36,6 @@ import {
   isOpenSea,
   mapArrayConverter,
 } from './island';
-import { getBaseLog } from './turnProgress';
 import { randomIntInRange } from './utility';
 
 type IslandWithUser = islandInfoTurnProgress;

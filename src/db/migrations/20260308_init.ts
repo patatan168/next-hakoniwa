@@ -1,9 +1,15 @@
 import META_DATA from '@/global/define/metadata';
-import { Kysely, sql } from 'kysely';
+import { Kysely, sql, SqliteAdapter } from 'kysely';
 
 export async function up(db: Kysely<unknown>): Promise<void> {
-  // 外部キーを有効化
-  await sql`PRAGMA foreign_keys = ON`.execute(db);
+  const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
+
+  // 外部キーを有効化 (SQLiteのみ)
+  if (isSqlite) {
+    await sql`PRAGMA foreign_keys = ON`.execute(db);
+  }
+
+  const nowSql = isSqlite ? sql`(unixepoch())` : sql`CURRENT_TIMESTAMP`;
 
   // ---------- user ----------
   await db.schema
@@ -24,7 +30,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('uuid', 'text', (col) => col.primaryKey().unique().notNull().references('user.uuid'))
     .addColumn('id', 'text', (col) => col.unique().notNull())
     .addColumn('password', 'text', (col) => col.notNull())
-    .addColumn('created_at', 'integer', (col) => col.defaultTo(sql`(unixepoch())`).notNull())
+    .addColumn('created_at', 'integer', (col) => col.defaultTo(nowSql).notNull())
     .addColumn('login_fail_count', 'integer', (col) => col.defaultTo(0).notNull())
     .addColumn('locked_until', 'datetime')
     .addColumn('fp_hash', 'text', (col) => col.defaultTo('').notNull())
@@ -43,7 +49,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('last_login')
     .ifNotExists()
     .addColumn('uuid', 'text', (col) => col.primaryKey().unique().notNull().references('user.uuid'))
-    .addColumn('last_login_at', 'integer', (col) => col.defaultTo(sql`(unixepoch())`).notNull())
+    .addColumn('last_login_at', 'integer', (col) => col.defaultTo(nowSql).notNull())
     .addColumn('last_bonus_received_at', 'integer', (col) => col.defaultTo(0).notNull())
     .addColumn('consecutive_login_days', 'integer', (col) => col.defaultTo(0).notNull())
     .execute();
@@ -53,7 +59,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('island')
     .ifNotExists()
     .addColumn('uuid', 'text', (col) => col.primaryKey().unique().notNull().references('user.uuid'))
-    .addColumn('prize', 'json', (col) => col.notNull())
     .addColumn('money', 'integer', (col) => col.notNull())
     .addColumn('area', 'integer', (col) => col.notNull())
     .addColumn('population', 'integer', (col) => col.notNull())
@@ -62,6 +67,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('factory', 'integer', (col) => col.notNull())
     .addColumn('mining', 'integer', (col) => col.notNull())
     .addColumn('missile', 'integer', (col) => col.notNull())
+    .addColumn('prize', 'json', (col) => col.notNull())
     .addColumn('island_info', 'json', (col) => col.notNull())
     .execute();
 
@@ -127,7 +133,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('uuid', 'text', (col) => col.notNull().references('user.uuid'))
     .addColumn('session_id', 'text', (col) => col.notNull())
     .addColumn('public_key', 'text', (col) => col.unique().notNull())
-    .addColumn('created_at', 'integer', (col) => col.defaultTo(sql`(unixepoch())`).notNull())
+    .addColumn('created_at', 'integer', (col) => col.defaultTo(nowSql).notNull())
     .addColumn('expires', 'datetime', (col) => col.notNull())
     .execute();
 
@@ -138,7 +144,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('uuid', 'text', (col) => col.notNull().references('user.uuid'))
     .addColumn('session_id', 'text', (col) => col.notNull())
     .addColumn('public_key', 'text', (col) => col.unique().notNull())
-    .addColumn('created_at', 'integer', (col) => col.defaultTo(sql`(unixepoch())`).notNull())
+    .addColumn('created_at', 'integer', (col) => col.defaultTo(nowSql).notNull())
     .addColumn('expires', 'datetime', (col) => col.notNull())
     .execute();
 
@@ -152,7 +158,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('device_name', 'text', (col) => col.notNull())
     .addColumn('counter', 'integer', (col) => col.defaultTo(0).notNull())
     .addColumn('fp_hash', 'text', (col) => col.defaultTo('').notNull())
-    .addColumn('created_at', 'integer', (col) => col.defaultTo(sql`(unixepoch())`).notNull())
+    .addColumn('created_at', 'integer', (col) => col.defaultTo(nowSql).notNull())
     .execute();
 
   // ---------- turn_state ----------

@@ -3,11 +3,12 @@ import {
   ColumnType,
   Insertable,
   Kysely,
-  ParseJSONResultsPlugin,
+  MysqlDialect,
   Selectable,
   SqliteDialect,
   Updateable,
 } from 'kysely';
+import mysql from 'mysql2/promise';
 import type { DB as GeneratedDB } from './generated';
 import type { islandInfoData } from './schema/islandTypes';
 
@@ -51,14 +52,37 @@ export type { islandData, islandInfoTurnProgress } from './schema/islandTable';
 
 export { parseJsonIslandData, parseJsonIslandDataTurnProgress } from './schema/islandTable';
 
-const dialect = new SqliteDialect({
-  database: new sqlite('./src/db/data/main.db'),
-});
-
 /**
  * Kysely インスタンスの生成
+ * @returns Kysely インスタンス
  */
-export const db = new Kysely<Database>({
-  dialect,
-  plugins: [new ParseJSONResultsPlugin()],
-});
+function getDialect(): Kysely<Database> {
+  const dbType = process.env.DB_TYPE;
+  const connectionString = process.env.DB_CONNECTION_STRING;
+
+  if (dbType === 'sqlite') {
+    if (!connectionString) {
+      throw new Error('DB_CONNECTION_STRING is required for sqlite (path to db file)');
+    }
+    return new Kysely<Database>({
+      dialect: new SqliteDialect({
+        database: new sqlite(connectionString),
+      }),
+    });
+  }
+
+  if (dbType === 'mysql') {
+    if (!connectionString) {
+      throw new Error('DB_CONNECTION_STRING is required for mysql');
+    }
+    return new Kysely<Database>({
+      dialect: new MysqlDialect({
+        pool: mysql.createPool(connectionString),
+      }),
+    });
+  }
+
+  throw new Error(`Unsupported database type: ${dbType}`);
+}
+
+export const db = getDialect();

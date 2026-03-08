@@ -2,6 +2,7 @@ import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely'
 import { isEqual } from 'es-toolkit';
 import { differenceWith } from 'es-toolkit/array';
 import {
+  getBaseLog,
   logDamageWaste,
   logMonsterSubmersion,
   logScatterMonster,
@@ -11,7 +12,6 @@ import { sea } from '../define/mapCategory/mapLand';
 import { getMapDefine, getMapLevel, landType, mapType } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import { islandDataGetSet } from '../store/turnProgress';
-import { getBaseLog } from './turnProgress';
 
 /**
  * 外海かどうか

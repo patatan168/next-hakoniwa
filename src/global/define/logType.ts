@@ -1,9 +1,27 @@
 import { Island, islandInfo, User } from '@/db/kysely';
 import { mapArrayConverter } from '../function/island';
+import { createUuid25 } from '../function/uuid';
 import { people } from './mapCategory/mapOther';
 import { getMapDefine, getMapName, mapType } from './mapType';
 import META_DATA from './metadata';
 import { planType } from './planType';
+
+/**
+ * 基本ログ情報の取得
+ * @note uuidの重複を防ぐため、ログごとにUUIDを生成すること
+ * @param turn ターン数
+ * @param fromIsland 送信元島情報
+ * @param toIsland 送信先島情報
+ * @returns 基本ログ情報
+ */
+export const getBaseLog = (
+  turn: number,
+  fromIsland: { uuid: string },
+  toIsland: { uuid: string } = fromIsland
+) => {
+  const log_uuid = createUuid25();
+  return { log_uuid: log_uuid, to_uuid: toIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
+};
 
 /**
  * 座標を表す文字列を返す
