@@ -27,9 +27,22 @@ export async function GET(request: NextRequest) {
         eb
           .selectFrom('user')
           .innerJoin('island', 'user.uuid', 'island.uuid')
-          .selectAll('user')
-          .selectAll('island')
-          .select(sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'))
+          .select([
+            'island.uuid',
+            'island.money',
+            'island.area',
+            'island.population',
+            'island.food',
+            'island.farm',
+            'island.factory',
+            'island.mining',
+            'island.missile',
+            'user.island_name',
+            'user.inhabited',
+            sql<string>`json(island.island_info)`.as('island_info'),
+            sql<string>`json(island.prize)`.as('prize'),
+            sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
+          ])
           .where('user.inhabited', '=', 1)
           .as('ranked')
       )
@@ -43,7 +56,9 @@ export async function GET(request: NextRequest) {
     if (islandData.inhabited === undefined) {
       return NextResponse.json({ error: 'その島は無人島です。' }, { status: 410 });
     }
+
     parseJsonIslandData(islandData, true);
+
     return NextResponse.json(islandData);
   } else {
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 404 });

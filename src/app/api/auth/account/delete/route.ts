@@ -10,6 +10,7 @@ import { accessLogger } from '@/global/function/logger';
 import { abandonIsland } from '@/global/function/turnProgress';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { deleteAccountSchema } from '@/global/valid/server/account';
+import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -55,8 +56,20 @@ export async function DELETE(request: NextRequest) {
     const island = await trx
       .selectFrom('island')
       .innerJoin('user', 'user.uuid', 'island.uuid')
-      .selectAll('island')
-      .select('user.island_name')
+      .select([
+        'island.uuid',
+        'island.money',
+        'island.area',
+        'island.population',
+        'island.food',
+        'island.farm',
+        'island.factory',
+        'island.mining',
+        'island.missile',
+        'user.island_name',
+        sql<string>`json(island.island_info)`.as('island_info'),
+        sql<string>`json(island.prize)`.as('prize'),
+      ])
       .where('user.uuid', '=', uuid)
       .executeTakeFirst();
 

@@ -94,15 +94,40 @@ export interface islandInfoTurnProgress
  * @param island islandテーブルのデーター
  * @param isPublic 公開データか
  */
+/**
+ * JSON型のカラム値をオブジェクトに解決する
+ * @param value カラムの値（文字列、オブジェクト、またはjsonb由来のBuffer形式）
+ * @returns パース済みのオブジェクト
+ */
+function resolveJsonColumn(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return JSON.parse(value);
+  }
+  // SQLiteのjsonbがBufferオブジェクトとして返ってきた場合への対応
+  if (
+    value &&
+    typeof value === 'object' &&
+    'type' in value &&
+    (value as { type: string }).type === 'Buffer' &&
+    'data' in value &&
+    Array.isArray((value as { data: unknown }).data)
+  ) {
+    return JSON.parse(Buffer.from((value as { data: number[] }).data).toString());
+  }
+  return value;
+}
+
+/**
+ * JSON ColumをObjectに変換
+ * @param island islandテーブルのデーター
+ * @param isPublic 公開データか
+ */
 export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPublic = true) => {
-  if ('prize' in island && typeof island.prize === 'string') {
-    island.prize = JSON.parse(island.prize);
+  if ('prize' in island) {
+    island.prize = resolveJsonColumn(island.prize) as object;
   }
   if ('island_info' in island) {
-    // NOTE: ParseJSONResultsPlugin により既にオブジェクト化されている場合と
-    // まだ文字列の場合（turn処理など）の両方に対応する
-    const rawInfo: unknown = island.island_info;
-    const parsed = typeof rawInfo === 'string' ? JSON.parse(rawInfo) : rawInfo;
+    const parsed = resolveJsonColumn(island.island_info);
     island.island_info = isPublic
       ? getPublicIslandInfo(parsed as islandInfoData)
       : (parsed as islandInfoData);

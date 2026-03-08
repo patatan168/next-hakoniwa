@@ -23,9 +23,19 @@ export async function GET(request: NextRequest) {
       eb
         .selectFrom('user')
         .innerJoin('island', 'user.uuid', 'island.uuid')
-        .selectAll('island')
         .select([
+          'island.uuid',
+          'island.money',
+          'island.area',
+          'island.population',
+          'island.food',
+          'island.farm',
+          'island.factory',
+          'island.mining',
+          'island.missile',
           'user.island_name',
+          sql<string>`json(island.island_info)`.as('island_info'),
+          sql<string>`json(island.prize)`.as('prize'),
           sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
         ])
         .as('ranked')
@@ -40,6 +50,7 @@ export async function GET(request: NextRequest) {
     accessLogger(request).warn(`Internal Server Error: Development uuid=${uuid}`);
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });
   }
+
   parseJsonIslandData(islandData, false);
 
   const loginBonus = await grantLoginBonus(uuid, islandData);

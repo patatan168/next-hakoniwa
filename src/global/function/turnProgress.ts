@@ -11,7 +11,7 @@ import { turnLogSchemaType } from '@/db/schema/turnLogTable';
 import { turnStateSchemaType } from '@/db/schema/turnStateTable';
 import { userSchemaType } from '@/db/schema/userTable';
 import { differenceWith, isEqual } from 'es-toolkit';
-import { Kysely, Transaction } from 'kysely';
+import { Kysely, sql, Transaction } from 'kysely';
 import {
   logEarthquake,
   logEarthquakeDamage,
@@ -66,8 +66,22 @@ export async function getAllIslands(db: Kysely<Database> | Transaction<Database>
     .selectFrom('user')
     .innerJoin('island', 'user.uuid', 'island.uuid')
     .innerJoin('event_rate', 'island.uuid', 'event_rate.uuid')
-    .selectAll()
-    .select('user.island_name')
+    .selectAll('user')
+    .selectAll('event_rate')
+    .select([
+      'island.uuid',
+      'island.money',
+      'island.area',
+      'island.population',
+      'island.food',
+      'island.farm',
+      'island.factory',
+      'island.mining',
+      'island.missile',
+      'user.island_name',
+      sql<string>`json(island.island_info)`.as('island_info'),
+      sql<string>`json(island.prize)`.as('prize'),
+    ])
     .where('user.inhabited', '=', 1)
     .execute()) as unknown as islandInfoTurnProgress[];
   if (islands) {
@@ -161,7 +175,7 @@ export const updateIslands = async (
       await trx
         .updateTable('island')
         .set({
-          prize: JSON.stringify(tmp.prize),
+          prize: sql`jsonb(${JSON.stringify(tmp.prize)})`,
           money: tmp.money,
           area: tmp.area,
           population: tmp.population,
@@ -170,7 +184,7 @@ export const updateIslands = async (
           factory: tmp.factory,
           mining: tmp.mining,
           missile: tmp.missile,
-          island_info: JSON.stringify(tmp.island_info),
+          island_info: sql`jsonb(${JSON.stringify(tmp.island_info)})`,
         })
         .where('uuid', '=', tmp.uuid)
         .execute();
