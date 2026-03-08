@@ -1,8 +1,8 @@
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { TurnLog } from '@/db/kysely';
 import { FetchStore } from '@/global/function/fetch/fetch';
 import { turnStore } from '../public/turn';
 
-const store = new FetchStore<Omit<turnLogSchemaType, 'secret_log'>[]>('/api/public/turn-log', {
+const store = new FetchStore<Omit<TurnLog, 'secret_log'>[]>('/api/public/turn-log', {
   waitTime: 10,
   mergeData: {
     get: true,

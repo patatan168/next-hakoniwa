@@ -1,8 +1,8 @@
-import { planSchemaType } from '@/db/schema/planTable';
+import { Plan } from '@/db/kysely';
 import { FetchStore } from '@/global/function/fetch/fetch';
 import { turnStore } from '../public/turn';
 
-const store = new FetchStore<Array<planSchemaType>>('/api/auth/plan', {
+const store = new FetchStore<Array<Plan>>('/api/auth/plan', {
   refreshGet: true,
   dependsOn: [turnStore],
 });

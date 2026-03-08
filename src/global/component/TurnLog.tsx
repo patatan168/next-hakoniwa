@@ -1,4 +1,4 @@
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { TurnLog } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { forwardRef, memo, Ref } from 'react';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -9,7 +9,7 @@ type TurnLogProps = {
   className?: string;
   style?: React.CSSProperties;
   logs:
-    | (Omit<turnLogSchemaType, 'log' | 'secret_log'> & {
+    | (Omit<TurnLog, 'log' | 'secret_log'> & {
         log?: string | null;
         secret_log?: string;
       })[]

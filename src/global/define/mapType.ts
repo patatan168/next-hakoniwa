@@ -1,6 +1,4 @@
-import { eventRateSchemaType } from '@/db/schema/eventRateTable';
-import { islandInfoTurnProgress } from '@/db/schema/islandTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
+import { EventRate, islandInfoTurnProgress, TurnLog } from '@/db/kysely';
 import {
   changeMapData,
   countMapAround,
@@ -78,7 +76,7 @@ export type mapType = {
     turn: number;
     fromUuid: string;
     island: islandInfoTurnProgress;
-  }) => Array<turnLogSchemaType> | void | undefined;
+  }) => Array<TurnLog> | void | undefined;
 };
 
 let ALL_MAP_DEFINES: Map<string, mapType> | null = null;
@@ -199,8 +197,8 @@ export function fireDisaster(
   y: number,
   turn: number,
   fromIsland: islandInfoTurnProgress,
-  eventRate: eventRateSchemaType
-): turnLogSchemaType | undefined {
+  eventRate: EventRate
+): TurnLog | undefined {
   if (checkProbability(eventRate.fire)) {
     const forestNum = countMapAround(fromIsland.island_info, 'forest', x, y, 1);
     const monumentNum = countMapAround(fromIsland.island_info, 'monument', x, y, 1);
@@ -234,7 +232,7 @@ export function monsterMove(
   turn: number,
   fromUuid: string,
   fromIsland: islandInfoTurnProgress
-): Array<turnLogSchemaType> | undefined {
+): Array<TurnLog> | undefined {
   const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
 
   // サンジラとクジラの硬化判定

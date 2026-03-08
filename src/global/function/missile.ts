@@ -1,6 +1,4 @@
-import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { TurnLog, islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import {
   logMissileBoatPeople,
   logMissileCaught,
@@ -40,7 +38,7 @@ import {
 import { getBaseLog } from './turnProgress';
 import { randomIntInRange } from './utility';
 
-type IslandWithUser = islandSchemaType & Pick<userSchemaType, 'island_name'>;
+type IslandWithUser = islandInfoTurnProgress;
 
 /**
  * 発射元の島から対象の島へミサイルを撃ち込むメイン処理
@@ -85,7 +83,7 @@ export const executeMissile = ({
   planName: string;
   /** ミサイル1発あたりの費用 */
   cost: number;
-}): turnLogSchemaType[] => {
+}): TurnLog[] => {
   if (!toIsland) {
     const log = logMissileNoTarget(fromIsland, planName);
     return [{ ...getBaseLog(turn, fromIsland), secret_log: log, log }];
@@ -170,7 +168,7 @@ const processMissileImpacts = ({
 }) => {
   // 0の場合は資金と弾が尽きるまで撃ち続けるため、事実上の無限回数を設定する
   let remainingTimes = times === 0 ? Number.MAX_SAFE_INTEGER : times;
-  const logs: turnLogSchemaType[] = [];
+  const logs: TurnLog[] = [];
   let accumulatedRefugees = 0;
   let flagShot = false;
 
@@ -251,7 +249,7 @@ const createMissileLogs = (
   baseLog: ReturnType<typeof getBaseLog>,
   stealthLogText: string,
   normalLogText: string
-): turnLogSchemaType[] => {
+): TurnLog[] => {
   if (isStealth) {
     return [
       {
@@ -301,7 +299,7 @@ const processSingleImpact = ({
   planName: string;
   /** 発射した基地の情報 */
   base: { x: number; y: number; level: number };
-}): { logs: turnLogSchemaType[]; refugees: number } => {
+}): { logs: TurnLog[]; refugees: number } => {
   const isStealth = missileType === 'st';
   const baseLog = getBaseLog(turn, fromIsland, toIsland);
 
@@ -565,7 +563,7 @@ const applyNormalMissile = ({
   const baseLog = getBaseLog(turn, fromIsland, toIsland);
   const impactBaseLand = getMapDefine(impactMapInfo.type).baseLand;
   let refugees = 0;
-  const logs: turnLogSchemaType[] = [];
+  const logs: TurnLog[] = [];
 
   if (impactMapInfo.type === 'wasteland') {
     changeMapData(toIsland, impactPoint.x, impactPoint.y, 'ruins', { type: 'ins', value: 0 });
@@ -651,7 +649,7 @@ const handleMonsterImpact = (
   impactMapInfo: islandInfo,
   isStealth: boolean,
   baseLog: ReturnType<typeof getBaseLog>,
-  logs: turnLogSchemaType[],
+  logs: TurnLog[],
   base: { x: number; y: number }
 ) => {
   // サンジラは奇数ターン、クジラは偶数ターンに硬化状態となり、あらゆるミサイルのダメージを無効化する
@@ -779,7 +777,7 @@ const processRefugees = (fromIsland: IslandWithUser, turn: number, validRefugees
  * @param enemyLandValue 攻撃対象の元々の規模（人口や怪獣の体力など）
  */
 const grantBaseExperience = (
-  island: islandSchemaType,
+  island: islandInfoTurnProgress,
   x: number,
   y: number,
   enemyLandValue: number

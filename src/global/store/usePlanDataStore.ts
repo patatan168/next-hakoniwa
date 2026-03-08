@@ -1,21 +1,18 @@
-import { planSchemaType } from '@/db/schema/planTable';
+import { Plan } from '@/db/kysely';
 import { create } from 'zustand';
 
 type newPlanDataStoreType = {
   currentUuid: string | null;
-  initData: planSchemaType[];
-  postData: planSchemaType[];
-  planListData: Array<Array<planSchemaType & { id: number; edit: boolean }>>;
-  items: Array<planSchemaType & { id: number; edit: boolean }>;
+  initData: Plan[];
+  postData: Plan[];
+  planListData: Array<Array<Plan & { id: number; edit: boolean }>>;
+  items: Array<Plan & { id: number; edit: boolean }>;
   historyIndex: number;
   isChange: boolean;
-  setInitData: (initData: planSchemaType[] | undefined, uuid: string | undefined) => void;
-  addPlanListData: (planListData: Array<planSchemaType & { id: number; edit: boolean }>) => void;
-  setPostData: (postData: planSchemaType[]) => void;
-  setItems: (
-    items: Array<planSchemaType & { id: number; edit: boolean }>,
-    saveHistory?: boolean
-  ) => void;
+  setInitData: (initData: Plan[] | undefined, uuid: string | undefined) => void;
+  addPlanListData: (planListData: Array<Plan & { id: number; edit: boolean }>) => void;
+  setPostData: (postData: Plan[]) => void;
+  setItems: (items: Array<Plan & { id: number; edit: boolean }>, saveHistory?: boolean) => void;
   undo: () => void;
   redo: () => void;
   deleteItem: (id: number) => void;

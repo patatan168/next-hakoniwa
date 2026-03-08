@@ -1,6 +1,4 @@
-import { db } from '@/db/kysely';
-import { islandSchemaType } from '@/db/schema/islandTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { db, Island, User } from '@/db/kysely';
 import { logIslandDelete } from '@/global/define/logType';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Verify } from '@/global/function/argon2';
@@ -87,9 +85,7 @@ export async function DELETE(request: NextRequest) {
           to_uuid: null,
           turn: turnState?.turn ?? 0,
           secret_log: '',
-          log: logIslandDelete(
-            island as unknown as islandSchemaType & Pick<userSchemaType, 'island_name'>
-          ),
+          log: logIslandDelete(island as unknown as Island & Pick<User, 'island_name'>),
         })
         .execute();
     }

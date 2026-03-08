@@ -1,15 +1,14 @@
-import { Database } from '@/db/kysely';
 import {
+  Database,
+  Island,
   islandData,
   islandInfo,
   islandInfoTurnProgress,
-  islandSchemaType,
   parseJsonIslandDataTurnProgress,
-} from '@/db/schema/islandTable';
-import { planSchemaType } from '@/db/schema/planTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { turnStateSchemaType } from '@/db/schema/turnStateTable';
-import { userSchemaType } from '@/db/schema/userTable';
+  Plan,
+  TurnLog,
+  User,
+} from '@/db/kysely';
 import { differenceWith, isEqual } from 'es-toolkit';
 import { Kysely, sql, Transaction } from 'kysely';
 import {
@@ -79,9 +78,9 @@ export async function getAllIslands(db: Kysely<Database> | Transaction<Database>
       'island.mining',
       'island.missile',
       'user.island_name',
-      sql<string>`json(island.island_info)`.as('island_info'),
-      sql<string>`json(island.prize)`.as('prize'),
     ])
+    .select(sql<string>`json(island.island_info)`.as('island_info'))
+    .select(sql<string>`json(island.prize)`.as('prize'))
     .where('user.inhabited', '=', 1)
     .execute()) as unknown as islandInfoTurnProgress[];
   if (islands) {
@@ -112,7 +111,7 @@ export async function getUserPlanInfo(db: Kysely<Database> | Transaction<Databas
  * @returns 全ユーザー情報
  */
 export async function getTurnInfo(db: Kysely<Database> | Transaction<Database>) {
-  return (await db.selectFrom('turn_state').selectAll().executeTakeFirst()) as turnStateSchemaType;
+  return await db.selectFrom('turn_state').selectAll().executeTakeFirst();
 }
 /**
  * ターンを更新
@@ -217,8 +216,8 @@ export const abandonIsland = async (
  */
 export const updateUserInhabited = async (
   db: Kysely<Database> | Transaction<Database>,
-  islandData: (islandSchemaType & Pick<userSchemaType, 'island_name'>)[],
-  logArray: turnLogSchemaType[],
+  islandData: (Island & Pick<User, 'island_name'>)[],
+  logArray: TurnLog[],
   turn: number
 ) => {
   const deadIslands = islandData.filter((island) => island.population <= 0);
@@ -247,7 +246,7 @@ export const updateUserInhabited = async (
  */
 export const insertLogs = async (
   db: Kysely<Database> | Transaction<Database>,
-  logData: turnLogSchemaType[]
+  logData: TurnLog[]
 ) => {
   if (logData.length === 0) return;
   try {
@@ -274,7 +273,7 @@ export const insertLogs = async (
  */
 export const insertDeletePlan = async (
   db: Kysely<Database> | Transaction<Database>,
-  updatePlan: planSchemaType[],
+  updatePlan: Plan[],
   deleteLength: number,
   uuid: string
 ) => {
@@ -298,11 +297,7 @@ export const insertDeletePlan = async (
  * @param toIsland 送信先島情報
  * @returns 基本ログ情報
  */
-export const getBaseLog = (
-  turn: number,
-  fromIsland: islandSchemaType,
-  toIsland: islandSchemaType = fromIsland
-) => {
+export const getBaseLog = (turn: number, fromIsland: Island, toIsland: Island = fromIsland) => {
   const log_uuid = createUuid25();
   return { log_uuid: log_uuid, to_uuid: toIsland.uuid, from_uuid: fromIsland.uuid, turn: turn };
 };
@@ -332,10 +327,10 @@ export const earthquakeExecute = (islandUuid: string, turn: number) => {
   const island = fromIslandGetSet.islandData;
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
 
-  if (checkProbability(island.earthquake)) {
+  if (checkProbability(island.earthquake as unknown as number)) {
     const baseLog = () => getBaseLog(turn, island);
     const earthquakeLog = logEarthquake(island);
-    const earthquakeLogs: turnLogSchemaType[] = [
+    const earthquakeLogs: TurnLog[] = [
       { ...baseLog(), log: earthquakeLog, secret_log: earthquakeLog },
     ];
     for (const islandInfo of island.island_info) {
@@ -383,7 +378,7 @@ export const lackFoodsExecute = (islandUuid: string, turn: number) => {
   if (island.food <= 0) {
     const lackFoodsLog = logLackFoods(island);
     const baseLog = () => getBaseLog(turn, island);
-    const lackFoodsLogs: turnLogSchemaType[] = [
+    const lackFoodsLogs: TurnLog[] = [
       { ...baseLog(), log: lackFoodsLog, secret_log: lackFoodsLog },
     ];
     for (const islandInfo of island.island_info) {
@@ -447,9 +442,7 @@ export const tsunamiExecute = (islandUuid: string, turn: number) => {
   if (checkProbability(island.tsunami)) {
     const baseLog = () => getBaseLog(turn, island);
     const tsunamiLog = logTsunami(island);
-    const tsunamiLogs: turnLogSchemaType[] = [
-      { ...baseLog(), log: tsunamiLog, secret_log: tsunamiLog },
-    ];
+    const tsunamiLogs: TurnLog[] = [{ ...baseLog(), log: tsunamiLog, secret_log: tsunamiLog }];
     for (const islandInfo of island.island_info) {
       if (isTsunamiDamageMap(islandInfo)) {
         if (tsunamiDestroyRate(island.island_info, islandInfo.x, islandInfo.y)) {
@@ -491,7 +484,9 @@ const popMonster = (
 ) => {
   const logs = [];
   const baseLog = () => getBaseLog(turn, island);
-  const islandInfoFindPeople = island.island_info.filter((info) => info.type === 'people');
+  const islandInfoFindPeople = island.island_info.filter(
+    (info: islandInfo) => info.type === 'people'
+  );
   // NOTE: 実行数か都市数のどちらか小さい方を出現数とする
   const popNum = Math.min(exeNum, islandInfoFindPeople.length);
   const arrayNum = arrayRandomInt(popNum);
@@ -580,7 +575,7 @@ export const landSubsidenceExecute = (islandUuid: string, turn: number) => {
   if (island.area > META_DATA.FALL_DOWN_BORDER && checkProbability(island.fall_down)) {
     const baseLog = () => getBaseLog(turn, island);
     const landSubsidenceLog = logLandSubsidence(island);
-    const landSubsidenceLogs: turnLogSchemaType[] = [
+    const landSubsidenceLogs: TurnLog[] = [
       { ...baseLog(), log: landSubsidenceLog, secret_log: landSubsidenceLog },
     ];
     for (const islandInfo of island.island_info) {
@@ -633,9 +628,7 @@ export function typhoonExecute(islandUuid: string, turn: number) {
   if (checkProbability(island.typhoon)) {
     const baseLog = () => getBaseLog(turn, island);
     const typhoonLog = logTyphoon(island);
-    const typhoonLogs: turnLogSchemaType[] = [
-      { ...baseLog(), log: typhoonLog, secret_log: typhoonLog },
-    ];
+    const typhoonLogs: TurnLog[] = [{ ...baseLog(), log: typhoonLog, secret_log: typhoonLog }];
     for (const islandInfo of island.island_info) {
       if (isTyphoonDamageMap(islandInfo)) {
         // 台風のログを作成
@@ -681,7 +674,7 @@ export const hugeMeteoriteExecute = (islandUuid: string, turn: number) => {
     const meteoriteX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const meteoriteY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const hugeMeteoriteLog = logHugeMeteorite(island, meteoriteX, meteoriteY);
-    const hugeMeteoriteLogs: turnLogSchemaType[] = [
+    const hugeMeteoriteLogs: TurnLog[] = [
       { ...baseLog(), log: hugeMeteoriteLog, secret_log: hugeMeteoriteLog },
     ];
     // 巨大隕石落下
@@ -707,7 +700,7 @@ export const monumentAttackExecute = (islandUuid: string, turn: number) => {
     const monumentX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const monumentY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const fallMonumentLog = logFallMonument(island, monumentX, monumentY);
-    const monumentAttackLogs: turnLogSchemaType[] = [
+    const monumentAttackLogs: TurnLog[] = [
       { ...baseLog, log: fallMonumentLog, secret_log: fallMonumentLog },
     ];
     // モノリス落下
@@ -731,7 +724,7 @@ export const meteoriteExecute = (islandUuid: string, turn: number) => {
 
   if (checkProbability(island.meteorite)) {
     const baseLog = () => getBaseLog(turn, island);
-    const landSubsidenceLogs: turnLogSchemaType[] = [];
+    const landSubsidenceLogs: TurnLog[] = [];
     let meteoriteFlag = true;
     // 隕石落下
     while (meteoriteFlag) {
@@ -807,7 +800,7 @@ export const eruptionExecute = (islandUuid: string, turn: number) => {
   if (checkProbability(island.eruption)) {
     const x = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const y = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
-    const eruptionLogs: turnLogSchemaType[] = [];
+    const eruptionLogs: TurnLog[] = [];
 
     const baseLog = () => getBaseLog(turn, island);
     const eruptionLog = logEruption(island, x, y);

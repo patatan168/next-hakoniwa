@@ -1,6 +1,7 @@
-import { turnStateSchemaType } from '@/db/schema/turnStateTable';
+import { TurnState } from '@/db/kysely';
 import { FetchStore } from '@/global/function/fetch/fetch';
 
-const store = new FetchStore<turnStateSchemaType>('/api/public/turn');
+export type TurnResponse = TurnState & { next_updated_at?: number };
+const store = new FetchStore<TurnResponse>('/api/public/turn');
 
 export const turnStore = store.store;

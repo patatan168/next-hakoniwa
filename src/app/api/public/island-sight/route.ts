@@ -1,6 +1,4 @@
-import { db } from '@/db/kysely';
-import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { db, Island, parseJsonIslandData, User } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
@@ -49,7 +47,7 @@ export async function GET(request: NextRequest) {
       .selectAll()
       .where('uuid', '=', uuid)
       .executeTakeFirst();
-    const islandData = islandDataRaw as unknown as islandSchemaType & userSchemaType;
+    const islandData = islandDataRaw as unknown as Island & User;
     if (islandData === undefined) {
       return NextResponse.json({ error: 'その島は存在しません。' }, { status: 404 });
     }

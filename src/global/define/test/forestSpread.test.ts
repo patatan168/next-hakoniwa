@@ -1,4 +1,4 @@
-import { islandInfoTurnProgress } from '@/db/schema/islandTable';
+import { islandInfoTurnProgress } from '@/db/kysely';
 import { mapArrayConverter } from '@/global/function/island';
 import * as utility from '@/global/function/utility';
 import { islandDataStore } from '@/global/store/turnProgress';

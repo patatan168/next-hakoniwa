@@ -1,6 +1,4 @@
-import { db } from '@/db/kysely';
-import { islandSchemaType, parseJsonIslandData } from '@/db/schema/islandTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { db, Island, parseJsonIslandData, User } from '@/db/kysely';
 import { accessLogger } from '@/global/function/logger';
 import { grantLoginBonus } from '@/global/function/loginBonus';
 import { sql } from 'kysely';
@@ -44,8 +42,7 @@ export async function GET(request: NextRequest) {
     .where('uuid', '=', uuid)
     .executeTakeFirst();
 
-  const islandData = islandDataRaw as unknown as islandSchemaType &
-    Pick<userSchemaType, 'island_name'>;
+  const islandData = islandDataRaw as unknown as Island & Pick<User, 'island_name'>;
   if (islandData === undefined) {
     accessLogger(request).warn(`Internal Server Error: Development uuid=${uuid}`);
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });

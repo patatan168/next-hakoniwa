@@ -1,4 +1,4 @@
-import { islandInfo, islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { differenceWith } from 'es-toolkit/array';
 import {
@@ -282,7 +282,7 @@ export const getIslandInfo = (data: islandInfoData, findX: number, findY: number
  * @param data マップデータ
  */
 export const getPublicIslandInfo = (data: islandInfoData) => {
-  return data.map((item) => {
+  return data.map((item: islandInfo) => {
     const fakeType = getMapDefine(item.type).fakeType;
     if (fakeType !== undefined) {
       return { x: item.x, y: item.y, type: fakeType, landValue: 0 };
@@ -302,8 +302,18 @@ export const getPublicIslandInfo = (data: islandInfoData) => {
  * @property landValue.type 変更タイプ (add, div, sub, multi, ins)
  * @property landValue.value 変更値
  */
+/**
+ * マップデータの変更 (内部処理)
+ * @param island 島データ
+ * @param x X座標
+ * @param y Y座標
+ * @param mapType 変更するマップタイプ
+ * @param landValue 変更するlandValue
+ * @property landValue.type 変更タイプ (add, div, sub, multi, ins)
+ * @property landValue.value 変更値
+ */
 export const changeMapData = (
-  island: islandSchemaType,
+  island: islandInfoTurnProgress,
   x: number,
   y: number,
   mapType: string,

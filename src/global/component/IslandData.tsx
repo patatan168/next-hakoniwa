@@ -1,11 +1,11 @@
-import { islandSchemaType } from '@/db/schema/islandTable';
+import { Island } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { forwardRef, memo } from 'react';
 import META_DATA from '../define/metadata';
 
 interface IslandDataProps {
   mode: 'sight' | 'development';
-  data?: Omit<islandSchemaType, 'island_info, island_name'> & { rank: number };
+  data?: Omit<Island, 'island_info, island_name'> & { rank: number };
 }
 
 const title =

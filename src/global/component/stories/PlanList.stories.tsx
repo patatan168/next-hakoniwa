@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 
-import { planSchemaType } from '@/db/schema/planTable';
+import { Plan } from '@/db/kysely';
 import PlanList from '@/global/component/PlanList';
 
-const planTest: Array<planSchemaType> = [
+const planTest: Array<Plan> = [
   { from_uuid: 'test', to_uuid: 'test', plan_no: 0, times: 0, x: 0, y: 0, plan: 'afforest' },
   { from_uuid: 'test', to_uuid: 'test', plan_no: 1, times: 0, x: 0, y: 0, plan: 'test1' },
   { from_uuid: 'test', to_uuid: 'test', plan_no: 2, times: 0, x: 0, y: 0, plan: 'test2' },
@@ -41,7 +41,7 @@ const meta = {
       description: '初期計画リスト',
       type: { name: 'other', value: '', required: true },
       table: {
-        type: { summary: 'Array<planSchemaType>' },
+        type: { summary: 'Array<Plan>' },
       },
     },
     uuid: {

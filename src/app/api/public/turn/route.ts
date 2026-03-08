@@ -1,5 +1,4 @@
-import { db } from '@/db/kysely';
-import { turnStateSchemaType } from '@/db/schema/turnStateTable';
+import { db, TurnState } from '@/db/kysely';
 import { Cron } from 'croner';
 import { NextResponse } from 'next/server';
 
@@ -8,11 +7,13 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  const user = (await db
-    .selectFrom('turn_state')
-    .selectAll()
-    .limit(1)
-    .executeTakeFirst()) as turnStateSchemaType;
+  const turnState = await db.selectFrom('turn_state').selectAll().limit(1).executeTakeFirst();
+
+  if (!turnState) {
+    return NextResponse.json({}, { status: 404 });
+  }
+
+  const response: TurnState & { next_updated_at?: number } = { ...turnState };
 
   try {
     const cronStr = process.env.NEXT_PUBLIC_TURN_CRON || process.env.TURN_CRON;
@@ -20,12 +21,12 @@ export async function GET() {
       const tz = process.env.NEXT_PUBLIC_TURN_TIMEZONE;
       const nextTime = new Cron(cronStr, tz ? { timezone: tz } : {}).nextRun();
       if (nextTime) {
-        user.next_updated_at = nextTime.getTime();
+        response.next_updated_at = nextTime.getTime();
       }
     }
   } catch {
     // 構文エラー等の場合は何もしない
   }
 
-  return NextResponse.json(user);
+  return NextResponse.json(response);
 }

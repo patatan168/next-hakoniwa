@@ -1,7 +1,6 @@
 import 'server-only';
 
-import { Database } from '@/db/kysely';
-import { islandInfoData } from '@/db/schema/islandTable';
+import { Database, islandInfoData } from '@/db/kysely';
 import { Kysely, sql, Transaction } from 'kysely';
 import { forest, mountain, plains, sea, shallows, wasteland } from '../define/mapCategory/mapLand';
 import { defenseBase } from '../define/mapCategory/mapMilitary';

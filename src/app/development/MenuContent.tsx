@@ -1,13 +1,10 @@
-import { islandSchemaType } from '@/db/schema/islandTable';
-import { planSchemaType } from '@/db/schema/planTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { turnStateSchemaType } from '@/db/schema/turnStateTable';
+import type { Island, Plan, TurnLog, TurnState } from '@/db/kysely';
 import BaseTabs from '@/global/component/TabContents';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
 
 const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
-const TurnLog = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
+const TurnLogComponent = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
 
 /**
  * 島開発メニューのコンテンツを表示するコンポーネント
@@ -21,19 +18,19 @@ type Props = {
   /** リストコンテナの高さ */
   listHeight: string;
   /** 島の開発データ */
-  developData?: islandSchemaType & { island_name: string } & { rank: number };
+  developData?: Island & { island_name: string } & { rank: number };
   /** 現在のビューモード（'plan' または 'log'） */
   view: 'plan' | 'log';
   /** 移住可能な島のリスト */
   islandList?: { uuid: string; island_name: string }[];
   /** 現在のターンデータ */
-  turnData?: turnStateSchemaType;
+  turnData?: TurnState;
   /** 計画データ読み込み中フラグ */
   isPlanLoading: boolean;
   /** 初期計画データ */
-  fetchPlanData?: planSchemaType[];
+  fetchPlanData?: Plan[];
   /** ターン記録の履歴 */
-  turnLog?: (Omit<turnLogSchemaType, 'log' | 'secret_log'> & {
+  turnLog?: (Omit<TurnLog, 'log' | 'secret_log'> & {
     log?: string;
     secret_log?: string;
   })[];
@@ -91,7 +88,7 @@ export const MenuContent = ({
             />
           </Activity>
           <Activity mode={view === 'log' ? 'visible' : 'hidden'}>
-            <TurnLog className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
+            <TurnLogComponent className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
           </Activity>
         </div>
       </div>

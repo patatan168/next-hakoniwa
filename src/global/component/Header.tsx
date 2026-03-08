@@ -30,12 +30,13 @@ export default function Header() {
   useEffect(() => {
     // 毎秒更新時刻を計算して表示を更新する
     const updateNextTime = () => {
-      if (!data.get || !data.get.next_updated_at) {
+      const turnState = data.get;
+      if (!turnState || !turnState.next_updated_at) {
         setNextUpdateStr('(自動更新は無効です)');
         return;
       }
 
-      const remainMs = data.get.next_updated_at - Date.now();
+      const remainMs = turnState.next_updated_at - Date.now();
 
       // 次の更新時刻の10秒前を切った場合（更新遅延中も含む）、毎秒ターン情報を取得する
       if (remainMs <= 10000) {

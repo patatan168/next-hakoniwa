@@ -1,5 +1,4 @@
-import { db } from '@/db/kysely';
-import { islandSchemaType } from '@/db/schema/islandTable';
+import { db, Island } from '@/db/kysely';
 import { sql } from 'kysely';
 
 export type LoginBonusResult = {
@@ -47,7 +46,7 @@ const getTzDayNumber = (unixSeconds: number) => {
  */
 export const grantLoginBonus = async (
   uuid: string,
-  islandData: islandSchemaType
+  islandData: Island
 ): Promise<LoginBonusResult | null> => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOGIN_BONUS === 'false') {
     return null;

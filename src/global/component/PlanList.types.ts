@@ -1,11 +1,11 @@
-import { planSchemaType } from '@/db/schema/planTable';
+import { Plan } from '@/db/kysely';
 import { CSSProperties, Ref } from 'react';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-export type LocalPlanItem = planSchemaType & {
+export type LocalPlanItem = Plan & {
   id: number;
   edit: boolean;
 };
@@ -30,5 +30,5 @@ export type PlanListProps = {
   isPlanLoading: boolean;
   turn?: number;
   uuid?: string;
-  initPlanData?: Array<planSchemaType>;
+  initPlanData?: Array<Plan>;
 };

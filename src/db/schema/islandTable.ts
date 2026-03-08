@@ -1,88 +1,17 @@
-import { DbSchema } from '@/global/function/db';
 import { getPublicIslandInfo } from '@/global/function/island';
-import { eventRateSchemaType } from './eventRateTable';
-import { userSchemaType } from './userTable';
+import type { EventRate, Island, User } from '../kysely';
+import type { islandInfoData } from './islandTypes';
 
-export const islandSchema: DbSchema = [
-  {
-    name: 'uuid',
-    type: 'TEXT',
-    primary: true,
-    unique: true,
-    foreign: { table: 'user', name: 'uuid' },
-  },
-  {
-    name: 'prize',
-    type: 'JSON',
-  },
-  {
-    name: 'money',
-    type: 'INTEGER',
-  },
-  {
-    name: 'area',
-    type: 'INTEGER',
-  },
-  {
-    name: 'population',
-    type: 'INTEGER',
-    index: { query: ['DESC'] },
-  },
-  {
-    name: 'food',
-    type: 'INTEGER',
-  },
-  {
-    name: 'farm',
-    type: 'INTEGER',
-  },
-  {
-    name: 'factory',
-    type: 'INTEGER',
-  },
-  {
-    name: 'mining',
-    type: 'INTEGER',
-  },
-  {
-    name: 'missile',
-    type: 'INTEGER',
-  },
-  {
-    name: 'island_info',
-    type: 'JSON',
-  },
-];
+export type islandData = Array<Island>;
 
-export type islandData = Array<islandSchemaType>;
-
-export type islandSchemaType = {
-  /** UUID */
-  uuid: string;
-  /** 獲得賞 */
-  prize: object;
-  /** 資金 */
-  money: number;
-  /** 面積 */
-  area: number;
-  /** 人口 */
-  population: number;
-  /** 食糧 */
-  food: number;
-  /** 農場規模 */
-  farm: number;
-  /** 工場規模 */
-  factory: number;
-  /** 採掘規模 */
-  mining: number;
-  /** ミサイル保有数 */
-  missile: number;
-  /** 島情報 */
-  island_info: islandInfoData;
-};
-
+/**
+ * ターン進行用の拡張島情報型
+ * Selectable<IslandTable> をベースに、User 名やイベントレート、
+ * ターン実行中のみ使用する一時的なプロパティを追加。
+ * JSON カラム（island_info, prize）は Kysely オーバーライドにより自動でパース済み型になります。
+ */
 export interface islandInfoTurnProgress
-  extends islandSchemaType, Omit<eventRateSchemaType, 'uuid'>, Pick<userSchemaType, 'island_name'> {
+  extends Island, Omit<EventRate, 'uuid'>, Pick<User, 'island_name'> {
   /** 人工怪獣出現数 */
   artificialMonster: number;
   /** モノリス落下数 */
@@ -90,12 +19,7 @@ export interface islandInfoTurnProgress
 }
 
 /**
- * JSON ColumをObjectに変換
- * @param island islandテーブルのデーター
- * @param isPublic 公開データか
- */
-/**
- * JSON型のカラム値をオブジェクトに解決する
+ * JSON型のカラム値をオブジェクトに解決する (Kyselyプラグインが未実行の場合のフォールバック)
  * @param value カラムの値（文字列、オブジェクト、またはjsonb由来のBuffer形式）
  * @returns パース済みのオブジェクト
  */
@@ -122,19 +46,35 @@ function resolveJsonColumn(value: unknown): unknown {
  * @param island islandテーブルのデーター
  * @param isPublic 公開データか
  */
-export const parseJsonIslandData = <T extends islandSchemaType>(island: T, isPublic = true) => {
-  if ('prize' in island) {
-    island.prize = resolveJsonColumn(island.prize) as object;
+export const parseJsonIslandData = <T extends Island>(
+  island: T | islandInfoTurnProgress,
+  isPublic = true
+) => {
+  const mutIsland = island as unknown as {
+    prize: unknown;
+    island_info: unknown;
+    missile: number;
+    money: number;
+  };
+
+  // すでにパースされている場合は何もしない（Kyselyプラグインによりパース済みの場合など）
+  if (typeof mutIsland.prize === 'string') {
+    mutIsland.prize = resolveJsonColumn(mutIsland.prize) as object;
   }
-  if ('island_info' in island) {
-    const parsed = resolveJsonColumn(island.island_info);
-    island.island_info = isPublic
+
+  if (typeof mutIsland.island_info === 'string') {
+    const parsed = resolveJsonColumn(mutIsland.island_info);
+    mutIsland.island_info = isPublic
       ? getPublicIslandInfo(parsed as islandInfoData)
       : (parsed as islandInfoData);
+  } else if (isPublic) {
+    // すでにオブジェクトであっても、公開データならフィルタリングを行う
+    mutIsland.island_info = getPublicIslandInfo(mutIsland.island_info as islandInfoData);
   }
+
   if (isPublic) {
-    island.missile = 0;
-    island.money = Math.round(island.money / 1000) * 1000;
+    mutIsland.missile = 0;
+    mutIsland.money = Math.round(mutIsland.money / 1000) * 1000;
   }
 };
 
@@ -150,15 +90,4 @@ export const parseJsonIslandDataTurnProgress = (
   parseJsonIslandData(island, isPublic);
   island.artificialMonster = 0;
   island.fallMonument = 0;
-};
-
-export type islandInfoData = Array<islandInfo>;
-
-export type islandInfo = {
-  type: string;
-  landValue: number;
-  x: number;
-  y: number;
-  /** 怪獣の移動距離 */
-  monsterDistance?: number;
 };

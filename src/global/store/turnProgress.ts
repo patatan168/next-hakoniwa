@@ -1,4 +1,4 @@
-import { islandInfoTurnProgress } from '@/db/schema/islandTable';
+import { islandInfoTurnProgress } from '@/db/kysely';
 import { createStore } from 'zustand/vanilla';
 
 type islandProgressStore = {

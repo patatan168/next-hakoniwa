@@ -1,19 +1,64 @@
 import sqlite from 'better-sqlite3';
-import { Kysely, ParseJSONResultsPlugin, SqliteDialect } from 'kysely';
+import {
+  ColumnType,
+  Insertable,
+  Kysely,
+  ParseJSONResultsPlugin,
+  Selectable,
+  SqliteDialect,
+  Updateable,
+} from 'kysely';
+import type { DB as GeneratedDB } from './generated';
+import type { islandInfoData } from './schema/islandTypes';
 
-import type { DB } from './generated';
+/**
+ * JSON カラムを考慮した Island テーブルの定義
+ * SQLite 上は string ですが、Kysely 経由での SELECT 時はオブジェクト、
+ * INSERT/UPDATE 時は文字列またはオブジェクトを受け取れるように定義します。
+ */
+export interface IslandTable extends Omit<GeneratedDB['island'], 'island_info' | 'prize'> {
+  island_info: ColumnType<islandInfoData, string | islandInfoData, string | islandInfoData>;
+  prize: ColumnType<object, string | object, string | object>;
+}
 
-/** kysely-codegen が生成した DB 型を Database として再エクスポート */
-export type Database = DB;
+/**
+ * データベース全体の定義をオーバーライド
+ * 自動生成された GeneratedDB の 'island' 表を、JSON 対応の IslandTable で差し替えます。
+ */
+export interface Database extends Omit<GeneratedDB, 'island'> {
+  island: IslandTable;
+}
 
-export type { Generated } from './generated';
+export type Island = Selectable<IslandTable>;
+export type NewIsland = Insertable<IslandTable>;
+export type IslandUpdate = Updateable<IslandTable>;
+
+export type User = Selectable<GeneratedDB['user']>;
+export type Auth = Selectable<GeneratedDB['auth']>;
+export type EventRate = Selectable<GeneratedDB['event_rate']>;
+export type Plan = Selectable<GeneratedDB['plan']>;
+export type TurnLog = Selectable<GeneratedDB['turn_log']>;
+export type TurnState = Selectable<GeneratedDB['turn_state']>;
+export type LastLogin = Selectable<GeneratedDB['last_login']>;
+export type Role = Selectable<GeneratedDB['role']>;
+export type AccessToken = Selectable<GeneratedDB['access_token']>;
+export type RefreshToken = Selectable<GeneratedDB['refresh_token']>;
+export type Passkey = Selectable<GeneratedDB['passkey']>;
+
+export type { islandInfo, islandInfoData } from './schema/islandTypes';
+
+export type { islandData, islandInfoTurnProgress } from './schema/islandTable';
+
+export { parseJsonIslandData, parseJsonIslandDataTurnProgress } from './schema/islandTable';
 
 const dialect = new SqliteDialect({
   database: new sqlite('./src/db/data/main.db'),
 });
 
+/**
+ * Kysely インスタンスの生成
+ */
 export const db = new Kysely<Database>({
   dialect,
-  // NOTE: SQLiteのJSONカラム（island_info, prize等）を自動でデシリアライズ
   plugins: [new ParseJSONResultsPlugin()],
 });

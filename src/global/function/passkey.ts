@@ -1,7 +1,6 @@
 import 'server-only';
 
-import { Database } from '@/db/kysely';
-import { passkeySchemaType } from '@/db/schema/passkeyTable';
+import { Database, Passkey } from '@/db/kysely';
 import type {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -149,7 +148,7 @@ export const verifyPasskeyRegistration = async (
   response: RegistrationResponseJSON,
   deviceName: string
 ): Promise<
-  Pick<passkeySchemaType, 'credential_id' | 'public_key' | 'device_name' | 'counter'> | undefined
+  { credential_id: string; public_key: string; device_name: string; counter: number } | undefined
 > => {
   const expectedChallenge = await consumeChallenge();
   if (!expectedChallenge) return undefined;
@@ -198,7 +197,7 @@ export const createAuthenticationOptions =
  */
 export const verifyPasskeyAuthentication = async (
   response: AuthenticationResponseJSON,
-  passkey: passkeySchemaType
+  passkey: Passkey
 ): Promise<number | undefined> => {
   const expectedChallenge = await consumeChallenge();
   if (!expectedChallenge) return undefined;
@@ -229,7 +228,7 @@ export const verifyPasskeyAuthentication = async (
 export const getPasskeyByCredentialId = async (
   client: Kysely<Database>,
   credentialId: string
-): Promise<passkeySchemaType | undefined> =>
+): Promise<Passkey | undefined> =>
   await client
     .selectFrom('passkey')
     .selectAll()
@@ -244,7 +243,7 @@ export const getPasskeyByCredentialId = async (
 export const getPasskeysByUuid = async (
   client: Kysely<Database>,
   uuid: string
-): Promise<passkeySchemaType[]> =>
+): Promise<Passkey[]> =>
   await client
     .selectFrom('passkey')
     .select([

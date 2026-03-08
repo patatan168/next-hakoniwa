@@ -1,5 +1,4 @@
-import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { Island, islandInfo, User } from '@/db/kysely';
 import { mapArrayConverter } from '../function/island';
 import { people } from './mapCategory/mapOther';
 import { getMapDefine, getMapName, mapType } from './mapType';
@@ -18,10 +17,7 @@ const coordinate = (x: number, y: number, isSecret = false): string => {
   return `[c]${char}[/c]`;
 };
 
-const islandName = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  link = true
-) => {
+const islandName = (island: Island & Pick<User, 'island_name'>, link = true) => {
   if (link) {
     return `[ui:${island.uuid}]${island.island_name}島[/ui]`;
   }
@@ -49,7 +45,7 @@ const mapName = (info: islandInfo) => {
  * @returns ログ
  */
 export const logLackCosts = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType
 ): string => {
   const lackCost = plan.costType === 'money' ? '資金' : '備蓄食料';
@@ -65,7 +61,7 @@ export const logLackCosts = (
  * @returns ログ
  */
 export const logLandFail = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -85,7 +81,7 @@ export const logLandFail = (
  * @returns ログ
  */
 export const logNoLandAround = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -106,7 +102,7 @@ export const logNoLandAround = (
  * @returns ログ
  */
 export const logCommonDev = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number,
@@ -122,7 +118,7 @@ export const logCommonDev = (
  * @returns ログ
  */
 export const logNoCoordinateCommonDev = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType
 ): string => {
   return `${islandName(island)}で${planName(plan)}が行われました。`;
@@ -137,8 +133,8 @@ export const logNoCoordinateCommonDev = (
  * @returns ログ
  */
 export const logCommonAid = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   plan: planType,
   times: number
 ): string => {
@@ -157,7 +153,7 @@ export const logCommonAid = (
  * @returns ログ
  */
 export const logAnyTimesDev = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number,
@@ -173,9 +169,7 @@ export const logAnyTimesDev = (
  * @param island 島情報
  * @returns ログ
  */
-export const logForest = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logForest = (island: Island & Pick<User, 'island_name'>): string => {
   return `こころなしか、${islandName(island)}の森が増えたようです。`;
 };
 
@@ -187,7 +181,7 @@ export const logForest = (
  * @returns ログ
  */
 export const logSubmersion = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -208,7 +202,7 @@ export const logSubmersion = (
  * @returns ログ
  */
 export const logMonsterSubmersion = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -226,7 +220,7 @@ export const logMonsterSubmersion = (
  * @returns ログ
  */
 export const logDamageWaste = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -244,7 +238,7 @@ export const logDamageWaste = (
  * @returns ログ
  */
 export const logScatterMonster = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -263,7 +257,7 @@ export const logScatterMonster = (
  * @returns ログ
  */
 export const logSetSelfCrash = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number
@@ -282,7 +276,7 @@ export const logSetSelfCrash = (
  * @returns ログ
  */
 export const logSelfCrash = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -301,7 +295,7 @@ export const logSelfCrash = (
  * @returns ログ
  */
 export const logOilEarned = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number,
   earn: number
@@ -320,7 +314,7 @@ export const logOilEarned = (
  * @returns ログ
  */
 export const logOilEnd = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -338,7 +332,7 @@ export const logOilEnd = (
  * @returns ログ
  */
 export const logFire = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -354,9 +348,7 @@ export const logFire = (
  * @param y Y座標
  * @returns ログ
  */
-export const logTyphoon = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logTyphoon = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island)}に${disaster('台風')}上陸！！`;
 };
 
@@ -368,7 +360,7 @@ export const logTyphoon = (
  * @returns ログ
  */
 export const logTyphoonDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -387,7 +379,7 @@ export const logTyphoonDamage = (
  * @returns ログ
  */
 export const logMonsterMove = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number,
   moveX: number,
@@ -414,7 +406,7 @@ export const logMonsterMove = (
  * @returns ログ
  */
 export const logMonsterSuicideBombing = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number,
   moveX: number,
@@ -435,9 +427,7 @@ export const logMonsterSuicideBombing = (
  * @param island 島情報
  * @returns ログ
  */
-export const logEarthquake = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logEarthquake = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island)}で大規模な${disaster('地震')}が発生！！`;
 };
 
@@ -449,7 +439,7 @@ export const logEarthquake = (
  * @returns ログ
  */
 export const logEarthquakeDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -464,9 +454,7 @@ export const logEarthquakeDamage = (
  * @param island 島情報
  * @returns ログ
  */
-export const logLackFoods = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logLackFoods = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island)}の${disaster('食料が不足')}しています！！`;
 };
 
@@ -478,7 +466,7 @@ export const logLackFoods = (
  * @returns ログ
  */
 export const logLackFoodsDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -493,9 +481,7 @@ export const logLackFoodsDamage = (
  * @param island 島情報
  * @returns ログ
  */
-export const logTsunami = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logTsunami = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island)}付近で${disaster('津波')}が発生！！`;
 };
 
@@ -507,7 +493,7 @@ export const logTsunami = (
  * @returns 津波による被害のログ
  */
 export const logTsunamiDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -526,7 +512,7 @@ export const logTsunamiDamage = (
  * @returns モンスター出現のログ
  */
 export const logPopMonster = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   popMonsterType: mapType,
   x: number,
   y: number
@@ -543,9 +529,7 @@ export const logPopMonster = (
  * @param island 島情報
  * @returns 地盤沈下のログ
  */
-export const logLandSubsidence = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logLandSubsidence = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island)}で地盤沈下が発生しました！！`;
 };
 
@@ -557,7 +541,7 @@ export const logLandSubsidence = (
  * @returns 地盤沈下による被害のログ
  */
 export const logLandSubsidenceDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -575,7 +559,7 @@ export const logLandSubsidenceDamage = (
  * @returns 記念碑落下のログ
  */
 export const logFallMonument = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -590,7 +574,7 @@ export const logFallMonument = (
  * @returns 隕石落下のログ
  */
 export const logMeteorite = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -608,7 +592,7 @@ export const logMeteorite = (
  * @returns 巨大隕石落下のログ
  */
 export const logHugeMeteorite = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -623,7 +607,7 @@ export const logHugeMeteorite = (
  * @returns 隕石が海に落下したログ
  */
 export const logMeteoriteToSea = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -641,7 +625,7 @@ export const logMeteoriteToSea = (
  * @returns 隕石が浅瀬に落下したログ
  */
 export const logMeteoriteToShallows = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -656,7 +640,7 @@ export const logMeteoriteToShallows = (
  * @returns 隕石が山に落下したログ
  */
 export const logMeteoriteToMountain = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -674,7 +658,7 @@ export const logMeteoriteToMountain = (
  * @returns 隕石が潜水艦ミサイルに落下したログ
  */
 export const logMeteoriteToSubmarineMissile = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -692,7 +676,7 @@ export const logMeteoriteToSubmarineMissile = (
  * @returns 隕石が怪獣に落下したログ
  */
 export const logMeteoriteToMonster = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -710,7 +694,7 @@ export const logMeteoriteToMonster = (
  * @returns 噴火ログ
  */
 export const logEruption = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -725,7 +709,7 @@ export const logEruption = (
  * @returns 噴火ダメージログ
  */
 export const logEruptionDamageToShallows = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -743,7 +727,7 @@ export const logEruptionDamageToShallows = (
  * @returns 噴火ダメージログ
  */
 export const logEruptionDamage = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -761,7 +745,7 @@ export const logEruptionDamage = (
  * @returns 海への噴火ダメージログ
  */
 export const logEruptionDamageToSea = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number
 ): string => {
@@ -780,7 +764,7 @@ export const logEruptionDamageToSea = (
  * @returns 埋蔵金発見ログ
  */
 export const logTreasure = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   x: number,
   y: number,
   earn: number
@@ -797,9 +781,7 @@ export const logTreasure = (
  * @param island 島情報
  * @returns 島滅亡ログ
  */
-export const logIslandDeath = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logIslandDeath = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island, false)}から人がいなくなり、[b]無人島[/b]になりました。`;
 };
 
@@ -808,9 +790,7 @@ export const logIslandDeath = (
  * @param island 島情報
  * @returns 島削除ログ
  */
-export const logIslandDelete = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>
-): string => {
+export const logIslandDelete = (island: Island & Pick<User, 'island_name'>): string => {
   return `${islandName(island, false)}は放棄され、[b]無人島[/b]になりました。`;
 };
 
@@ -823,7 +803,7 @@ export const logIslandDelete = (
  * @returns 資源輸出ログ
  */
 export const logResourceExport = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
   plan: planType,
   cost: number,
   earn: { unit: string; amount: number }
@@ -839,7 +819,7 @@ export const logResourceExport = (
  * @returns ログ文字列
  */
 export const logMissileNoTarget = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   planNameStr: string
 ): string => {
   return `${islandName(island)}で予定されていた${planName(planNameStr)}は、目標の島が存在しないため中止されました。`;
@@ -852,7 +832,7 @@ export const logMissileNoTarget = (
  * @returns ログ文字列
  */
 export const logMissileNoBase = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   planNameStr: string
 ): string => {
   return `${islandName(island)}で予定されていた${planName(planNameStr)}は、発射可能な基地が無かったため中止されました。`;
@@ -874,8 +854,8 @@ export const logMissileOutS = (): string => {
  * @returns ログ文字列
  */
 export const logMissileOut = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string
 ): string => {
   return `${islandName(fromIsland)}から${islandName(toIsland)}に向けて${planName(planNameStr)}が行われました。しかし着弾点は範囲外でした。`;
@@ -889,7 +869,7 @@ export const logMissileOut = (
  * @returns ログ文字列
  */
 export const logMissileCaughtS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number
 ): string => {
@@ -908,8 +888,8 @@ export const logMissileCaughtS = (
  * @returns ログ文字列
  */
 export const logMissileCaught = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -928,7 +908,7 @@ export const logMissileCaught = (
  * @returns ログ文字列
  */
 export const logMissileNoDamageS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -949,8 +929,8 @@ export const logMissileNoDamageS = (
  * @returns ログ文字列
  */
 export const logMissileNoDamage = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -970,7 +950,7 @@ export const logMissileNoDamage = (
  * @returns ログ文字列
  */
 export const logMissileWasteS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -991,8 +971,8 @@ export const logMissileWasteS = (
  * @returns ログ文字列
  */
 export const logMissileWaste = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1012,7 +992,7 @@ export const logMissileWaste = (
  * @returns ログ文字列
  */
 export const logMissileMonNoDamageS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -1033,8 +1013,8 @@ export const logMissileMonNoDamageS = (
  * @returns ログ文字列
  */
 export const logMissileMonNoDamage = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1054,7 +1034,7 @@ export const logMissileMonNoDamage = (
  * @returns ログ文字列
  */
 export const logMissileMonKillS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -1075,8 +1055,8 @@ export const logMissileMonKillS = (
  * @returns ログ文字列
  */
 export const logMissileMonKill = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1106,7 +1086,7 @@ export const logMissileMonMoney = (fakeMapInfo: islandInfo, money: number): stri
  * @returns ログ文字列
  */
 export const logMissileMonsterS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -1127,8 +1107,8 @@ export const logMissileMonsterS = (
  * @returns ログ文字列
  */
 export const logMissileMonster = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1148,7 +1128,7 @@ export const logMissileMonster = (
  * @returns ログ文字列
  */
 export const logMissileNormalS = (
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   ix: number,
   iy: number,
   fakeMapInfo: islandInfo
@@ -1169,8 +1149,8 @@ export const logMissileNormalS = (
  * @returns ログ文字列
  */
 export const logMissileNormal = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1194,8 +1174,8 @@ export const logMissileNormal = (
  * @returns ログ文字列
  */
 export const logMissileLDMountain = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1218,8 +1198,8 @@ export const logMissileLDMountain = (
  * @returns ログ文字列
  */
 export const logMissileLDSbase = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1242,8 +1222,8 @@ export const logMissileLDSbase = (
  * @returns ログ文字列
  */
 export const logMissileLDMonster = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1266,8 +1246,8 @@ export const logMissileLDMonster = (
  * @returns ログ文字列
  */
 export const logMissileLDSea1 = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1289,8 +1269,8 @@ export const logMissileLDSea1 = (
  * @returns ログ文字列
  */
 export const logMissileLDLand = (
-  fromIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
-  toIsland: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
   planNameStr: string,
   tx: number,
   ty: number,
@@ -1307,7 +1287,7 @@ export const logMissileLDLand = (
  * @returns ログ文字列
  */
 export const logMissileBoatPeople = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: Island & Pick<User, 'island_name'>,
   achieve: number
 ): string => {
   const coefficient = people.coefficient ?? 1;

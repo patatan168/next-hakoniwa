@@ -3,10 +3,7 @@
  * @listen
  * @author patatan
  */
-import { islandInfo, islandSchemaType } from '@/db/schema/islandTable';
-import { planSchemaType } from '@/db/schema/planTable';
-import { turnLogSchemaType } from '@/db/schema/turnLogTable';
-import { userSchemaType } from '@/db/schema/userTable';
+import { islandInfo, islandInfoTurnProgress, Plan, TurnLog, User } from '@/db/kysely';
 import { mapArrayConverter } from '../function/island';
 import { getBaseLog } from '../function/turnProgress';
 import { logLackCosts, logLandFail } from './logType';
@@ -29,12 +26,12 @@ export type planResult = {
   /** 次の計画を実行するか */
   nextPlan: boolean;
   /** ログ */
-  log: Array<turnLogSchemaType>;
+  log: Array<TurnLog>;
 };
 
 export type changeDataArgs = {
   /** 計画情報 */
-  plan: planSchemaType;
+  plan: Plan;
   /** ターン数 */
   turn: number;
   /** 計画情報 */
@@ -154,7 +151,7 @@ export const getPlanDefine = (type: string): planType => {
  * @param plan 計画情報
  * @returns 資金が十分かどうか
  */
-export const hasSufficientCosts = (island: islandSchemaType, plan: planType): boolean => {
+export const hasSufficientCosts = (island: islandInfoTurnProgress, plan: planType): boolean => {
   const landCost = plan.costType === 'money' ? island.money : island.food;
   return landCost >= plan.cost;
 };
@@ -184,7 +181,7 @@ export const validBaseLandType = (mapInfo: islandInfo, plan: planType) => {
  * @returns 予定地が有効かどうか
  */
 export const validLandType = (
-  island: islandSchemaType,
+  island: islandInfoTurnProgress,
   plan: planType,
   x: number,
   y: number,
@@ -227,7 +224,7 @@ export const validLandType = (
  * @returns コストと地形が有効かどうか
  */
 export const validCostAndLandType = (
-  island: islandSchemaType & Pick<userSchemaType, 'island_name'>,
+  island: islandInfoTurnProgress & Pick<User, 'island_name'>,
   plan: planType,
   x: number,
   y: number,

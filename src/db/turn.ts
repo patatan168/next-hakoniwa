@@ -1,4 +1,12 @@
-import { Database, db } from '@/db/kysely';
+import type {
+  Database,
+  Island,
+  Plan,
+  TurnLog,
+  islandInfo,
+  islandInfoTurnProgress,
+} from '@/db/kysely';
+import { db } from '@/db/kysely';
 import { logTurnResult } from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
@@ -31,9 +39,6 @@ import {
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
 import { Kysely, Transaction } from 'kysely';
-import { islandInfo, islandInfoTurnProgress, islandSchemaType } from './schema/islandTable';
-import { planSchemaType } from './schema/planTable';
-import { turnLogSchemaType } from './schema/turnLogTable';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
@@ -75,11 +80,11 @@ async function planPhase(
   db: Kysely<Database> | Transaction<Database>,
   currentTurn: number,
   fromUuid: string,
-  plans: planSchemaType[],
-  logArray: turnLogSchemaType[]
+  plans: Plan[],
+  logArray: TurnLog[]
 ) {
   const nextTurn = currentTurn + 1;
-  const dropPlans: planSchemaType[] = [];
+  const dropPlans: Plan[] = [];
   let financingFlag = plans.length === 0;
 
   for (let i = 0; i < plans.length; i++) {
@@ -134,7 +139,7 @@ function processSingleCell(
   island: islandInfoTurnProgress,
   typeCache: Map<string, mapType>,
   stats: IslandStats
-): turnLogSchemaType[] | undefined {
+): TurnLog[] | undefined {
   let mapDef = typeCache.get(item.type);
   if (!mapDef) {
     mapDef = getMapDefine(item.type);
@@ -159,7 +164,7 @@ function processSingleCell(
 /**
  * マップイベントおよび計算フェーズ
  */
-function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLogSchemaType[]) {
+function processMapScan(currentTurn: number, fromUuid: string, logArray: TurnLog[]) {
   using fromIslandGetSet = islandDataGetSet(fromUuid);
   const islandInfo = fromIslandGetSet.islandData;
   if (!islandInfo) throw new Error(`島情報が見つかりません。uuid=${fromUuid}`);
@@ -194,13 +199,9 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: turnLog
 /**
  * 島全体イベントフェーズ
  */
-function wideIslandEventPhase(
-  currentTurn: number,
-  fromUuid: string,
-  logArray: turnLogSchemaType[]
-) {
+function wideIslandEventPhase(currentTurn: number, fromUuid: string, logArray: TurnLog[]) {
   const nextTurn = currentTurn + 1;
-  const events: ((uuid: string, turn: number) => turnLogSchemaType[] | undefined)[] = [
+  const events: ((uuid: string, turn: number) => TurnLog[] | undefined)[] = [
     earthquakeExecute,
     lackFoodsExecute,
     tsunamiExecute,
@@ -226,10 +227,10 @@ function wideIslandEventPhase(
 async function fetchActivePlans(
   db: Kysely<Database> | Transaction<Database>,
   uuids: string[]
-): Promise<Record<string, planSchemaType[]>> {
+): Promise<Record<string, Plan[]>> {
   if (uuids.length === 0) return {};
   const CHUNK_SIZE = 900;
-  const planMap: Record<string, planSchemaType[]> = {};
+  const planMap: Record<string, Plan[]> = {};
 
   for (let i = 0; i < uuids.length; i += CHUNK_SIZE) {
     const chunk = uuids.slice(i, i + CHUNK_SIZE);
@@ -251,9 +252,9 @@ async function fetchActivePlans(
 
 async function processTurnForIslands(
   db: Kysely<Database> | Transaction<Database>,
-  islandList: islandSchemaType[],
+  islandList: Island[],
   turnInfo: { turn: number },
-  logArray: turnLogSchemaType[]
+  logArray: TurnLog[]
 ) {
   const allPlans = await fetchActivePlans(
     db,
@@ -327,7 +328,8 @@ async function processTurnForIslands(
 
 async function turnProceed(recursiveCount = 0) {
   const turnInfo = await getTurnInfo(db);
-
+  if (!turnInfo) return;
+  // ターン処理中チェック
   if (turnInfo.turn_processing === 1) {
     if (recursiveCount < MAX_RECURSIVE) {
       turnProceedLogger.warn(
@@ -345,7 +347,7 @@ async function turnProceed(recursiveCount = 0) {
     let islandList = await getAllIslands(db);
     if (!islandList || islandList.length === 0) return;
 
-    const logArray: turnLogSchemaType[] = [];
+    const logArray: TurnLog[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
     await processTurnForIslands(db, islandList, turnInfo, logArray);

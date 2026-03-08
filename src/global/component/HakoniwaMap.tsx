@@ -1,4 +1,4 @@
-import { islandInfoData, islandSchemaType } from '@/db/schema/islandTable';
+import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
 import { default as META } from '@/global/define/metadata';
 import { getPlanDefine, getPlanSelect, validLandType } from '@/global/define/planType';
 import { isEqual } from 'es-toolkit';
@@ -139,7 +139,7 @@ const MapCellPreview = memo(
     isCenter?: boolean;
     modalMapSize: number;
   }) => {
-    const cell = data.find((d) => d.x === cx && d.y === cy);
+    const cell = data.find((d: islandInfo) => d.x === cx && d.y === cy);
     if (!cell) {
       return (
         <div className="relative" style={{ width: modalMapSize, height: modalMapSize }}>
@@ -287,7 +287,7 @@ const MapClickModal = ({
 
   // 予測マップタイプ
   const predictedType = useMemo(() => {
-    let currentType = data.find((d) => d.x === x && d.y === y)?.type || 'sea';
+    let currentType = data.find((d: islandInfo) => d.x === x && d.y === y)?.type || 'sea';
 
     // 挿入先(position)より前にある、同じ座標の計画を抽出
     const previousPlans = currentItems
@@ -310,7 +310,7 @@ const MapClickModal = ({
     const currentIslandMap = structuredClone(data);
 
     // 予測地形を反映
-    const targetCellIndex = currentIslandMap.findIndex((d) => d.x === x && d.y === y);
+    const targetCellIndex = currentIslandMap.findIndex((d: islandInfo) => d.x === x && d.y === y);
     if (targetCellIndex !== -1) {
       currentIslandMap[targetCellIndex].type = predictedType;
     }
@@ -318,7 +318,7 @@ const MapClickModal = ({
     // validLandTypeはisland_infoのみ参照するためキャストで対応
     const dummyIsland = {
       island_info: currentIslandMap,
-    } as islandSchemaType;
+    } as islandInfoTurnProgress;
 
     return allPlans.filter((option) => {
       const planDefine = getPlanDefine(option.value);
@@ -485,7 +485,7 @@ const MapClickModal = ({
     </div>
   );
 
-  const targetCell = data.find((d) => d.x === x && d.y === y);
+  const targetCell = data.find((d: islandInfo) => d.x === x && d.y === y);
   const mapInfoText = targetCell ? getMapInfoText(x, y, targetCell.type, targetCell.landValue) : '';
 
   return (
@@ -556,7 +556,7 @@ export default memo(
             algin={'left'}
           />
         ))}
-        {data.map(({ x, y, type, landValue }) => {
+        {data.map(({ x, y, type, landValue }: islandInfo) => {
           const { imgPath, name } = getMapDefine(type);
           const alt = getMapName(type, landValue, name);
           const src = getMapImpPath(type, landValue, imgPath);
