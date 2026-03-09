@@ -4,6 +4,7 @@ import {
   islandData,
   islandInfo,
   islandInfoTurnProgress,
+  isSqlite,
   parseJsonIslandDataTurnProgress,
   Plan,
   TurnLog,
@@ -80,8 +81,15 @@ export async function getAllIslands(db: Kysely<Database> | Transaction<Database>
       'island.missile',
       'user.island_name',
     ])
-    .select(sql<string>`json(island.island_info)`.as('island_info'))
-    .select(sql<string>`json(island.prize)`.as('prize'))
+    // SQLite では json() で文字列へ変換が必要だが、MySQL の JSON 型はそのまま取得できる
+    .select(
+      isSqlite
+        ? sql<string>`json(island.island_info)`.as('island_info')
+        : sql<string>`island.island_info`.as('island_info')
+    )
+    .select(
+      isSqlite ? sql<string>`json(island.prize)`.as('prize') : sql<string>`island.prize`.as('prize')
+    )
     .where('user.inhabited', '=', 1)
     .execute()) as unknown as islandInfoTurnProgress[];
   if (islands) {
@@ -172,10 +180,18 @@ export const updateIslands = async (
 ) => {
   await db.transaction().execute(async (trx) => {
     for (const tmp of islandData) {
+      // SQLite: jsonb() で BLOB として格納、MySQL: JSON 型にはそのまま文字列を渡す
+      const prizeJson = JSON.stringify(tmp.prize);
+      const islandInfoJson = JSON.stringify(tmp.island_info);
+      const prizeSql = isSqlite ? sql<string>`jsonb(${prizeJson})` : sql<string>`${prizeJson}`;
+      const islandInfoSql = isSqlite
+        ? sql<string>`jsonb(${islandInfoJson})`
+        : sql<string>`${islandInfoJson}`;
+
       await trx
         .updateTable('island')
         .set({
-          prize: sql`jsonb(${JSON.stringify(tmp.prize)})`,
+          prize: prizeSql,
           money: tmp.money,
           area: tmp.area,
           population: tmp.population,
@@ -184,7 +200,7 @@ export const updateIslands = async (
           factory: tmp.factory,
           mining: tmp.mining,
           missile: tmp.missile,
-          island_info: sql`jsonb(${JSON.stringify(tmp.island_info)})`,
+          island_info: islandInfoSql,
         })
         .where('uuid', '=', tmp.uuid)
         .execute();

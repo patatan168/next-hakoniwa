@@ -1,80 +1,36 @@
-import { promises as fs } from 'fs';
-import { FileMigrationProvider, Migrator } from 'kysely';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { db } from './kysely';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { up } from './migrations/schema';
 
 /**
- * Migrator インスタンスの生成
- */
-function createMigrator(): Migrator {
-  return new Migrator({
-    db,
-    provider: new FileMigrationProvider({
-      fs,
-      path,
-      migrationFolder: path.join(__dirname, 'migrations'),
-    }),
-  });
-}
-
-/**
- * マイグレーション結果のログ出力
- * @param results マイグレーション結果
- */
-function logResults(results: Awaited<ReturnType<Migrator['migrateToLatest']>>['results']): void {
-  results?.forEach((it) => {
-    if (it.status === 'Success') {
-      const direction = it.direction === 'Up' ? '↑ Up' : '↓ Down';
-      console.log(`[${direction}] "${it.migrationName}" was executed successfully`);
-    } else if (it.status === 'Error') {
-      console.error(`[Error] failed to execute migration "${it.migrationName}"`);
-    }
-  });
-}
-
-/**
- * 全マイグレーションを最新状態まで適用
+ * スキーマを最新状態に同期する
+ * 既存のテーブルやデータは維持し、不足しているテーブルやカラムのみを追加する
  */
 export async function migrateToLatest(): Promise<void> {
-  const migrator = createMigrator();
-  const { error, results } = await migrator.migrateToLatest();
-
-  logResults(results);
-
-  if (error) {
-    console.error('failed to migrate');
-    console.error(error);
+  console.log('Synchronizing schema...');
+  try {
+    await up(db);
+    console.log('Schema synchronization completed successfully.');
+  } catch (e) {
+    console.error('Failed to synchronize schema:', e);
     process.exit(1);
   }
 }
 
 /**
- * 直前のマイグレーションをロールバック
- * @param steps ロールバックするステップ数（デフォルト: 1）
+ * データベースの全テーブルを削除して初期化する
  */
-export async function migrateDown(steps = 1): Promise<void> {
-  const migrator = createMigrator();
-
-  for (let i = 0; i < steps; i++) {
-    const { error, results } = await migrator.migrateDown();
-
-    logResults(results);
-
-    if (error) {
-      console.error(`failed to rollback (step ${i + 1})`);
-      console.error(error);
-      process.exit(1);
+export async function migrateDown(): Promise<void> {
+  console.log('Dropping all tables...');
+  try {
+    const tables = await db.introspection.getTables();
+    for (const table of tables) {
+      await db.schema.dropTable(table.name).ifExists().execute();
+      console.log(`Dropped table: ${table.name}`);
     }
-
-    // 適用されたマイグレーションがなければロールバック完了
-    if (!results || results.length === 0) {
-      console.log('No more migrations to roll back.');
-      break;
-    }
+    console.log('All tables dropped successfully.');
+  } catch (e) {
+    console.error('Failed to drop tables:', e);
+    process.exit(1);
   }
 }
 
@@ -83,14 +39,8 @@ const script = process.argv[1] ?? '';
 const command = process.argv[2];
 
 if (script.endsWith('migrate.ts') || script.endsWith('initDb.ts')) {
-  const steps = command === 'down' ? Number(process.argv[3] ?? 1) : undefined;
-
-  if (command === 'down') {
-    if (isNaN(steps!)) {
-      console.error('Usage: npx tsx ./src/db/migrate.ts down [steps]');
-      process.exit(1);
-    }
-    migrateDown(steps).catch((e) => {
+  if (command === 'down' || command === 'reset') {
+    migrateDown().catch((e) => {
       console.error(e);
       process.exit(1);
     });

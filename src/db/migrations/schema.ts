@@ -1,0 +1,245 @@
+import META_DATA from '@/global/define/metadata';
+import { ColumnDataType, ColumnDefinitionBuilder, Kysely, sql, SqliteAdapter } from 'kysely';
+import { Database } from '../kysely';
+
+export type ColumnDefinition = {
+  type: ColumnDataType | string;
+  config?: (col: ColumnDefinitionBuilder) => ColumnDefinitionBuilder;
+};
+
+export type TableDefinition = Record<string, ColumnDefinition>;
+
+async function rebuildTableWithData(
+  db: Kysely<Database>,
+  tableName: string,
+  columns: TableDefinition,
+  isSqlite: boolean
+): Promise<void> {
+  const existingTables = await db.introspection.getTables();
+  const existingTable = existingTables.find((t) => t.name === tableName);
+
+  if (!existingTable) {
+    let tb = db.schema.createTable(tableName);
+    for (const [colName, def] of Object.entries(columns)) {
+      if (def.config) {
+        tb = tb.addColumn(colName, def.type as ColumnDataType, def.config);
+      } else {
+        tb = tb.addColumn(colName, def.type as ColumnDataType);
+      }
+    }
+    await tb.execute();
+    console.log(`Created table: ${tableName}`);
+    return;
+  }
+
+  // カラムの差分確認
+  const hasMissingColumns = Object.keys(columns).some(
+    (colName) => !existingTable.columns.some((c) => c.name === colName)
+  );
+  if (!hasMissingColumns) return;
+
+  console.log(`Rebuilding table to apply new schema: ${tableName}`);
+  const tempTableName = `${tableName}_new_${Date.now()}`;
+
+  let tempTb = db.schema.createTable(tempTableName);
+  for (const [colName, def] of Object.entries(columns)) {
+    if (def.config) {
+      tempTb = tempTb.addColumn(colName, def.type as ColumnDataType, def.config);
+    } else {
+      tempTb = tempTb.addColumn(colName, def.type as ColumnDataType);
+    }
+  }
+  await tempTb.execute();
+
+  const commonColumns = Object.keys(columns).filter((colName) =>
+    existingTable.columns.some((c) => c.name === colName)
+  );
+
+  if (commonColumns.length > 0) {
+    const columnsSql = sql.join(commonColumns.map((c) => sql.ref(c)));
+    await sql`INSERT INTO ${sql.table(tempTableName)} (${columnsSql}) SELECT ${columnsSql} FROM ${sql.table(
+      tableName
+    )}`.execute(db);
+  }
+
+  if (isSqlite) await sql`PRAGMA foreign_keys = OFF`.execute(db);
+  await db.schema.dropTable(tableName).execute();
+  await db.schema.alterTable(tempTableName).renameTo(tableName).execute();
+  if (isSqlite) await sql`PRAGMA foreign_keys = ON`.execute(db);
+
+  console.log(`Rebuild completed: ${tableName}`);
+}
+
+export async function up(db: Kysely<Database>): Promise<void> {
+  const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
+  const nowSql = isSqlite ? sql`(unixepoch())` : sql`CURRENT_TIMESTAMP`;
+
+  if (isSqlite) {
+    await sql`PRAGMA foreign_keys = ON`.execute(db);
+  }
+
+  // ========== 宣言的スキーマ定義 ==========
+  // ここにテーブルとカラムの定義を追加・上書きしていくことで、自動的にDBに反映されます。
+  const desiredSchema: Record<string, TableDefinition> = {
+    user: {
+      uuid: { type: 'text', config: (col) => col.primaryKey().unique().notNull() },
+      user_name: { type: 'text', config: (col) => col.notNull() },
+      island_name: { type: 'text', config: (col) => col.notNull() },
+      inhabited: { type: 'integer', config: (col) => col.defaultTo(1).notNull() },
+    },
+    auth: {
+      uuid: {
+        type: 'text',
+        config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
+      },
+      id: { type: 'text', config: (col) => col.unique().notNull() },
+      password: { type: 'text', config: (col) => col.notNull() },
+      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      login_fail_count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      locked_until: { type: 'datetime' },
+      fp_hash: { type: 'text', config: (col) => col.defaultTo('').notNull() },
+    },
+    role: {
+      uuid: {
+        type: 'text',
+        config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
+      },
+      role: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+    last_login: {
+      uuid: {
+        type: 'text',
+        config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
+      },
+      last_login_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      last_bonus_received_at: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      consecutive_login_days: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+    island: {
+      uuid: {
+        type: 'text',
+        config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
+      },
+      money: { type: 'integer', config: (col) => col.notNull() },
+      area: { type: 'integer', config: (col) => col.notNull() },
+      population: { type: 'integer', config: (col) => col.notNull() },
+      food: { type: 'integer', config: (col) => col.notNull() },
+      farm: { type: 'integer', config: (col) => col.notNull() },
+      factory: { type: 'integer', config: (col) => col.notNull() },
+      mining: { type: 'integer', config: (col) => col.notNull() },
+      missile: { type: 'integer', config: (col) => col.notNull() },
+      prize: { type: 'json', config: (col) => col.notNull() },
+      island_info: { type: 'json', config: (col) => col.notNull() },
+    },
+    turn_log: {
+      log_uuid: { type: 'text', config: (col) => col.primaryKey().notNull() },
+      from_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'text', config: (col) => col.references('user.uuid') },
+      turn: { type: 'integer', config: (col) => col.notNull() },
+      secret_log: { type: 'text', config: (col) => col.notNull() },
+      log: { type: 'text' },
+    },
+    plan: {
+      from_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      plan_no: { type: 'integer', config: (col) => col.notNull() },
+      times: { type: 'integer', config: (col) => col.notNull() },
+      x: { type: 'integer', config: (col) => col.notNull() },
+      y: { type: 'integer', config: (col) => col.notNull() },
+      plan: { type: 'text', config: (col) => col.notNull() },
+    },
+    event_rate: {
+      uuid: { type: 'text', config: (col) => col.primaryKey().notNull().references('user.uuid') },
+      earthquake: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.EARTHQUAKE_RATE).notNull(),
+      },
+      tsunami: { type: 'real', config: (col) => col.defaultTo(META_DATA.TSUNAMI_RATE).notNull() },
+      typhoon: { type: 'real', config: (col) => col.defaultTo(META_DATA.TYPHOON_RATE).notNull() },
+      meteorite: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.METEORITE_RATE).notNull(),
+      },
+      huge_meteorite: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.HUGE_METEORITE_RATE).notNull(),
+      },
+      eruption: { type: 'real', config: (col) => col.defaultTo(META_DATA.ERUPTION_RATE).notNull() },
+      fire: { type: 'real', config: (col) => col.defaultTo(META_DATA.FIRE_RATE).notNull() },
+      buried_treasure: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.BURIED_TREASURE_RATE).notNull(),
+      },
+      oil_field: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.OIL_FIELD_RATE).notNull(),
+      },
+      oil_exhaustion: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.OIL_EXHAUSTION_RATE).notNull(),
+      },
+      fall_down: {
+        type: 'real',
+        config: (col) => col.defaultTo(META_DATA.FALL_DOWN_RATE).notNull(),
+      },
+      monster: { type: 'real', config: (col) => col.defaultTo(META_DATA.MONSTER_RATE).notNull() },
+      propaganda: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+    access_token: {
+      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      session_id: { type: 'text', config: (col) => col.notNull() },
+      public_key: { type: 'text', config: (col) => col.unique().notNull() },
+      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      expires: { type: 'datetime', config: (col) => col.notNull() },
+      id: isSqlite
+        ? { type: 'integer' }
+        : { type: 'bigint', config: (col) => col.notNull().autoIncrement().unique() },
+    },
+    refresh_token: {
+      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      session_id: { type: 'text', config: (col) => col.notNull() },
+      public_key: { type: 'text', config: (col) => col.unique().notNull() },
+      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      expires: { type: 'datetime', config: (col) => col.notNull() },
+      id: isSqlite
+        ? { type: 'integer' }
+        : { type: 'bigint', config: (col) => col.notNull().autoIncrement().unique() },
+    },
+    passkey: {
+      credential_id: { type: 'text', config: (col) => col.primaryKey().unique().notNull() },
+      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      public_key: { type: 'text', config: (col) => col.notNull() },
+      device_name: { type: 'text', config: (col) => col.notNull() },
+      counter: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      fp_hash: { type: 'text', config: (col) => col.defaultTo('').notNull() },
+      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+    },
+    turn_state: {
+      turn: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      turn_processing: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      last_updated_at: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+  };
+
+  // ========== 自動同期ロジック (テーブル再構築方式) ==========
+  for (const [tableName, columns] of Object.entries(desiredSchema)) {
+    await rebuildTableWithData(db, tableName, columns, isSqlite);
+  }
+
+  // ========== インデックスと初期値 ==========
+  await sql`CREATE INDEX IF NOT EXISTS user_inhabited_index ON user(inhabited)`.execute(db);
+  await sql`CREATE INDEX IF NOT EXISTS island_population_index ON island(population)`.execute(db);
+  await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(db);
+
+  const countRes = await sql<{ cnt: number }>`SELECT COUNT(*) as cnt FROM turn_state`.execute(db);
+  const count = Number(countRes.rows[0]?.cnt ?? 0);
+  if (count === 0) {
+    await sql`INSERT INTO turn_state (turn, turn_processing, last_updated_at) VALUES (0, 0, 0)`.execute(
+      db
+    );
+  }
+}
+
+export async function down(_db: Kysely<unknown>): Promise<void> {
+  // down は migrate.ts で直接全テーブル削除しているため、ここでは不要です
+}

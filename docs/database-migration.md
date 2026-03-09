@@ -71,24 +71,17 @@ npx tsx ./src/db/migrate.ts down 3
 
 ## マイグレーションファイルの作成
 
-### ファイルの命名規則
+### ファイルの命名規則と運用
 
-`src/db/migrations/` ディレクトリに、以下の形式でファイルを作成します。
-
-```
-YYYYMMDD_<説明>.ts
-```
-
-**例:**
+`src/db/migrations/` ディレクトリに、単一のスキーマ定義ファイルとして作成します。
 
 ```
-20260308_init.ts
-20260401_add_avatar.ts
+schema.ts
 ```
 
 > [!IMPORTANT]
-> Kysely の `FileMigrationProvider` はファイル名をアルファベット順（辞書順）で適用します。
-> 先頭に `YYYYMMDD` の日付を付けることで、作成順に適用されることを保証します。
+> 開発中にDBのスキーマを変更する場合は、マイグレーションファイルを追加するのではなく **既存の `schema.ts` を直接上書きして変更** してください。
+> すでに適用済みのマイグレーションを再度実行するには、データベース上のデータをリセットするか、`db:rollback` で変更を戻してから再適用する必要があります。
 
 ### ファイルのテンプレート
 
@@ -98,16 +91,18 @@ import { Kysely, SqliteAdapter, sql } from 'kysely';
 export async function up(db: Kysely<unknown>): Promise<void> {
   const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
 
-  // ここに ALTER TABLE や CREATE TABLE などの変更を記述する
+  // ここに CREATE TABLE などの定義を記述する
   await db.schema
-    .alterTable('some_table')
-    .addColumn('new_column', 'text', (col) => col.notNull().defaultTo(''))
+    .createTable('some_table')
+    .ifNotExists()
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('name', 'text', (col) => col.notNull())
     .execute();
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
-  // up() で行った変更を元に戻す処理を記述する
-  await db.schema.alterTable('some_table').dropColumn('new_column').execute();
+  // テーブルを削除するなどの初期化処理を記述する
+  await db.schema.dropTable('some_table').ifExists().execute();
 }
 ```
 
@@ -175,7 +170,7 @@ src/db/
 ├── migrate.ts          # マイグレーション実行スクリプト
 ├── generated.d.ts      # ← 自動生成（編集禁止）
 ├── migrations/
-│   └── 20260308_init.ts   # マイグレーションファイル
+│   └── schema.ts       # スキーマ定義のマイグレーションファイル（常にこれを上書きする）
 └── schema/
     ├── islandTable.ts   # island テーブルのカスタム型・パーサー
     └── islandTypes.ts   # island の型定義

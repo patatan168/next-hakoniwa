@@ -1,4 +1,4 @@
-import { db, Island, parseJsonIslandData, User } from '@/db/kysely';
+import { db, Island, isSqlite, parseJsonIslandData, User } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
@@ -37,8 +37,13 @@ export async function GET(request: NextRequest) {
             'island.missile',
             'user.island_name',
             'user.inhabited',
-            sql<string>`json(island.island_info)`.as('island_info'),
-            sql<string>`json(island.prize)`.as('prize'),
+            // SQLite: json() で文字列変換が必要、MySQL: JSON 型はそのまま参照
+            isSqlite
+              ? sql<string>`json(island.island_info)`.as('island_info')
+              : sql<string>`island.island_info`.as('island_info'),
+            isSqlite
+              ? sql<string>`json(island.prize)`.as('prize')
+              : sql<string>`island.prize`.as('prize'),
             sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
           ])
           .where('user.inhabited', '=', 1)

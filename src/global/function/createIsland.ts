@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { Database, islandInfoData } from '@/db/kysely';
+import { Database, islandInfoData, isSqlite } from '@/db/kysely';
 import { Kysely, sql, Transaction } from 'kysely';
 import { forest, mountain, plains, sea, shallows, wasteland } from '../define/mapCategory/mapLand';
 import { defenseBase } from '../define/mapCategory/mapMilitary';
@@ -180,11 +180,19 @@ export const createIsland = async (
 
   // Transaction
   await client.transaction().execute(async (trx) => {
+    // SQLite: jsonb() で BLOB として格納、MySQL: JSON 型にはそのまま文字列を渡す
+    const prizeVal = isSqlite
+      ? sql<string>`jsonb(${JSON.stringify([])})`
+      : sql<string>`${JSON.stringify([])}`;
+    const islandInfoVal = isSqlite
+      ? sql<string>`jsonb(${JSON.stringify(data)})`
+      : sql<string>`${JSON.stringify(data)}`;
+
     await trx
       .insertInto('island')
       .values({
         uuid,
-        prize: sql<string>`jsonb(${JSON.stringify([])})`,
+        prize: prizeVal,
         money: META_DATA.INIT_MONEY,
         food: META_DATA.INIT_FOOD,
         area: countArea(data),
@@ -193,7 +201,7 @@ export const createIsland = async (
         factory: calcAllTypeNum(data, 'factory'),
         mining: calcAllTypeNum(data, 'mining'),
         missile: calcAllTypeNum(data, 'missile') + calcAllTypeNum(data, 'submarine_missile'),
-        island_info: sql<string>`jsonb(${JSON.stringify(data)})`,
+        island_info: islandInfoVal,
       })
       .execute();
 

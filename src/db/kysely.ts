@@ -5,6 +5,7 @@ import {
   Kysely,
   MysqlDialect,
   Selectable,
+  SqliteAdapter,
   SqliteDialect,
   Updateable,
 } from 'kysely';
@@ -86,3 +87,9 @@ function getDialect(): Kysely<Database> {
 }
 
 export const db = getDialect();
+
+/**
+ * 接続中のDBがSQLiteかどうか
+ * 起動時に1回だけ評価される
+ */
+export const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;

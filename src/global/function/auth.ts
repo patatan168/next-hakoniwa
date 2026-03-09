@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { Database } from '@/db/kysely';
+import { Database, isSqlite } from '@/db/kysely';
 import { default as META } from '@/global/define/metadata';
 import * as jwt from 'jsonwebtoken';
 import { Kysely, sql, Transaction } from 'kysely';
@@ -82,17 +82,33 @@ export const createJwtToken = async (
   const session_id = randomString(sessionStrNum);
   const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
+  // SQLite: `datetime(unixepoch() + N * 3600, 'unixepoch')` → MySQL: `DATE_ADD(NOW(), INTERVAL N HOUR)`
+  const expiresSql = isSqlite
+    ? sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`
+    : sql<string>`DATE_ADD(NOW(), INTERVAL ${expiresHour} HOUR)`;
+
   await client.transaction().execute(async (trx) => {
-    // Delete oldest if we reached MAX_SESSIONS
-    // subquery equivalent: delete where rowid not in (select rowid order by expires desc limit MAX_SESSIONS - 1)
-    // Kysely subqueries with rowid can be tricky, so we use raw sql for the delete part.
-    await sql`DELETE FROM ${sql.table(tableName)}
-      WHERE uuid = ${uuid} AND rowid NOT IN (
-        SELECT rowid FROM ${sql.table(tableName)}
-        WHERE uuid = ${uuid}
-        ORDER BY expires DESC
-        LIMIT ${META.MAX_SESSIONS - 1}
-      )`.execute(trx);
+    // セッション上限を超えた古いセッションを削除
+    // SQLite: rowid で識別、MySQL: id カラムで識別
+    if (isSqlite) {
+      await sql`DELETE FROM ${sql.table(tableName)}
+        WHERE uuid = ${uuid} AND rowid NOT IN (
+          SELECT rowid FROM ${sql.table(tableName)}
+          WHERE uuid = ${uuid}
+          ORDER BY expires DESC
+          LIMIT ${META.MAX_SESSIONS - 1}
+        )`.execute(trx);
+    } else {
+      await sql`DELETE FROM ${sql.table(tableName)}
+        WHERE uuid = ${uuid} AND id NOT IN (
+          SELECT id FROM (
+            SELECT id FROM ${sql.table(tableName)}
+            WHERE uuid = ${uuid}
+            ORDER BY expires DESC
+            LIMIT ${META.MAX_SESSIONS - 1}
+          ) AS sub
+        )`.execute(trx);
+    }
 
     await trx
       .insertInto(tableName)
@@ -100,7 +116,7 @@ export const createJwtToken = async (
         uuid,
         session_id,
         public_key: publicKey,
-        expires: sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`,
+        expires: expiresSql,
       })
       .execute();
   });
@@ -145,6 +161,10 @@ async function reCreateJwtToken(
   const session_id = randomString(sessionStrNum);
   const { privateKey, publicKey } = isAccessToken ? es256Gen() : es384Gen();
 
+  const expiresSql = isSqlite
+    ? sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`
+    : sql<string>`DATE_ADD(NOW(), INTERVAL ${expiresHour} HOUR)`;
+
   await client.transaction().execute(async (trx) => {
     await trx
       .deleteFrom(tableName)
@@ -158,7 +178,7 @@ async function reCreateJwtToken(
         uuid,
         session_id,
         public_key: publicKey,
-        expires: sql<string>`datetime(unixepoch() + ${expiresHour} * 3600, 'unixepoch')`,
+        expires: expiresSql,
       })
       .execute();
   });
@@ -374,10 +394,18 @@ export const validAuthCookie = async (
   }
 
   // 10分以内にログインしていなければ最終ログイン時間を更新
-  await sql`UPDATE last_login
-       SET last_login_at = unixepoch()
-       WHERE uuid = ${uuid}
-         AND last_login_at < unixepoch() - 600`.execute(client);
+  // SQLite: unixepoch()、MySQL: UNIX_TIMESTAMP()
+  if (isSqlite) {
+    await sql`UPDATE last_login
+         SET last_login_at = unixepoch()
+         WHERE uuid = ${uuid}
+           AND last_login_at < unixepoch() - 600`.execute(client);
+  } else {
+    await sql`UPDATE last_login
+         SET last_login_at = UNIX_TIMESTAMP()
+         WHERE uuid = ${uuid}
+           AND last_login_at < UNIX_TIMESTAMP() - 600`.execute(client);
+  }
 
   return uuid;
 };
