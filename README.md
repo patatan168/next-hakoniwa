@@ -59,14 +59,26 @@ npm run storybook
 
 [http://localhost:6006](http://localhost:6006) をブラウザで開くと確認できます。
 
+## Docker検証環境の起動（推奨）
+
+Passkey（WebAuthn）を用いた認証や、自己署名証明書によるHTTPS通信などのテストを行うには、本番相当のコンテナ環境を使用します。
+
+詳細な手順やOriginURLの設定については、[Docker検証環境手順](./docs/docker-verification.md) を参照してください。
+
+```bash
+docker compose build app
+docker compose up -d
+```
+
 ## ドキュメント
 
-| ドキュメント                                                 | 説明                                        |
-| ------------------------------------------------------------ | ------------------------------------------- |
-| [認証仕様](./docs/auth_specification.md)                     | JWT・パスキー・アカウントロックアウトの仕様 |
-| [データベースマイグレーション](./docs/database-migration.md) | マイグレーションの仕組みと操作手順          |
-| [環境変数一覧](./docs/environment-variables.md)              | 全環境変数の説明とデフォルト値              |
-| [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                |
+| ドキュメント                                                 | 説明                                            |
+| ------------------------------------------------------------ | ----------------------------------------------- |
+| [認証仕様](./docs/auth_specification.md)                     | JWT・パスキー・アカウントロックアウトの仕様     |
+| [データベースマイグレーション](./docs/database-migration.md) | マイグレーションの仕組みと操作手順              |
+| [環境変数一覧](./docs/environment-variables.md)              | 全環境変数の説明とデフォルト値                  |
+| [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                    |
+| [Docker検証環境手順](./docs/docker-verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |
 
 ## 依存ライブラリ
 

@@ -15,7 +15,9 @@ async function rebuildTableWithData(
   columns: TableDefinition,
   isSqlite: boolean
 ): Promise<void> {
+  console.log(`[DEBUG] introspecting tables for ${tableName}...`);
   const existingTables = await db.introspection.getTables();
+  console.log(`[DEBUG] finished introspecting for ${tableName}`);
   const existingTable = existingTables.find((t) => t.name === tableName);
 
   if (!existingTable) {
@@ -71,8 +73,10 @@ async function rebuildTableWithData(
 }
 
 export async function up(db: Kysely<Database>): Promise<void> {
+  console.log('[DEBUG] Starting up() function...');
   const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
-  const nowSql = isSqlite ? sql`(unixepoch())` : sql`CURRENT_TIMESTAMP`;
+  console.log(`[DEBUG] isSqlite: ${isSqlite}`);
+  const nowSql = isSqlite ? sql`(unixepoch())` : sql`(UNIX_TIMESTAMP())`;
 
   if (isSqlite) {
     await sql`PRAGMA foreign_keys = ON`.execute(db);
@@ -82,33 +86,33 @@ export async function up(db: Kysely<Database>): Promise<void> {
   // ここにテーブルとカラムの定義を追加・上書きしていくことで、自動的にDBに反映されます。
   const desiredSchema: Record<string, TableDefinition> = {
     user: {
-      uuid: { type: 'text', config: (col) => col.primaryKey().unique().notNull() },
+      uuid: { type: 'varchar(255)', config: (col) => col.primaryKey().unique().notNull() },
       user_name: { type: 'text', config: (col) => col.notNull() },
       island_name: { type: 'text', config: (col) => col.notNull() },
       inhabited: { type: 'integer', config: (col) => col.defaultTo(1).notNull() },
     },
     auth: {
       uuid: {
-        type: 'text',
+        type: 'varchar(255)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
-      id: { type: 'text', config: (col) => col.unique().notNull() },
+      id: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
       password: { type: 'text', config: (col) => col.notNull() },
       created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
       login_fail_count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
       locked_until: { type: 'datetime' },
-      fp_hash: { type: 'text', config: (col) => col.defaultTo('').notNull() },
+      fp_hash: { type: 'varchar(255)', config: (col) => col.defaultTo('').notNull() },
     },
     role: {
       uuid: {
-        type: 'text',
+        type: 'varchar(255)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
       role: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
     last_login: {
       uuid: {
-        type: 'text',
+        type: 'varchar(255)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
       last_login_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
@@ -117,7 +121,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     },
     island: {
       uuid: {
-        type: 'text',
+        type: 'varchar(255)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
       money: { type: 'integer', config: (col) => col.notNull() },
@@ -132,16 +136,16 @@ export async function up(db: Kysely<Database>): Promise<void> {
       island_info: { type: 'json', config: (col) => col.notNull() },
     },
     turn_log: {
-      log_uuid: { type: 'text', config: (col) => col.primaryKey().notNull() },
-      from_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
-      to_uuid: { type: 'text', config: (col) => col.references('user.uuid') },
+      log_uuid: { type: 'varchar(255)', config: (col) => col.primaryKey().notNull() },
+      from_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'varchar(255)', config: (col) => col.references('user.uuid') },
       turn: { type: 'integer', config: (col) => col.notNull() },
       secret_log: { type: 'text', config: (col) => col.notNull() },
       log: { type: 'text' },
     },
     plan: {
-      from_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
-      to_uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      from_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
       plan_no: { type: 'integer', config: (col) => col.notNull() },
       times: { type: 'integer', config: (col) => col.notNull() },
       x: { type: 'integer', config: (col) => col.notNull() },
@@ -149,7 +153,10 @@ export async function up(db: Kysely<Database>): Promise<void> {
       plan: { type: 'text', config: (col) => col.notNull() },
     },
     event_rate: {
-      uuid: { type: 'text', config: (col) => col.primaryKey().notNull().references('user.uuid') },
+      uuid: {
+        type: 'varchar(255)',
+        config: (col) => col.primaryKey().notNull().references('user.uuid'),
+      },
       earthquake: {
         type: 'real',
         config: (col) => col.defaultTo(META_DATA.EARTHQUAKE_RATE).notNull(),
@@ -186,9 +193,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
       propaganda: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
     access_token: {
-      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
       session_id: { type: 'text', config: (col) => col.notNull() },
-      public_key: { type: 'text', config: (col) => col.unique().notNull() },
+      public_key: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
       created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
       expires: { type: 'datetime', config: (col) => col.notNull() },
       id: isSqlite
@@ -196,9 +203,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
         : { type: 'bigint', config: (col) => col.notNull().autoIncrement().unique() },
     },
     refresh_token: {
-      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
       session_id: { type: 'text', config: (col) => col.notNull() },
-      public_key: { type: 'text', config: (col) => col.unique().notNull() },
+      public_key: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
       created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
       expires: { type: 'datetime', config: (col) => col.notNull() },
       id: isSqlite
@@ -206,12 +213,12 @@ export async function up(db: Kysely<Database>): Promise<void> {
         : { type: 'bigint', config: (col) => col.notNull().autoIncrement().unique() },
     },
     passkey: {
-      credential_id: { type: 'text', config: (col) => col.primaryKey().unique().notNull() },
-      uuid: { type: 'text', config: (col) => col.notNull().references('user.uuid') },
+      credential_id: { type: 'varchar(255)', config: (col) => col.primaryKey().unique().notNull() },
+      uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
       public_key: { type: 'text', config: (col) => col.notNull() },
       device_name: { type: 'text', config: (col) => col.notNull() },
       counter: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
-      fp_hash: { type: 'text', config: (col) => col.defaultTo('').notNull() },
+      fp_hash: { type: 'varchar(255)', config: (col) => col.defaultTo('').notNull() },
       created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
     },
     turn_state: {
@@ -222,14 +229,35 @@ export async function up(db: Kysely<Database>): Promise<void> {
   };
 
   // ========== 自動同期ロジック (テーブル再構築方式) ==========
+  console.log('[DEBUG] Starting table sync loops...');
   for (const [tableName, columns] of Object.entries(desiredSchema)) {
+    console.log(`[DEBUG] Processing table: ${tableName}`);
     await rebuildTableWithData(db, tableName, columns, isSqlite);
   }
+  console.log('[DEBUG] Finished table sync loops.');
 
   // ========== インデックスと初期値 ==========
-  await sql`CREATE INDEX IF NOT EXISTS user_inhabited_index ON user(inhabited)`.execute(db);
-  await sql`CREATE INDEX IF NOT EXISTS island_population_index ON island(population)`.execute(db);
-  await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(db);
+  console.log('[DEBUG] Creating indexes...');
+  const runSafe = async (query: import('kysely').RawBuilder<unknown>) => {
+    try {
+      await query.execute(db);
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (err.code !== 'ER_DUP_KEYNAME') console.warn(err.message ?? 'Unknown error');
+    }
+  };
+
+  if (isSqlite) {
+    await sql`CREATE INDEX IF NOT EXISTS user_inhabited_index ON user(inhabited)`.execute(db);
+    await sql`CREATE INDEX IF NOT EXISTS island_population_index ON island(population)`.execute(db);
+    await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(
+      db
+    );
+  } else {
+    await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
+    await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
+    await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
+  }
 
   const countRes = await sql<{ cnt: number }>`SELECT COUNT(*) as cnt FROM turn_state`.execute(db);
   const count = Number(countRes.rows[0]?.cnt ?? 0);

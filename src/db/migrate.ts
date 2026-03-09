@@ -40,14 +40,26 @@ const command = process.argv[2];
 
 if (script.endsWith('migrate.ts') || script.endsWith('initDb.ts')) {
   if (command === 'down' || command === 'reset') {
-    migrateDown().catch((e) => {
-      console.error(e);
-      process.exit(1);
-    });
+    migrateDown()
+      .then(async () => {
+        await db.destroy();
+        process.exit(0);
+      })
+      .catch(async (e) => {
+        console.error(e);
+        await db.destroy();
+        process.exit(1);
+      });
   } else {
-    migrateToLatest().catch((e) => {
-      console.error(e);
-      process.exit(1);
-    });
+    migrateToLatest()
+      .then(async () => {
+        await db.destroy();
+        process.exit(0);
+      })
+      .catch(async (e) => {
+        console.error(e);
+        await db.destroy();
+        process.exit(1);
+      });
   }
 }

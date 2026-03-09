@@ -3,6 +3,9 @@
 # auto generate kysely Types
 src/db/generated.d.ts
 
+# certs
+.certs/
+
 # dependencies
 /node_modules
 /.pnp

@@ -9,7 +9,7 @@ import {
   SqliteDialect,
   Updateable,
 } from 'kysely';
-import mysql from 'mysql2/promise';
+import mysql from 'mysql2';
 import type { DB as GeneratedDB } from './generated';
 import type { islandInfoData } from './schema/islandTypes';
 
@@ -78,7 +78,9 @@ function getDialect(): Kysely<Database> {
     }
     return new Kysely<Database>({
       dialect: new MysqlDialect({
-        pool: mysql.createPool(connectionString),
+        pool: mysql.createPool(
+          connectionString
+        ) as unknown as import('kysely').MysqlDialectConfig['pool'],
       }),
     });
   }

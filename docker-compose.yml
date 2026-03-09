@@ -1,0 +1,52 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hakoniwa-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: hakoniwa
+      MYSQL_USER: hakoniwa_user
+      MYSQL_PASSWORD: hakoniwa_password
+      TZ: Asia/Tokyo
+    ports:
+      - '13306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hakoniwa-app
+    environment:
+      # build時にDB_TYPE=mysqlでビルドされているが、ここでも明示しておく
+      DB_TYPE: mysql
+      DB_CONNECTION_STRING: ${DOCKER_DB_CONNECTION_STRING:-mysql://hakoniwa_user:hakoniwa_password@mysql:3306/hakoniwa}
+      NEXT_PUBLIC_ORIGIN_URL: ${DOCKER_NEXT_PUBLIC_ORIGIN_URL:-http://localhost}
+    ports:
+      - '3000:3000'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
+
+  web:
+    image: nginx:alpine
+    container_name: hakoniwa-web
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./.certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+
+volumes:
+  db_data:
