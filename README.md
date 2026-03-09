@@ -1,63 +1,94 @@
 # Next.js Hakoniwa
 
-This is a [Next.js](https://nextjs.org) project.
+[Next.js](https://nextjs.org) で実装された箱庭諸島のWebアプリケーションです。
 
-## Setup DataBase
+## セットアップ
+
+### 1. 依存パッケージのインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+`.env` ファイルを参考に、必要な環境変数を設定します。
+詳細については [環境変数一覧](./docs/environment-variables.md) を参照してください。
+
+### 3. データベースの初期化
 
 ```bash
 npm run db:init
 ```
 
-## Migration DataBase
+## コマンド一覧
 
-```bash
-npm run db:migrate
-```
+| コマンド            | 説明                                         |
+| ------------------- | -------------------------------------------- |
+| `npm run dev`       | 開発サーバーの起動                           |
+| `npm run build`     | 本番ビルド                                   |
+| `npm run start`     | 本番サーバーの起動                           |
+| `npm run test`      | ユニットテストの実行                         |
+| `npm run lint`      | ESLint / Stylelint / TypeScript の静的解析   |
+| `npm run fmt`       | Prettier によるフォーマット                  |
+| `npm run storybook` | Storybook の起動（コンポーネントのカタログ） |
+| `npm run turn`      | ターン処理の手動実行                         |
 
-## Getting Started
+### データベース操作
 
-Run the development server:
+| コマンド              | 説明                                  |
+| --------------------- | ------------------------------------- |
+| `npm run db:init`     | マイグレーション実行 + 型生成（初回） |
+| `npm run db:migrate`  | 未適用マイグレーションの適用 + 型生成 |
+| `npm run db:rollback` | 直前の1ステップをロールバック         |
+| `npm run db:codegen`  | 型定義の再生成のみ                    |
+
+## 開発サーバーの起動
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) をブラウザで開くと結果を確認できます。
 
-## Document
-
-Only run the development server.
-
-Open [http://localhost:3000/docs/](http://localhost:3000/docs/) with your browser to see documents.
-
-## Custom Component Document & Test
+### コンポーネントカタログ（Storybook）
 
 ```bash
 npm run storybook
 ```
 
-Open [http://localhost:6006](http://localhost:6006) with your browser to see the result.
+[http://localhost:6006](http://localhost:6006) をブラウザで開くと確認できます。
 
-## Dependency
+## ドキュメント
 
-| Library                   | Version |
-| ------------------------- | ------- |
-| Node.js                   | 22.22.0 |
-| React                     | 19.2.4  |
-| Next.js                   | 16.1.6  |
-| Tailwind CSS              | 4.1.18  |
-| sass                      | 1.97.3  |
-| React Icons               | 5.5.0   |
-| react-virtuoso            | 4.18.1  |
-| better-sqlite3            | 12.6.2  |
-| react-hook-form           | 7.71.1  |
-| zod                       | 4.3.6   |
-| es-toolkit                | 1.44.0  |
-| jsonwebtoken              | 9.0.3   |
-| winston                   | 3.19.0  |
-| winston-daily-rotate-file | 5.0.0   |
-| argon2                    | 0.44.0  |
-| auto-animate              | 0.9.0   |
-| zustand                   | 5.0.11  |
-| croner                    | 10.0.1  |
-| simpleWebAuthn            | 13.2.2  |
+| ドキュメント                                                 | 説明                                        |
+| ------------------------------------------------------------ | ------------------------------------------- |
+| [認証仕様](./docs/auth_specification.md)                     | JWT・パスキー・アカウントロックアウトの仕様 |
+| [データベースマイグレーション](./docs/database-migration.md) | マイグレーションの仕組みと操作手順          |
+| [環境変数一覧](./docs/environment-variables.md)              | 全環境変数の説明とデフォルト値              |
+| [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                |
+
+## 依存ライブラリ
+
+| ライブラリ                | バージョン |
+| ------------------------- | ---------- |
+| Node.js                   | 22.22.0    |
+| React                     | 19.2.4     |
+| Next.js                   | 16.1.6     |
+| Tailwind CSS              | 4.x        |
+| sass                      | 1.x        |
+| React Icons               | 5.x        |
+| react-virtuoso            | 4.x        |
+| better-sqlite3            | 12.x       |
+| react-hook-form           | 7.x        |
+| zod                       | 4.x        |
+| es-toolkit                | 1.x        |
+| kysely                    | 0.28.x     |
+| jsonwebtoken              | 9.x        |
+| winston                   | 3.x        |
+| winston-daily-rotate-file | 5.x        |
+| argon2                    | 0.44.x     |
+| auto-animate              | 0.9.x      |
+| zustand                   | 5.x        |
+| croner                    | 10.x       |
+| simpleWebAuthn            | 13.x       |
