@@ -18,9 +18,14 @@ const updateSnapshot = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const footerHeight = document.querySelector('footer')?.clientHeight ?? 0;
-  const height = document.documentElement.clientHeight;
+
+  // 視覚的なビューポート（モバイルのバーを除いた実際の表示領域）を優先する
+  const viewport = window.visualViewport;
+  const height = viewport ? viewport.height : document.documentElement.clientHeight;
+  const width = viewport ? viewport.width : document.documentElement.clientWidth;
+
   const newSnapshot = {
-    width: Math.round(document.documentElement.clientWidth * 1000) / 1000,
+    width: Math.round(width * 1000) / 1000,
     height: Math.round(height * 1000) / 1000,
     minusFooterHeight: Math.round((height - footerHeight - 7) * 1000) / 1000,
   };
@@ -46,9 +51,20 @@ const subscribe = (callback: () => void) => {
     resizeObserver.observe(document.documentElement);
     window.addEventListener('resize', updateSnapshot, { passive: true });
 
+    // モバイルブラウザのバー表示・非表示を検知するために visualViewport を監視
+    const viewport = window.visualViewport;
+    if (viewport) {
+      viewport.addEventListener('resize', updateSnapshot, { passive: true });
+      viewport.addEventListener('scroll', updateSnapshot, { passive: true });
+    }
+
     cleanup = () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateSnapshot);
+      if (viewport) {
+        viewport.removeEventListener('resize', updateSnapshot);
+        viewport.removeEventListener('scroll', updateSnapshot);
+      }
     };
   }
 
