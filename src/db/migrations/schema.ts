@@ -86,42 +86,42 @@ export async function up(db: Kysely<Database>): Promise<void> {
   // ここにテーブルとカラムの定義を追加・上書きしていくことで、自動的にDBに反映されます。
   const desiredSchema: Record<string, TableDefinition> = {
     user: {
-      uuid: { type: 'varchar(255)', config: (col) => col.primaryKey().unique().notNull() },
-      user_name: { type: 'text', config: (col) => col.notNull() },
-      island_name: { type: 'text', config: (col) => col.notNull() },
+      uuid: { type: 'varchar(25)', config: (col) => col.primaryKey().unique().notNull() },
+      user_name: { type: 'varchar(64)', config: (col) => col.notNull() },
+      island_name: { type: 'varchar(64)', config: (col) => col.notNull() },
       inhabited: { type: 'integer', config: (col) => col.defaultTo(1).notNull() },
     },
     auth: {
       uuid: {
-        type: 'varchar(255)',
+        type: 'varchar(25)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
-      id: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
-      password: { type: 'text', config: (col) => col.notNull() },
-      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      id: { type: 'varchar(64)', config: (col) => col.unique().notNull() },
+      password: { type: 'varchar(511)', config: (col) => col.notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
       login_fail_count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
       locked_until: { type: 'datetime' },
       fp_hash: { type: 'varchar(255)', config: (col) => col.defaultTo('').notNull() },
     },
     role: {
       uuid: {
-        type: 'varchar(255)',
+        type: 'varchar(25)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
       role: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
     last_login: {
       uuid: {
-        type: 'varchar(255)',
+        type: 'varchar(25)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
-      last_login_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
-      last_bonus_received_at: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      last_login_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
+      last_bonus_received_at: { type: 'bigint', config: (col) => col.defaultTo(0).notNull() },
       consecutive_login_days: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
     island: {
       uuid: {
-        type: 'varchar(255)',
+        type: 'varchar(25)',
         config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
       },
       money: { type: 'integer', config: (col) => col.notNull() },
@@ -136,25 +136,25 @@ export async function up(db: Kysely<Database>): Promise<void> {
       island_info: { type: 'json', config: (col) => col.notNull() },
     },
     turn_log: {
-      log_uuid: { type: 'varchar(255)', config: (col) => col.primaryKey().notNull() },
-      from_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
-      to_uuid: { type: 'varchar(255)', config: (col) => col.references('user.uuid') },
+      log_uuid: { type: 'varchar(25)', config: (col) => col.primaryKey().notNull() },
+      from_uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'varchar(25)', config: (col) => col.references('user.uuid') },
       turn: { type: 'integer', config: (col) => col.notNull() },
-      secret_log: { type: 'text', config: (col) => col.notNull() },
-      log: { type: 'text' },
+      secret_log: { type: 'varchar(2000)', config: (col) => col.notNull() },
+      log: { type: 'varchar(2000)' },
     },
     plan: {
-      from_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
-      to_uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
+      from_uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      to_uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
       plan_no: { type: 'integer', config: (col) => col.notNull() },
       times: { type: 'integer', config: (col) => col.notNull() },
       x: { type: 'integer', config: (col) => col.notNull() },
       y: { type: 'integer', config: (col) => col.notNull() },
-      plan: { type: 'text', config: (col) => col.notNull() },
+      plan: { type: 'varchar(511)', config: (col) => col.notNull() },
     },
     event_rate: {
       uuid: {
-        type: 'varchar(255)',
+        type: 'varchar(25)',
         config: (col) => col.primaryKey().notNull().references('user.uuid'),
       },
       earthquake: {
@@ -194,9 +194,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     },
     access_token: {
       uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
-      session_id: { type: 'text', config: (col) => col.notNull() },
+      session_id: { type: 'varchar(32)', config: (col) => col.notNull() },
       public_key: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
-      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
       expires: { type: 'datetime', config: (col) => col.notNull() },
       id: isSqlite
         ? { type: 'integer' }
@@ -204,9 +204,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     },
     refresh_token: {
       uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
-      session_id: { type: 'text', config: (col) => col.notNull() },
+      session_id: { type: 'varchar(128)', config: (col) => col.notNull() },
       public_key: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
-      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
       expires: { type: 'datetime', config: (col) => col.notNull() },
       id: isSqlite
         ? { type: 'integer' }
@@ -215,11 +215,11 @@ export async function up(db: Kysely<Database>): Promise<void> {
     passkey: {
       credential_id: { type: 'varchar(255)', config: (col) => col.primaryKey().unique().notNull() },
       uuid: { type: 'varchar(255)', config: (col) => col.notNull().references('user.uuid') },
-      public_key: { type: 'text', config: (col) => col.notNull() },
-      device_name: { type: 'text', config: (col) => col.notNull() },
+      public_key: { type: 'varchar(511)', config: (col) => col.notNull() },
+      device_name: { type: 'varchar(255)', config: (col) => col.notNull() },
       counter: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
       fp_hash: { type: 'varchar(255)', config: (col) => col.defaultTo('').notNull() },
-      created_at: { type: 'integer', config: (col) => col.defaultTo(nowSql).notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
     },
     turn_state: {
       turn: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },

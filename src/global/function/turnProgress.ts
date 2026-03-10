@@ -129,8 +129,11 @@ export async function getTurnInfo(db: Kysely<Database> | Transaction<Database>) 
  * @returns 全ユーザー情報
  */
 export async function updateTurn(db: Kysely<Database> | Transaction<Database>, nextTurn: number) {
-  // DBにはUnix Timestamp(ミリ秒)を保存する
-  await db.updateTable('turn_state').set({ turn: nextTurn, last_updated_at: Date.now() }).execute();
+  // DBにはUnix time(秒)を保存する
+  await db
+    .updateTable('turn_state')
+    .set({ turn: nextTurn, last_updated_at: Math.floor(Date.now() / 1000) })
+    .execute();
 }
 
 /**
