@@ -496,7 +496,7 @@ const MapClickModal = ({
       body={body}
       footer={footer}
       portal={false}
-      className="!h-auto !max-h-[96%] !w-[96%] !max-w-md"
+      className="!max-h-[96%] !w-[96%] !max-w-md"
     />
   );
 };
