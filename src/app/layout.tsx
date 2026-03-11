@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   formatDetection: { address: false, email: false, telephone: false },
   title: META.TITLE,
   description: `${META.TITLE} | Version:${META.VERSION}`,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+  },
 };
 
 export default async function RootLayout({

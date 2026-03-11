@@ -14,27 +14,56 @@ const listeners = new Set<() => void>();
 
 let cleanup: (() => void) | null = null;
 
-const updateSnapshot = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+const isClientSafe = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
-  const footerHeight = document.querySelector('footer')?.clientHeight ?? 0;
+const getAddressBarHeightOffset = (): number => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  return isMobile ? Math.max(0, (window.outerHeight || 0) - (window.innerHeight || 0)) || 0 : 0;
+};
 
-  // 視覚的なビューポート（モバイルのバーを除いた実際の表示領域）を優先する
+const getBaseDimensions = () => ({
+  width: window.innerWidth || document.documentElement.clientWidth,
+  height: window.innerHeight || document.documentElement.clientHeight,
+});
+
+const calculateExactDimensions = () => {
+  const { width: baseWidth, height: baseHeight } = getBaseDimensions();
+  const addressBarHeight = getAddressBarHeightOffset();
   const viewport = window.visualViewport;
-  const height = viewport ? viewport.height : document.documentElement.clientHeight;
-  const width = viewport ? viewport.width : document.documentElement.clientWidth;
+
+  if (!viewport) {
+    return { width: baseWidth, height: baseHeight + addressBarHeight };
+  }
+
+  const scale = viewport.scale || 1;
+  return {
+    width: viewport.width * scale,
+    height: viewport.height * scale + addressBarHeight,
+  };
+};
+
+const roundValue = (value: number) => Math.round(value * 1000) / 1000;
+
+const updateSnapshot = () => {
+  if (!isClientSafe()) return;
+
+  const footer = document.querySelector('footer');
+  const footerHeight = footer ? footer.clientHeight : 0;
+
+  const { width, height } = calculateExactDimensions();
 
   const newSnapshot = {
-    width: Math.round(width * 1000) / 1000,
-    height: Math.round(height * 1000) / 1000,
-    minusFooterHeight: Math.round((height - footerHeight - 7) * 1000) / 1000,
+    width: roundValue(width),
+    height: roundValue(height),
+    minusFooterHeight: roundValue(height - footerHeight - 7),
   };
 
-  if (
+  const isChanged =
     newSnapshot.width !== snapshot.width ||
     newSnapshot.height !== snapshot.height ||
-    newSnapshot.minusFooterHeight !== snapshot.minusFooterHeight
-  ) {
+    newSnapshot.minusFooterHeight !== snapshot.minusFooterHeight;
+
+  if (isChanged) {
     snapshot = newSnapshot;
     listeners.forEach((listener) => listener());
   }
