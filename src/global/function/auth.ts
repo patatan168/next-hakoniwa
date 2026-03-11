@@ -68,12 +68,15 @@ const jwtOptions = (uuid: string, jwi: string, expiresIn: number, isAccessToken:
  * @param client データベース
  * @param uuid UUID
  * @param isAccessToken アクセストークンorリフレッシュトークン
+ * @param limitSessions セッション上限を超えた古いセッションを削除するか（デフォルト: true）
  * @returns JWTトークン(署名付)
+ * @remarks アクセストークン自動更新時は limitSessions=false を渡し、別端末のセッション削除を防ぐ
  */
 export const createJwtToken = async (
   client: Kysely<Database> | Transaction<Database>,
   uuid: string,
-  isAccessToken: boolean
+  isAccessToken: boolean,
+  limitSessions = true
 ) => {
   const { expiresHour, tableName, sessionStrNum } = tokenOptions(isAccessToken);
   // JWIを作成
@@ -88,26 +91,28 @@ export const createJwtToken = async (
     : sql<string>`DATE_ADD(NOW(), INTERVAL ${expiresHour} HOUR)`;
 
   await client.transaction().execute(async (trx) => {
-    // セッション上限を超えた古いセッションを削除
-    // SQLite: rowid で識別、MySQL: id カラムで識別
-    if (isSqlite) {
-      await sql`DELETE FROM ${sql.table(tableName)}
-        WHERE uuid = ${uuid} AND rowid NOT IN (
-          SELECT rowid FROM ${sql.table(tableName)}
-          WHERE uuid = ${uuid}
-          ORDER BY expires DESC
-          LIMIT ${META.MAX_SESSIONS - 1}
-        )`.execute(trx);
-    } else {
-      await sql`DELETE FROM ${sql.table(tableName)}
-        WHERE uuid = ${uuid} AND id NOT IN (
-          SELECT id FROM (
-            SELECT id FROM ${sql.table(tableName)}
+    // セッション上限を超えた古いセッションを削除（ログイン時のみ実行）
+    if (limitSessions) {
+      // SQLite: rowid で識別、MySQL: id カラムで識別
+      if (isSqlite) {
+        await sql`DELETE FROM ${sql.table(tableName)}
+          WHERE uuid = ${uuid} AND rowid NOT IN (
+            SELECT rowid FROM ${sql.table(tableName)}
             WHERE uuid = ${uuid}
             ORDER BY expires DESC
             LIMIT ${META.MAX_SESSIONS - 1}
-          ) AS sub
-        )`.execute(trx);
+          )`.execute(trx);
+      } else {
+        await sql`DELETE FROM ${sql.table(tableName)}
+          WHERE uuid = ${uuid} AND id NOT IN (
+            SELECT id FROM (
+              SELECT id FROM ${sql.table(tableName)}
+              WHERE uuid = ${uuid}
+              ORDER BY expires DESC
+              LIMIT ${META.MAX_SESSIONS - 1}
+            ) AS sub
+          )`.execute(trx);
+      }
     }
 
     await trx
@@ -287,12 +292,13 @@ async function reCreateRefreshToken(client: Kysely<Database> | Transaction<Datab
 /**
  * アクセストークンがない場合、リフレッシュトークンで再認証
  * @param client DBクライアント
+ * @remarks セッション上限削除はスキップして別端末のセッションを保護する
  */
 async function reCreateAccessToken(client: Kysely<Database> | Transaction<Database>) {
   const uuid = await validAuthCookie(client, false);
   if (uuid) {
-    // リフレッシュトークンで再認証成功した場合は新しいアクセストークンを発行
-    await createJwtToken(client, uuid, true);
+    // limitSessions=false: 自動更新によって別端末のセッションを削除しない
+    await createJwtToken(client, uuid, true, false);
     return uuid;
   }
 }
