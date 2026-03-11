@@ -6,11 +6,11 @@ export default async function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="grid grid-cols-12">
-      <div className="col-span-2">
+    <div className="flex flex-col md:grid md:grid-cols-12">
+      <div className="md:col-span-2">
         <LicenseMenu />
       </div>
-      <div className="col-span-10 p-2">{children}</div>
+      <div className="p-2 md:col-span-10">{children}</div>
     </div>
   );
 }
