@@ -1,5 +1,6 @@
 import { isEqual } from 'es-toolkit';
 import { createStore, StoreApi } from 'zustand/vanilla';
+import { loadingCounterStore } from '../../store/loadingCounterStore';
 import { getCookie } from '../cookie';
 import { CSRF_COOKIE_NAME } from '../csrf';
 
@@ -201,6 +202,7 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
           error: { ...prev.error, [method]: undefined },
           fetchedAt: { ...prev.fetchedAt, [method]: now },
         }));
+        loadingCounterStore.getState().increment();
         // API呼び出し
         try {
           const fetched = await fetcher<T | U>(urlWithQuery, options);
@@ -209,6 +211,7 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
             data: { ...prev.data, [method]: merged },
             isLoading: { ...prev.isLoading, [method]: false },
           }));
+          loadingCounterStore.getState().decrement();
           // エラーをクリア
           set((prev) => ({
             error: { ...prev.error, [method]: undefined },
@@ -230,12 +233,14 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
               error: { ...prev.error, [method]: rfc9457 },
               isLoading: { ...prev.isLoading, [method]: false },
             }));
+            loadingCounterStore.getState().decrement();
           } else {
             const internalError = getInternalError(err, url, query);
             set((prev) => ({
               error: { ...prev.error, [method]: internalError },
               isLoading: { ...prev.isLoading, [method]: false },
             }));
+            loadingCounterStore.getState().decrement();
           }
         }
       },
@@ -297,12 +302,14 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
         error: { ...prev.error, get: undefined },
         fetchedAt: { ...prev.fetchedAt, get: now },
       }));
+      loadingCounterStore.getState().increment();
 
       const refreshed = await fetcher<T>(url, { method: 'GET' });
       set((prev) => ({
         data: { ...prev.data, get: refreshed },
         isLoading: { ...prev.isLoading, get: false },
       }));
+      loadingCounterStore.getState().decrement();
       // エラーをクリア
       set((prev) => ({
         error: { ...prev.error, get: undefined },
@@ -319,12 +326,14 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
           error: { ...prev.error, get: rfc9457 },
           isLoading: { ...prev.isLoading, get: false },
         }));
+        loadingCounterStore.getState().decrement();
       } else {
         const internalError = getInternalError(err, url);
         set((prev) => ({
           error: { ...prev.error, get: internalError },
           isLoading: { ...prev.isLoading, get: false },
         }));
+        loadingCounterStore.getState().decrement();
       }
     }
   }
