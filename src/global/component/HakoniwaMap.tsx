@@ -495,6 +495,7 @@ const MapClickModal = ({
       body={body}
       footer={footer}
       portal={false}
+      bottomOnMobile={true}
       className="!max-h-[96%] !w-[96%] !max-w-md"
     />
   );

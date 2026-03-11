@@ -72,6 +72,7 @@ const ModalContent = memo(
     body,
     footer,
     className,
+    bottomOnMobile,
   }: {
     portal: boolean;
     open: boolean;
@@ -82,17 +83,19 @@ const ModalContent = memo(
     body: ReactNode;
     footer?: ReactNode;
     className?: string;
+    /** スマホでモーダルを画面下部に表示するか */
+    bottomOnMobile?: boolean;
   }) {
     return (
       <div
-        className={`${portal ? 'fixed' : 'absolute'} pointer-events-none inset-0 z-999 flex items-center justify-center transition-all duration-300 ease-in-out md:items-center ${open ? 'visible' : 'invisible'} max-sm:items-end`}
+        className={`${portal ? 'fixed' : 'absolute'} pointer-events-none inset-0 z-999 flex items-center justify-center transition-all duration-300 ease-in-out md:items-center ${open ? 'visible' : 'invisible'} ${bottomOnMobile ? 'max-sm:items-end' : ''}`}
       >
         <div
           aria-modal="true"
           role="dialog"
           tabIndex={-1}
           onKeyDown={modalFunction}
-          className={`card-border pointer-events-auto flex ${portal ? 'max-h-[96%] max-w-[96%] md:max-h-screen md:max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${className} max-sm:mb-2`}
+          className={`card-border pointer-events-auto flex ${portal ? 'max-h-[96%] max-w-[96%] md:max-h-screen md:max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${className} ${bottomOnMobile ? 'max-sm:mb-2' : ''}`}
         >
           <IfComponent isRendered={isContentRendered}>
             <HeaderModal header={header} openToggle={openToggle} />
@@ -119,6 +122,7 @@ export default memo(
     open,
     openToggle,
     className = '',
+    bottomOnMobile = false,
   }: {
     header?: string | ReactNode;
     body: ReactNode;
@@ -129,6 +133,8 @@ export default memo(
     open: boolean;
     openToggle: ((value: boolean) => void) | (() => void);
     className?: string;
+    /** スマホでモーダルを画面下部に表示するか（デフォルト: false = 中央） */
+    bottomOnMobile?: boolean;
   }) {
     const [mounted, setMounted] = useState(false);
     const [firstOpen, setFirstOpen] = useState(false);
@@ -189,6 +195,7 @@ export default memo(
         body={body}
         footer={footer}
         className={className}
+        bottomOnMobile={bottomOnMobile}
       />
     );
 
