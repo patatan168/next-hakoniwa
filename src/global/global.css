@@ -46,8 +46,8 @@ main {
   flex: 1;
   margin-top: 4px;
   margin-bottom: 4px;
-  /* フッターによるコンテンツの遮蔽を防ぐための余白 */
-  padding-bottom: 2rem;
+  /* フッター(fixed)によってコンテンツが隠れないように、フッターの高さ分以上の余白を確保 */
+  padding-bottom: 3rem;
 }
 
 header {
@@ -55,12 +55,15 @@ header {
   top: 0;
   z-index: 10;
   border-bottom: var(--table-border);
+  background: var(--background);
 }
 
 footer {
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  z-index: 50;
   border-top: var(--table-border);
   background: var(--background);
 }
