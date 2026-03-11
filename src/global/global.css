@@ -56,9 +56,6 @@ header {
 }
 
 footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
   border-top: var(--table-border);
   background: var(--background);
 }
