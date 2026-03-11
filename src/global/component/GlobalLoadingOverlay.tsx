@@ -1,12 +1,11 @@
 'use client';
 
-import Loading from '@/global/component/Loading';
 import { loadingCounterStore } from '@/global/store/loadingCounterStore';
 import { useSyncExternalStore } from 'react';
 
 /**
- * いずれかのAPIがロード中であれば、画面全体をオーバーレイで覆うコンポーネント
- * @remarks loadingCounterStore の count を購読し、count > 0 のとき表示する
+ * いずれかのAPIがロード中であれば、画面上部にプログレスバーを表示するコンポーネント
+ * @remarks 背景を遮らないデザインでフリッカーを回避する
  */
 export default function GlobalLoadingOverlay() {
   const count = useSyncExternalStore(
@@ -20,9 +19,9 @@ export default function GlobalLoadingOverlay() {
   return (
     <div
       aria-label="グローバルローディング"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[9999] h-0.5 overflow-hidden"
     >
-      <Loading />
+      <div className="h-full animate-[loading-bar_1.4s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-green-400 to-transparent" />
     </div>
   );
 }

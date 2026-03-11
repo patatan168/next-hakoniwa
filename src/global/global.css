@@ -95,3 +95,13 @@ body.is-dragging,
 body.is-dragging * {
   cursor: grabbing !important;
 }
+
+/* グローバルローディングプログレスバーのアニメーション */
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
