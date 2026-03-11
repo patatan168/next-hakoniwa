@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Button from './Button';
+import Button from '../Button';
 
 describe('Button Component', () => {
   afterEach(() => {
