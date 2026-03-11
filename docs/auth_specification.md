@@ -48,6 +48,48 @@
 3. **ローテーション**:
    - リフレッシュトークンによる再認証が行われたり、トークンの有効期限が近くなった（80%経過した）場合は、古いセッションを破棄し、新しい鍵ペアと `session_id` によるトークンを再発行する**トークンローテーション**の仕組みを備えています。
 
+#### JWTセッション管理フロー図
+
+```mermaid
+sequenceDiagram
+    participant Client as クライアント (ブラウザ)
+    participant Server as サーバー
+    participant DB as データベース
+
+    %% ログイン時
+    rect rgb(240, 248, 255)
+    note right of Client: ログイン (ID/Password または WebAuthn)
+    Client->>Server: ログインリクエスト
+    Server->>Server: 認証成功・session_id生成
+    Server->>Server: ECDSA鍵ペア(Public/Private Key)生成
+    Server->>DB: session_id と public_key を保存<br>(access_token / refresh_token テーブル)
+    Server->>Server: privateKeyでJWT署名
+    Server-->>Client: JWTをCookieにセット<br>(__Host-Http-access_token等)
+    end
+
+    %% 検証時
+    rect rgb(240, 255, 240)
+    note right of Client: APIリクエスト (検証)
+    Client->>Server: リクエスト (Cookie付与)
+    Server->>Server: トークンデコード・session_id抽出
+    Server->>DB: public_key 取得リクエスト
+    DB-->>Server: public_key レスポンス
+    Server->>Server: public_key で署名検証 (jwt.verify)
+    Server-->>Client: レスポンス
+    end
+
+    %% ローテーション
+    rect rgb(255, 250, 240)
+    note right of Client: トークンローテーション
+    Client->>Server: リフレッシュリクエスト または<br>有効期限間近のAPIリクエスト
+    Server->>Server: 古いセッション(鍵ペア)を破棄
+    Server->>Server: 新しいsession_idと鍵ペア生成
+    Server->>DB: 新しい public_key 保存
+    Server->>Server: JWT再署名
+    Server-->>Client: 新しいJWTをCookieにセット
+    end
+```
+
 ## パスキー (WebAuthn) 認証フロー
 
 `@simplewebauthn/server` および `@simplewebauthn/browser` ライブラリを利用してパスキーによるパスワードレス認証を実現しています。
@@ -58,6 +100,46 @@
 - **認証フロー**:
   1. `/api/passkey/auth/start`: 認証用のチャレンジ（AuthenticationOptions）を生成します。
   2. `/api/passkey/auth/finish`: クライアント側のSignature検証を行い、成功すれば上記のJWTトークン生成処理を呼び出してログインを完了させます。
+
+#### パスキー登録フロー図
+
+```mermaid
+sequenceDiagram
+    participant Client as クライアント (ブラウザ)
+    participant Auth as 認証器 (生体認証等)
+    participant Server as サーバー
+    participant DB as データベース
+
+    Client->>Server: /api/auth/passkey/register/start
+    Server-->>Client: チャレンジ (RegistrationOptions) を返却
+    Client->>Auth: 認証器でクレデンシャル作成要求
+    Auth-->>Client: 署名済みの認証器情報
+    Client->>Server: /api/auth/passkey/register/finish (認証器情報)
+    Server->>Server: 認証器の情報を検証
+    Server->>DB: 公開鍵、クレデンシャルIDを passkey テーブルに保存
+    Server-->>Client: 登録成功
+```
+
+#### パスキー認証フロー図
+
+```mermaid
+sequenceDiagram
+    participant Client as クライアント (ブラウザ)
+    participant Auth as 認証器 (生体認証等)
+    participant Server as サーバー
+    participant DB as データベース
+
+    Client->>Server: /api/passkey/auth/start
+    Server-->>Client: チャレンジ (AuthenticationOptions) を返却
+    Client->>Auth: 認証要求
+    Auth-->>Client: 署名 (Signature)
+    Client->>Server: /api/passkey/auth/finish (署名データ)
+    Server->>DB: 保存された公開鍵を取得
+    DB-->>Server: 公開鍵
+    Server->>Server: 署名 (Signature) 検証
+    Server->>Server: 【成功時】JWTトークン生成処理実行
+    Server-->>Client: ログイン完了 (Cookieセット)
+```
 
 ## アカウントロックアウト機能
 
