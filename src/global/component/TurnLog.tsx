@@ -2,7 +2,6 @@ import { TurnLog } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { forwardRef, memo, Ref } from 'react';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import Loading from './Loading';
 import { TransformHTML } from './TransFormHTML';
 
 type TurnLogProps = {
@@ -24,7 +23,7 @@ export default memo(
   ) {
     const ready = logs !== undefined && logs.length > 0;
 
-    if (!ready) return <Loading />;
+    if (!ready) return null;
 
     return (
       <Virtuoso

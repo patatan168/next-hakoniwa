@@ -8,7 +8,6 @@ import { useForm, useWatch } from 'react-hook-form';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
 import { usePlanDataStore } from '../store/usePlanDataStore';
 import Button from './Button';
-import Loading from './Loading';
 import Modal from './Modal';
 import { RangeSliderRHF } from './RangeSliderRHF';
 import { SelectRHF } from './SelectRHF';
@@ -514,7 +513,7 @@ export default memo(
     const [selectedPoint, setSelectedPoint] = useState({ x: 0, y: 0 });
 
     if (isLoading || !islandName || !data) {
-      return <Loading />;
+      return null;
     }
 
     const handleMapClick = (x: number, y: number) => {

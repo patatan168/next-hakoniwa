@@ -2,7 +2,6 @@ import { isEqual } from 'es-toolkit';
 import { CSSProperties, memo, Ref } from 'react';
 import { TableComponents, TableVirtuoso } from 'react-virtuoso';
 import { Card } from './Card';
-import Loading from './Loading';
 
 const VirtuosoTableComponents: TableComponents<object, ColumnInfo> = {
   Table: (props) => <table {...props} className="w-full table-fixed border break-all" />,
@@ -90,9 +89,7 @@ export default memo(
           itemContent={itemContent(columnHeader)}
         />
       </Card>
-    ) : (
-      <Loading />
-    );
+    ) : null;
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
