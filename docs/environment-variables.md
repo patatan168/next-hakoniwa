@@ -97,8 +97,8 @@
 | ------------------------------------- | -------- | -------------------------------------------- |
 | `NEXT_PUBLIC_INIT_MONEY`              | `1000`   | 島の初期資金                                 |
 | `NEXT_PUBLIC_MAX_MONEY`               | `9999`   | 資金の上限値                                 |
-| `NEXT_PUBLIC_EARN_FACTORY_PER_PEOPLE` | `0.001`  | 工場1マスあたりの資金収入（人口1人あたり）   |
-| `NEXT_PUBLIC_EARN_MINING_PER_PEOPLE`  | `0.001`  | 採掘場1マスあたりの資金収入（人口1人あたり） |
+| `NEXT_PUBLIC_EARN_FACTORY_PER_PEOPLE` | `0.001`  | 工場1マスあたりの資金収入（規模1人あたり）   |
+| `NEXT_PUBLIC_EARN_MINING_PER_PEOPLE`  | `0.001`  | 採掘場1マスあたりの資金収入（規模1人あたり） |
 | `NEXT_PUBLIC_FOOD_TO_MONEY_RATE`      | `0.0008` | 食料を資金に変換するレート                   |
 
 ### 食料
@@ -109,26 +109,26 @@
 | `NEXT_PUBLIC_MAX_FOOD`               | `999900` | 食料の上限値                                 |
 | `NEXT_PUBLIC_EATEN_FOOD_PER_PEOPLE`  | `0.2`    | 人口1人あたりの食料消費量（毎ターン）        |
 | `NEXT_PUBLIC_LACK_FOOD_DESTROY_RATE` | `25`     | 食料枯渇時に破壊される地形の割合（%）        |
-| `NEXT_PUBLIC_EARN_FARM_PER_PEOPLE`   | `1`      | 農場1マスあたりの食料生産量（人口1人あたり） |
+| `NEXT_PUBLIC_EARN_FARM_PER_PEOPLE`   | `1`      | 農場1マスあたりの食料生産量（規模1人あたり） |
 
 ### 人口
 
-| 変数名                                  | 例   | 説明                             |
-| --------------------------------------- | ---- | -------------------------------- |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE`     | `10` | 村の人口増加量（毎ターン）       |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_TOWN`        | `10` | 町の人口増加量（毎ターン）       |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_CITY`        | `0`  | 都市の人口増加量（毎ターン）     |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_VILLAGE` | `30` | プロパガンダ時の村の人口増加量   |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_TOWN`    | `30` | プロパガンダ時の町の人口増加量   |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_CITY`    | `3`  | プロパガンダ時の都市の人口増加量 |
-| `NEXT_PUBLIC_PEOPLE_LOSS_FAMINE`        | `3`  | 飢饉時の人口減少量（毎ターン）   |
-| `NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE`   | `20` | 村が出現する人口の閾値           |
+| 変数名                                  | 例   | 説明                                |
+| --------------------------------------- | ---- | ----------------------------------- |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE`     | `10` | 村の人口増加量（毎ターン）          |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_TOWN`        | `10` | 町の人口増加量（毎ターン）          |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_CITY`        | `0`  | 都市の人口増加量（毎ターン）        |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_VILLAGE` | `30` | プロパガンダ時の村の人口増加量/10   |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_TOWN`    | `30` | プロパガンダ時の町の人口増加量/10   |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_CITY`    | `3`  | プロパガンダ時の都市の人口増加量/10 |
+| `NEXT_PUBLIC_PEOPLE_LOSS_FAMINE`        | `3`  | 飢饉時の人口減少量（毎ターン）      |
+| `NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE`   | `20` | 平地に村が出現する確率 (%)          |
 
 ### 植林
 
-| 変数名                     | 例  | 説明                                 |
-| -------------------------- | --- | ------------------------------------ |
-| `NEXT_PUBLIC_FOREST_VALUE` | `5` | 森の防災効果値（地形ダメージを軽減） |
+| 変数名                     | 例  | 説明                   |
+| -------------------------- | --- | ---------------------- |
+| `NEXT_PUBLIC_FOREST_VALUE` | `5` | 森の売値 (X億円/100本) |
 
 ---
 
