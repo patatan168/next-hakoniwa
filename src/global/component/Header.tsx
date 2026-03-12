@@ -38,9 +38,27 @@ export default function Header() {
 
       const remainMs = turnState.next_updated_at - Date.now();
 
-      // 次の更新時刻の10秒前を切った場合（更新遅延中も含む）、毎秒ターン情報を取得する
-      if (remainMs <= 10000) {
+      // 次の更新時刻の10秒前から更新予定時刻まで、毎秒チェック
+      if (remainMs > 0 && remainMs <= 10000) {
         fetch({ method: 'GET' }, { refresh: true });
+      }
+
+      // 更新予定時刻を過ぎた（ラグ発生）場合
+      if (remainMs <= 0) {
+        const elapsedSec = Math.floor(Math.abs(remainMs) / 1000);
+        if (elapsedSec <= 10) {
+          // 最初の10秒間は毎秒更新を確認
+          fetch({ method: 'GET' }, { refresh: true });
+        } else if (elapsedSec <= 60) {
+          // その後の50秒間（計60秒まで）は5秒ごとに更新を確認
+          if (elapsedSec % 5 === 0) {
+            fetch({ method: 'GET' }, { refresh: true });
+          }
+        } else {
+          // 60秒を超えた場合、一度だけfetchして終了
+          // data.get が更新されれば remainMs がリセットされるためループはしない
+          fetch({ method: 'GET' }, { refresh: true });
+        }
       }
 
       if (remainMs <= 0) {
