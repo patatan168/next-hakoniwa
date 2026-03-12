@@ -1,0 +1,111 @@
+# データベース仕様書
+
+本ドキュメントは、箱庭諸島アプリケーションで使用されるデータベースのテーブル定義およびリレーションシップをまとめたものです。
+
+## 全体概要
+
+- **DBエンジン**: SQLite (開発用) / MySQL (本番想定)
+- **マイグレーション**: `src/db/migrations/schema.ts` にて宣言的に管理
+- **クエリビルダー**: Kysely
+
+---
+
+## テーブル一覧
+
+### 1. `user` (ユーザー・島基本情報)
+
+ユーザーのアイデンティティと島の生存状態を管理します。
+
+| カラム名      | データ型      | 制約                | 説明                                      |
+| :------------ | :------------ | :------------------ | :---------------------------------------- |
+| `uuid`        | `varchar(25)` | PRIMARY KEY, UNIQUE | 内部管理用のユニークID                    |
+| `user_name`   | `varchar(64)` | NOT NULL            | ユーザー名                                |
+| `island_name` | `varchar(64)` | NOT NULL            | 島の名前                                  |
+| `inhabited`   | `integer`     | DEFAULT 1           | 論理削除フラグ（1: 生存, 0: 無人/削除済） |
+
+### 2. `auth` (認証情報)
+
+ログインおよびセキュリティに関する情報を管理します。
+
+| カラム名           | データ型       | 制約                       | 説明                       |
+| :----------------- | :------------- | :------------------------- | :------------------------- |
+| `uuid`             | `varchar(25)`  | PRIMARY KEY, FK(user.uuid) | ユーザーID                 |
+| `id`               | `varchar(64)`  | UNIQUE, NOT NULL           | ログインID                 |
+| `password`         | `varchar(511)` | NOT NULL                   | ハッシュ化されたパスワード |
+| `created_at`       | `bigint`       | DEFAULT (now)              | アカウント作成日時         |
+| `login_fail_count` | `integer`      | DEFAULT 0                  | 連続ログイン失敗回数       |
+| `locked_until`     | `datetime`     | -                          | アカウントロック期限       |
+| `fp_hash`          | `varchar(255)` | DEFAULT ''                 | ブラウザ指紋（不正検知用） |
+
+### 3. `island` (島のステータス)
+
+島の資源や主要な属性を管理します。
+
+| カラム名      | データ型      | 制約                       | 説明                   |
+| :------------ | :------------ | :------------------------- | :--------------------- |
+| `uuid`        | `varchar(25)` | PRIMARY KEY, FK(user.uuid) | ユーザーID             |
+| `money`       | `integer`     | NOT NULL                   | 資金                   |
+| `area`        | `integer`     | NOT NULL                   | 面積                   |
+| `population`  | `integer`     | NOT NULL                   | 人口                   |
+| `food`        | `integer`     | NOT NULL                   | 食料                   |
+| `farm`        | `integer`     | NOT NULL                   | 農場規模               |
+| `factory`     | `integer`     | NOT NULL                   | 工場規模               |
+| `mining`      | `integer`     | NOT NULL                   | 採掘規模               |
+| `missile`     | `integer`     | NOT NULL                   | ミサイル保有数         |
+| `prize`       | `varchar(63)` | NOT NULL                   | 現在表示中の称号       |
+| `island_info` | `json`        | NOT NULL                   | 地形データ等の詳細情報 |
+
+### 4. `prize` (称号リスト)
+
+ユーザーが所持している全ての称号を管理します。
+
+| カラム名    | データ型      | 制約                          | 説明       |
+| :---------- | :------------ | :---------------------------- | :--------- |
+| **`uuid`**  | `varchar(25)` | PRIMARY KEY[1], FK(user.uuid) | ユーザーID |
+| **`prize`** | `varchar(63)` | PRIMARY KEY[2]                | 称号文字列 |
+
+> [!NOTE]
+> `(uuid, prize)` の複合主キーにより、1つの島が同じ称号を重複して持つことを防いでいます。
+> 論理削除に対応するため、`ON DELETE CASCADE` は設定されておらず、コード側で削除を制御します。
+
+### 5. `turn_log` (履歴ログ)
+
+ゲーム内で発生した出来事の記録です。
+
+| カラム名     | データ型        | 制約          | 説明                       |
+| :----------- | :-------------- | :------------ | :------------------------- |
+| `log_uuid`   | `varchar(25)`   | PRIMARY KEY   | ログID                     |
+| `from_uuid`  | `varchar(25)`   | FK(user.uuid) | 発生元ユーザー             |
+| `to_uuid`    | `varchar(25)`   | FK(user.uuid) | 対象ユーザー (任意)        |
+| `turn`       | `integer`       | NOT NULL      | 発生ターン                 |
+| `secret_log` | `varchar(2000)` | NOT NULL      | 本人のみ閲覧可能な詳細ログ |
+| `log`        | `varchar(2000)` | -             | 公開ログ                   |
+
+### 6. `plan` (開発計画)
+
+ユーザーが設定した各ターンのコマンドです。
+
+| カラム名    | データ型       | 制約          | 説明             |
+| :---------- | :------------- | :------------ | :--------------- |
+| `from_uuid` | `varchar(25)`  | FK(user.uuid) | 実行ユーザー     |
+| `to_uuid`   | `varchar(25)`  | FK(user.uuid) | 実行対象ユーザー |
+| `plan_no`   | `integer`      | NOT NULL      | 計画の順番 (0〜) |
+| `times`     | `integer`      | NOT NULL      | 繰り返し回数     |
+| `x`         | `integer`      | NOT NULL      | 座標 X           |
+| `y`         | `integer`      | NOT NULL      | 座標 Y           |
+| `plan`      | `varchar(511)` | NOT NULL      | 実行コマンド内容 |
+
+### 7. その他
+
+- **`role`**: 管理権限設定(`uuid`, `role`)
+- **`last_login`**: ログイン統計(`uuid`, `last_login_at`, `consecutive_login_days`, etc.)
+- **`event_rate`**: 各種災害発生確率の個人設定
+- **認証系**: `access_token`, `refresh_token`, `passkey` (セッション維持およびWebAuthn用)
+- **`turn_state`**: システム全体の現在ターンと更新状態管理
+
+---
+
+## 特記事項
+
+1. **論理削除の運用**:
+   ユーザーが島を破棄、あるいは人口0により無人化した際、`user.inhabited` を `0` に設定します。この際、`island`, `prize`, `plan` などの関連レコードはアプリケーションコード（`abandonIsland` 関数）によって明示的に削除されます。

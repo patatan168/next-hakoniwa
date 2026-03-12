@@ -62,7 +62,7 @@ export const grantLoginBonus = async (
 
   const nowSeconds = Math.floor(Date.now() / 1000);
   const currentDay = getTzDayNumber(nowSeconds);
-  const lastBonusDay = getTzDayNumber(lastLogin.last_bonus_received_at);
+  const lastBonusDay = getTzDayNumber(Number(lastLogin.last_bonus_received_at));
 
   if (currentDay > lastBonusDay) {
     const isConsecutive = currentDay === lastBonusDay + 1;
@@ -90,7 +90,7 @@ export const grantLoginBonus = async (
       await trx
         .updateTable('last_login')
         .set({
-          last_bonus_received_at: nowSeconds,
+          last_bonus_received_at: String(nowSeconds),
           consecutive_login_days: newConsecutiveDays,
         })
         .where('uuid', '=', uuid)

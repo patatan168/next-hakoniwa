@@ -18,9 +18,8 @@ import type { islandInfoData } from './schema/islandTypes';
  * SQLite 上は string ですが、Kysely 経由での SELECT 時はオブジェクト、
  * INSERT/UPDATE 時は文字列またはオブジェクトを受け取れるように定義します。
  */
-export interface IslandTable extends Omit<GeneratedDB['island'], 'island_info' | 'prize'> {
+export interface IslandTable extends Omit<GeneratedDB['island'], 'island_info'> {
   island_info: ColumnType<islandInfoData, string | islandInfoData, string | islandInfoData>;
-  prize: ColumnType<object, string | object, string | object>;
 }
 
 /**
@@ -46,6 +45,7 @@ export type Role = Selectable<GeneratedDB['role']>;
 export type AccessToken = Selectable<GeneratedDB['access_token']>;
 export type RefreshToken = Selectable<GeneratedDB['refresh_token']>;
 export type Passkey = Selectable<GeneratedDB['passkey']>;
+export type Prize = Selectable<GeneratedDB['prize']>;
 
 export type { islandInfo, islandInfoData } from './schema/islandTypes';
 

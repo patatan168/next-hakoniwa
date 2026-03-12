@@ -132,8 +132,15 @@ export async function up(db: Kysely<Database>): Promise<void> {
       factory: { type: 'integer', config: (col) => col.notNull() },
       mining: { type: 'integer', config: (col) => col.notNull() },
       missile: { type: 'integer', config: (col) => col.notNull() },
-      prize: { type: 'json', config: (col) => col.notNull() },
+      prize: { type: 'varchar(63)', config: (col) => col.notNull() },
       island_info: { type: 'json', config: (col) => col.notNull() },
+    },
+    prize: {
+      uuid: {
+        type: 'varchar(25)',
+        config: (col) => col.notNull().references('user.uuid'),
+      },
+      prize: { type: 'varchar(63)', config: (col) => col.notNull() },
     },
     turn_log: {
       log_uuid: { type: 'varchar(25)', config: (col) => col.primaryKey().notNull() },
@@ -232,6 +239,21 @@ export async function up(db: Kysely<Database>): Promise<void> {
   console.log('[DEBUG] Starting table sync loops...');
   for (const [tableName, columns] of Object.entries(desiredSchema)) {
     console.log(`[DEBUG] Processing table: ${tableName}`);
+    // prizeテーブルのみ複合主キーを設定するため個別に処理
+    if (tableName === 'prize') {
+      const existingTables = await db.introspection.getTables();
+      const existingTable = existingTables.find((t) => t.name === tableName);
+      if (!existingTable) {
+        await db.schema
+          .createTable('prize')
+          .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+          .addColumn('prize', 'varchar(63)', (col) => col.notNull())
+          .addPrimaryKeyConstraint('prize_pk', ['uuid', 'prize'])
+          .execute();
+        console.log(`Created table: ${tableName} with composite primary key`);
+        continue;
+      }
+    }
     await rebuildTableWithData(db, tableName, columns, isSqlite);
   }
   console.log('[DEBUG] Finished table sync loops.');
@@ -257,6 +279,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
     await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
     await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
+    await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
   }
 
   const countRes = await sql<{ cnt: number }>`SELECT COUNT(*) as cnt FROM turn_state`.execute(db);

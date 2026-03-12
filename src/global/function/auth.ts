@@ -387,7 +387,7 @@ export const validAuthCookie = async (
   if (!isAccessToken) {
     const handleTokenRefresh = async () => {
       if (!tokenData.created_at) return;
-      const diffSec = Math.trunc(Date.now() / 1000) - tokenData.created_at;
+      const diffSec = Math.trunc(Date.now() / 1000) - Number(tokenData.created_at);
       if (diffSec <= 0.8 * expiresHour * 3600) return;
 
       await reCreateJwtToken(client, uuid, false);

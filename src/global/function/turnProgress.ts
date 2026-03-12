@@ -217,6 +217,7 @@ export const abandonIsland = async (
 ) => {
   await client.updateTable('user').set({ inhabited: 0 }).where('uuid', '=', uuid).execute();
   await client.deleteFrom('island').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('prize').where('uuid', '=', uuid).execute();
   await client.deleteFrom('event_rate').where('uuid', '=', uuid).execute();
   await client
     .deleteFrom('plan')

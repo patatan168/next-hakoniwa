@@ -76,6 +76,7 @@ docker compose up -d
 | ------------------------------------------------------------ | ----------------------------------------------- |
 | [認証仕様](./docs/auth_specification.md)                     | JWT・パスキー・アカウントロックアウトの仕様     |
 | [データベースマイグレーション](./docs/database-migration.md) | マイグレーションの仕組みと操作手順              |
+| [データベース仕様](./docs/database_specification.md)         | データベースのテーブル定義とリレーションシップ  |
 | [環境変数一覧](./docs/environment-variables.md)              | 全環境変数の説明とデフォルト値                  |
 | [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                    |
 | [Docker検証環境手順](./docs/docker-verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |

@@ -181,9 +181,7 @@ export const createIsland = async (
   // Transaction
   await client.transaction().execute(async (trx) => {
     // SQLite: jsonb() で BLOB として格納、MySQL: JSON 型にはそのまま文字列を渡す
-    const prizeVal = isSqlite
-      ? sql<string>`jsonb(${JSON.stringify([])})`
-      : sql<string>`${JSON.stringify([])}`;
+    const prizeVal = '';
     const islandInfoVal = isSqlite
       ? sql<string>`jsonb(${JSON.stringify(data)})`
       : sql<string>`${JSON.stringify(data)}`;
