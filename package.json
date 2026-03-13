@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "22.22.0",
+    "npm": "11.6.3"
+  },
   "scripts": {
     "postinstall": "npx lefthook install",
     "dev": "next dev",
@@ -98,9 +102,5 @@
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18"
-  },
-  "volta": {
-    "node": "22.22.0",
-    "npm": "11.6.3"
   }
 }
