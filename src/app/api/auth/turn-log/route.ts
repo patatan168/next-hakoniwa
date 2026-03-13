@@ -1,5 +1,6 @@
-import { db } from '@/db/kysely';
+import { db, isSqlite } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
+import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     );
   }
   const searchParams = request.nextUrl.searchParams;
-  const logUuid = searchParams.get('log_uuid') ?? 'ZZZZZZZZZZZZZZZZZZZZZZZZZ';
+  const logUuid = searchParams.get('log_uuid') ?? 'zzzzzzzzzzzzzzzzzzzzzzzzz';
   if (!uuid25Regex.test(logUuid)) {
     const response = NextResponse.json(
       { error: 'Invalid Input' },
@@ -26,13 +27,19 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  const log = await db
+  let query = db
     .selectFrom('turn_log')
     .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'secret_log'])
-    .where('log_uuid', '<', logUuid)
-    .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]))
-    .orderBy('log_uuid', 'desc')
-    .limit(100)
-    .execute();
+    .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]));
+
+  if (isSqlite) {
+    query = query.where('log_uuid', '<', logUuid).orderBy('log_uuid', 'desc');
+  } else {
+    query = query
+      .where(sql<boolean>`BINARY log_uuid < ${logUuid}`)
+      .orderBy(sql`BINARY log_uuid`, 'desc');
+  }
+
+  const log = await query.limit(100).execute();
   return NextResponse.json(log);
 }
