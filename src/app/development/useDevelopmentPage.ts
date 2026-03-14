@@ -1,3 +1,5 @@
+import { Plan } from '@/db/kysely';
+import META_DATA from '@/global/define/metadata';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
@@ -7,7 +9,41 @@ import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
 import { turnResourceHistoryStore } from '@/global/store/api/auth/turnResourceHistory';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
+import { usePlanDataStore } from '@/global/store/usePlanDataStore';
+import { isEqual, sortBy, uniqBy } from 'es-toolkit';
 import { useEffect, useState } from 'react';
+
+const normalizePlanItems = (initPlans: Plan[], uuid: string) => {
+  const defaultPlans = Array.from({ length: META_DATA.PLAN_LENGTH }, (_, i) => ({
+    id: i,
+    plan_no: i,
+    edit: false,
+    from_uuid: uuid,
+    to_uuid: uuid,
+    times: 1,
+    x: 0,
+    y: 0,
+    plan: 'financing' as const,
+  }));
+
+  const baseItems = sortBy(
+    uniqBy([...(initPlans ?? []), ...defaultPlans], (item) => item.plan_no),
+    ['plan_no']
+  );
+
+  const lengthAdjusted = baseItems.slice(0, META_DATA.PLAN_LENGTH);
+  if (lengthAdjusted.length < META_DATA.PLAN_LENGTH) {
+    const padding = defaultPlans.slice(lengthAdjusted.length);
+    lengthAdjusted.push(...padding);
+  }
+
+  return lengthAdjusted.map((item, index) => ({
+    ...item,
+    id: index,
+    plan_no: index,
+    edit: false,
+  }));
+};
 
 export const useDevelopmentPage = () => {
   const {
@@ -62,6 +98,25 @@ export const useDevelopmentPage = () => {
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, []);
+
+  useEffect(() => {
+    const uuid = developData.get?.uuid;
+    if (isPlanLoading.get || !uuid) return;
+
+    const initPlans = fetchPlanData.get ?? [];
+    const computedItems = normalizePlanItems(initPlans, uuid);
+    const store = usePlanDataStore.getState();
+    const isInitDataChanged = !isEqual(store.initData, initPlans);
+
+    if (store.currentUuid !== uuid) {
+      store.reset();
+    }
+
+    if (store.currentUuid !== uuid || isInitDataChanged) {
+      store.setInitData(initPlans, uuid);
+      store.setItems(computedItems, false);
+    }
+  }, [developData.get?.uuid, fetchPlanData.get, isPlanLoading.get]);
 
   useEffect(() => {
     if (view === 'log') {
