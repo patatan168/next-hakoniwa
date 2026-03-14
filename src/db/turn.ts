@@ -326,6 +326,57 @@ async function processTurnForIslands(
   }
 }
 
+async function saveTurnResourceHistory(
+  db: Kysely<Database> | Transaction<Database>,
+  islands: Island[],
+  turn: number
+) {
+  if (islands.length === 0) return;
+
+  const uuids = islands.map((island) => island.uuid);
+
+  // 同一ターン再実行時の重複を避けるため、対象UUID分の当該ターン履歴を先に削除する
+  await db
+    .deleteFrom('turn_resource_history')
+    .where('turn', '=', turn)
+    .where('uuid', 'in', uuids)
+    .execute();
+
+  await db
+    .insertInto('turn_resource_history')
+    .values(
+      islands.map((island) => ({
+        uuid: island.uuid,
+        turn,
+        population: island.population,
+        food: island.food,
+        money: island.money,
+      }))
+    )
+    .execute();
+
+  for (const uuid of uuids) {
+    // MySQL では IN 句サブクエリ内の LIMIT が制限されるため、
+    // 100件目の turn を閾値にして古い履歴を削除する
+    const cutoff = await db
+      .selectFrom('turn_resource_history')
+      .select('turn')
+      .where('uuid', '=', uuid)
+      .orderBy('turn', 'desc')
+      .limit(1)
+      .offset(99)
+      .executeTakeFirst();
+
+    if (!cutoff) continue;
+
+    await db
+      .deleteFrom('turn_resource_history')
+      .where('uuid', '=', uuid)
+      .where('turn', '<', cutoff.turn)
+      .execute();
+  }
+}
+
 async function turnProceed(recursiveCount = 0) {
   const turnInfo = await getTurnInfo(db);
   if (!turnInfo) return;
@@ -358,6 +409,7 @@ async function turnProceed(recursiveCount = 0) {
 
     await updateIslands(db, finalData);
     await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
+    await saveTurnResourceHistory(db, finalData, turnInfo.turn + 1);
     await updateTurn(db, turnInfo.turn + 1);
     await insertLogs(db, logArray);
   } catch (error) {

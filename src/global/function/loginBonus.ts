@@ -90,7 +90,7 @@ export const grantLoginBonus = async (
       await trx
         .updateTable('last_login')
         .set({
-          last_bonus_received_at: String(nowSeconds),
+          last_bonus_received_at: nowSeconds,
           consecutive_login_days: newConsecutiveDays,
         })
         .where('uuid', '=', uuid)

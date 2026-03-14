@@ -39,6 +39,7 @@ export type Auth = Selectable<GeneratedDB['auth']>;
 export type EventRate = Selectable<GeneratedDB['event_rate']>;
 export type Plan = Selectable<GeneratedDB['plan']>;
 export type TurnLog = Selectable<GeneratedDB['turn_log']>;
+export type TurnResourceHistory = Selectable<GeneratedDB['turn_resource_history']>;
 export type TurnState = Selectable<GeneratedDB['turn_state']>;
 export type LastLogin = Selectable<GeneratedDB['last_login']>;
 export type Role = Selectable<GeneratedDB['role']>;

@@ -150,6 +150,13 @@ export async function up(db: Kysely<Database>): Promise<void> {
       secret_log: { type: 'varchar(2000)', config: (col) => col.notNull() },
       log: { type: 'varchar(2000)' },
     },
+    turn_resource_history: {
+      uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      turn: { type: 'integer', config: (col) => col.notNull() },
+      population: { type: 'integer', config: (col) => col.notNull() },
+      food: { type: 'integer', config: (col) => col.notNull() },
+      money: { type: 'integer', config: (col) => col.notNull() },
+    },
     plan: {
       from_uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
       to_uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
@@ -275,10 +282,22 @@ export async function up(db: Kysely<Database>): Promise<void> {
     await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(
       db
     );
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`.execute(
+      db
+    );
+    await sql`CREATE INDEX IF NOT EXISTS turn_resource_history_uuid_index ON turn_resource_history(uuid)`.execute(
+      db
+    );
   } else {
     await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
     await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
     await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
+    await runSafe(
+      sql`CREATE UNIQUE INDEX turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`
+    );
+    await runSafe(
+      sql`CREATE INDEX turn_resource_history_uuid_index ON turn_resource_history(uuid)`
+    );
     await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
   }
 

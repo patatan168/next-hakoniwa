@@ -81,7 +81,23 @@
 | `secret_log` | `varchar(2000)` | NOT NULL      | 本人のみ閲覧可能な詳細ログ |
 | `log`        | `varchar(2000)` | -             | 公開ログ                   |
 
-### 6. `plan` (開発計画)
+### 6. `turn_resource_history` (資源推移履歴)
+
+島ごとのターン単位の人口・食料・資金スナップショットを管理します。
+
+| カラム名     | データ型      | 制約          | 説明       |
+| :----------- | :------------ | :------------ | :--------- |
+| `uuid`       | `varchar(25)` | FK(user.uuid) | ユーザーID |
+| `turn`       | `integer`     | NOT NULL      | 記録ターン |
+| `population` | `integer`     | NOT NULL      | 人口       |
+| `food`       | `integer`     | NOT NULL      | 食料       |
+| `money`      | `integer`     | NOT NULL      | 資金       |
+
+> [!NOTE]
+> `(uuid, turn)` にユニークインデックスを設定し、同一ユーザー・同一ターンの重複記録を防止します。
+> また `uuid` 単体インデックスにより、履歴取得APIの検索効率を確保します。
+
+### 7. `plan` (開発計画)
 
 ユーザーが設定した各ターンのコマンドです。
 
@@ -95,11 +111,12 @@
 | `y`         | `integer`      | NOT NULL      | 座標 Y           |
 | `plan`      | `varchar(511)` | NOT NULL      | 実行コマンド内容 |
 
-### 7. その他
+### 8. その他
 
 - **`role`**: 管理権限設定(`uuid`, `role`)
 - **`last_login`**: ログイン統計(`uuid`, `last_login_at`, `consecutive_login_days`, etc.)
 - **`event_rate`**: 各種災害発生確率の個人設定
+- **`turn_resource_history`**: 資源推移履歴(`uuid`, `turn`, `population`, `food`, `money`)
 - **認証系**: `access_token`, `refresh_token`, `passkey` (セッション維持およびWebAuthn用)
 - **`turn_state`**: システム全体の現在ターンと更新状態管理
 

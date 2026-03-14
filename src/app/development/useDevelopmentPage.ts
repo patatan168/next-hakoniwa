@@ -4,6 +4,7 @@ import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
 import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
+import { turnResourceHistoryStore } from '@/global/store/api/auth/turnResourceHistory';
 import { islandListStore } from '@/global/store/api/public/islandList';
 import { turnStore } from '@/global/store/api/public/turn';
 import { useEffect, useState } from 'react';
@@ -26,8 +27,10 @@ export const useDevelopmentPage = () => {
     fetchIfNeeded: fetchTurnLogIfNeeded,
     fetch: fetchTurnLog,
   } = useClientFetch(turnLogAuthStore);
+  const { data: turnResourceHistory, fetchIfNeeded: fetchTurnResourceHistoryIfNeeded } =
+    useClientFetch(turnResourceHistoryStore);
 
-  const [view, setView] = useState<'plan' | 'log'>('plan');
+  const [view, setView] = useState<'plan' | 'log' | 'history'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
   const { width } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
@@ -71,6 +74,8 @@ export const useDevelopmentPage = () => {
           fetchTurnLog({ method: 'GET' }, { query: `log_uuid=${lastLogUuid}` });
         }
       }
+    } else if (view === 'history') {
+      fetchTurnResourceHistoryIfNeeded({ method: 'GET' });
     }
   }, [view, lazyFlag]);
 
@@ -81,6 +86,7 @@ export const useDevelopmentPage = () => {
     isPlanLoading,
     islandList,
     turnLog,
+    turnResourceHistory,
     view,
     setView,
     lazyFlag,

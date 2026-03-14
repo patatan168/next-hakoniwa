@@ -18,6 +18,7 @@ export default function IslandList() {
     isPlanLoading,
     islandList,
     turnLog,
+    turnResourceHistory,
     view,
     setView,
     setLazyFlag,
@@ -62,6 +63,7 @@ export default function IslandList() {
             isPlanLoading={isPlanLoading.get}
             fetchPlanData={fetchPlanData.get}
             turnLog={turnLog.get}
+            turnResourceHistory={turnResourceHistory.get}
             setLazyFlag={setLazyFlag}
             setView={setView}
           />
@@ -106,6 +108,7 @@ export default function IslandList() {
                       isPlanLoading={isPlanLoading.get}
                       fetchPlanData={fetchPlanData.get}
                       turnLog={turnLog.get}
+                      turnResourceHistory={turnResourceHistory.get}
                       setLazyFlag={setLazyFlag}
                       setView={setView}
                     />

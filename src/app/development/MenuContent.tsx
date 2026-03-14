@@ -1,10 +1,13 @@
-import type { Island, Plan, TurnLog, TurnState } from '@/db/kysely';
+import type { Island, Plan, TurnLog, TurnResourceHistory, TurnState } from '@/db/kysely';
 import BaseTabs from '@/global/component/TabContents';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
 
 const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
 const TurnLogComponent = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
+const TurnResourceChart = dynamic(() => import('@/global/component/TurnResourceChart'), {
+  ssr: false,
+});
 
 /**
  * 島開発メニューのコンテンツを表示するコンポーネント
@@ -19,8 +22,8 @@ type Props = {
   listHeight: string;
   /** 島の開発データ */
   developData?: Island & { island_name: string } & { rank: number };
-  /** 現在のビューモード（'plan' または 'log'） */
-  view: 'plan' | 'log';
+  /** 現在のビューモード（'plan' | 'log' | 'history'） */
+  view: 'plan' | 'log' | 'history';
   /** 移住可能な島のリスト */
   islandList?: { uuid: string; island_name: string }[];
   /** 現在のターンデータ */
@@ -34,10 +37,12 @@ type Props = {
     log?: string;
     secret_log?: string;
   })[];
+  /** 100ターン分の人口・食料・資金履歴 */
+  turnResourceHistory?: Omit<TurnResourceHistory, 'uuid'>[];
   /** ログの遅延読み込みフラグを設定するコールバック */
   setLazyFlag: (flag: boolean) => void;
   /** ビューモードを変更するコールバック */
-  setView: (view: 'plan' | 'log') => void;
+  setView: (view: 'plan' | 'log' | 'history') => void;
 };
 
 /**
@@ -56,6 +61,7 @@ export const MenuContent = ({
   isPlanLoading,
   fetchPlanData,
   turnLog,
+  turnResourceHistory,
   setLazyFlag,
   setView,
 }: Props) => {
@@ -68,7 +74,9 @@ export const MenuContent = ({
       >
         <div className="text-bold mt-2 text-center text-3xl text-red-900">
           {`「${developData?.island_name || ''}島」`}
-          <span className="text-black">{view === 'plan' ? '開発計画' : '開発記録'}</span>
+          <span className="text-black">
+            {view === 'plan' ? '開発計画' : view === 'log' ? '開発記録' : '資源推移'}
+          </span>
           <div className="text-center text-base text-black">
             {'ミサイル保有数: '}
             <span className="font-mono text-lg font-bold text-red-900">{developData?.missile}</span>
@@ -90,6 +98,11 @@ export const MenuContent = ({
           <Activity mode={view === 'log' ? 'visible' : 'hidden'}>
             <TurnLogComponent className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
           </Activity>
+          <Activity mode={view === 'history' ? 'visible' : 'hidden'}>
+            <div className="flex-1 overflow-y-auto">
+              <TurnResourceChart data={turnResourceHistory} />
+            </div>
+          </Activity>
         </div>
       </div>
       <div className="-ml-[3px] flex h-full items-center">
@@ -100,6 +113,7 @@ export const MenuContent = ({
           tabContents={[
             { label: '計画', value: 'plan' },
             { label: '記録', value: 'log' },
+            { label: '推移', value: 'history' },
           ]}
         />
       </div>

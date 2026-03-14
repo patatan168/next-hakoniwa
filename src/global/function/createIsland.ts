@@ -7,6 +7,7 @@ import { defenseBase } from '../define/mapCategory/mapMilitary';
 import { people } from '../define/mapCategory/mapOther';
 import META_DATA from '../define/metadata';
 import { calcAllTypeNum, countArea, countMapAround, getIslandInfo } from './island';
+import { getTurnInfo } from './turnProgress';
 
 /**
  * 島を初期化する
@@ -171,12 +172,16 @@ export const createIsland = async (
 ) => {
   const center = Math.trunc(META_DATA.MAP_SIZE / 2) - 1;
   const data: islandInfoData = initIsland();
+  const initMoney = META_DATA.INIT_MONEY;
+  const initFood = META_DATA.INIT_FOOD;
 
   initBaseLand(data, center);
   initForest(data, center);
   initPeople(data, center);
   initMountain(data, center);
   initDefenseBase(data, center);
+
+  const population = calcAllTypeNum(data, 'people');
 
   // Transaction
   await client.transaction().execute(async (trx) => {
@@ -191,15 +196,30 @@ export const createIsland = async (
       .values({
         uuid,
         prize: prizeVal,
-        money: META_DATA.INIT_MONEY,
-        food: META_DATA.INIT_FOOD,
+        money: initMoney,
+        food: initFood,
         area: countArea(data),
-        population: calcAllTypeNum(data, 'people'),
+        population,
         farm: calcAllTypeNum(data, 'farm'),
         factory: calcAllTypeNum(data, 'factory'),
         mining: calcAllTypeNum(data, 'mining'),
         missile: calcAllTypeNum(data, 'missile') + calcAllTypeNum(data, 'submarine_missile'),
         island_info: islandInfoVal,
+      })
+      .execute();
+
+    // 島作成時点のスナップショットを履歴へ保存する（初回表示用）
+    const turnInfo = await getTurnInfo(trx);
+
+    await trx
+      .insertInto('turn_resource_history')
+      .values({
+        uuid,
+        // 通常ターン進行の履歴保存と同じく「現在ターン」番号で記録する
+        turn: turnInfo?.turn ?? 0,
+        population,
+        food: initFood,
+        money: initMoney,
       })
       .execute();
 
