@@ -1,7 +1,7 @@
 'use client';
+import IslandListData from '@/global/component/IslandList';
 import TabContents, { TabType } from '@/global/component/TabContents';
 import TurnLog from '@/global/component/TurnLog';
-import VrTableList, { ColumnInfo } from '@/global/component/VrTableList';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { islandListStore } from '@/global/store/api/public/islandList';
@@ -9,12 +9,6 @@ import { turnLogStore } from '@/global/store/api/public/turnLog';
 import { useEffect, useRef, useState } from 'react';
 import { FaList } from 'react-icons/fa6';
 import { IoDocumentTextOutline } from 'react-icons/io5';
-
-const header: ColumnInfo = [
-  { width: 100, headName: 'UUID', key: 'uuid' },
-  { width: 200, headName: 'ユーザー名', key: 'user_name' },
-  { width: 100, headName: '島名', key: 'island_name' },
-];
 
 const tabTest: Array<TabType> = [
   { value: 0, label: '諸島の状況', icons: <FaList /> },
@@ -55,11 +49,9 @@ export default function IslandList() {
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
       <div ref={listCallback}>
         {tab === 0 && (
-          <VrTableList
-            isLoading={isLoading.get}
+          <IslandListData
             style={{ height: listHeight, backgroundColor: 'transparent' }}
-            columnHeader={header}
-            data={data.get}
+            islands={!isLoading.get ? data.get : undefined}
           />
         )}
         {tab === 1 && (
