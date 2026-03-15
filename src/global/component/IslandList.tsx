@@ -59,22 +59,21 @@ export default memo(
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_10.5rem] gap-0.5">
-                    <Link
-                      href={`/sight?uuid=${uuid}`}
-                      className="flex items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 py-0.5 text-center"
+                  <Link
+                    href={`/sight?uuid=${uuid}`}
+                    className="flex min-h-12 items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 py-0.5 text-center"
+                  >
+                    <span className="line-clamp-1 min-w-0 text-center text-base text-lg font-semibold text-red-900">
+                      {`${island_name}島`}
+                    </span>
+                  </Link>
+
+                  <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-0.5">
+                    <div className={titleCenter}>所有者</div>
+                    <div
+                      className={`flex items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 text-center text-lg text-shadow-xs/30`}
                     >
-                      <span className="line-clamp-1 min-w-0 text-center text-base text-lg font-semibold text-red-900">
-                        {`${island_name}島`}
-                      </span>
-                    </Link>
-                    <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-0.5">
-                      <div className={titleCenter}>所有者</div>
-                      <div
-                        className={`flex items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 text-center text-lg text-shadow-xs/30`}
-                      >
-                        <span className="line-clamp-1 break-all">{user_name ?? '-'}</span>
-                      </div>
+                      <span className="line-clamp-1 break-all">{user_name ?? '-'}</span>
                     </div>
                   </div>
 
