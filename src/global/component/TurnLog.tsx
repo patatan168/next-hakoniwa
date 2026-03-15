@@ -23,6 +23,14 @@ export default memo(
   ) {
     const ready = logs !== undefined && logs.length > 0;
 
+    if (logs !== undefined && logs.length === 0) {
+      return (
+        <div className={`p-4 text-center text-gray-500 ${className ?? ''}`}>
+          まだ開発記録がありません。
+        </div>
+      );
+    }
+
     if (!ready) return null;
 
     return (

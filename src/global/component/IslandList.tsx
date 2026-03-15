@@ -40,6 +40,15 @@ export default memo(
     ref: Ref<VirtuosoHandle>
   ) {
     const ready = islands !== undefined && islands.length > 0;
+
+    if (islands !== undefined && islands.length === 0) {
+      return (
+        <div className={`p-4 text-center text-gray-500 ${className ?? ''}`}>
+          島がまだ存在しません。
+        </div>
+      );
+    }
+
     if (!ready) return null;
 
     return (
