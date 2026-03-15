@@ -17,7 +17,7 @@ export default memo(
       // Error Message
       return (
         <li style={style} className="min-w-0 text-red-600">
-          <Tooltip tooltipComp={error.message}>
+          <Tooltip tooltipComp={error.message} smallText>
             <span className="block truncate">{error.message}</span>
           </Tooltip>
         </li>
@@ -26,7 +26,7 @@ export default memo(
       // Helper Message
       return (
         <li style={style} className="min-w-0">
-          <Tooltip tooltipComp={helperText}>
+          <Tooltip tooltipComp={helperText} smallText>
             <span className="block truncate">{helperText}</span>
           </Tooltip>
         </li>

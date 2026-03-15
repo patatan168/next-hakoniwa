@@ -37,19 +37,24 @@ const Tips = memo(
     children,
     tooltipRef,
     style,
+    sizeClass,
   }: {
     positionStyle: string;
     children: ReactNode;
     tooltipRef: React.RefObject<HTMLSpanElement | null>;
     style: React.CSSProperties;
+    sizeClass?: string;
   }) {
+    const textClass = sizeClass ?? 'sm:text-sm md:text-md lg:text-lg xl:text-xl 2xl:text-2xl';
     return (
       <span
         ref={tooltipRef}
         style={style}
         className={`absolute ${positionStyle} flex flex-col items-center whitespace-nowrap`}
       >
-        <span className="whitespace-no-wrap md:text-md relative z-10 rounded-md bg-gray-600/85 p-2 leading-none text-white shadow-lg sm:text-sm lg:text-lg xl:text-xl 2xl:text-2xl">
+        <span
+          className={`whitespace-no-wrap relative z-10 rounded-md bg-gray-600/85 p-2 leading-none text-white shadow-lg ${textClass}`}
+        >
           {children}
         </span>
       </span>
@@ -63,11 +68,14 @@ export const Tooltip = memo(
     position,
     tooltipComp,
     children,
+    smallText,
   }: {
     position?: string;
     tooltipComp: ReactNode | string;
     children: ReactNode;
+    smallText?: boolean;
   }) {
+    const sizeClass = smallText ? 'text-sm' : undefined;
     const positionStyle = GetPosition(position);
     const [visible, setVisible] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 });
@@ -94,8 +102,7 @@ export const Tooltip = memo(
       setVisible(false);
     };
 
-    const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
+    const handleClick = () => {
       if (visible) {
         setVisible(false);
       } else {
@@ -142,8 +149,10 @@ export const Tooltip = memo(
       // 画面内のいかなるスクロールでもツールチップを消すために capture: true
       window.addEventListener('scroll', handleScroll, true);
 
-      const handleOutsideClick = () => {
-        setVisible(false);
+      const handleOutsideClick = (e: MouseEvent) => {
+        if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+          setVisible(false);
+        }
       };
       document.addEventListener('click', handleOutsideClick);
 
@@ -175,7 +184,12 @@ export const Tooltip = memo(
                 height: coords.height,
               }}
             >
-              <Tips tooltipRef={tooltipRef} positionStyle={positionStyle} style={adjustedStyle}>
+              <Tips
+                tooltipRef={tooltipRef}
+                positionStyle={positionStyle}
+                style={adjustedStyle}
+                sizeClass={sizeClass}
+              >
                 {tooltipComp}
               </Tips>
             </div>,
