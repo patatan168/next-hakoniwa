@@ -1332,3 +1332,13 @@ export const logTurnResult = (
 ): string => {
   return `[b](収支)[/b]人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食糧: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
 };
+
+/**
+ * ターン杯受賞ログ
+ * @param island 受賞した島情報
+ * @param turn ターン数
+ * @returns ログ文字列
+ */
+export const logTurnCup = (island: Island & Pick<User, 'island_name'>, turn: number): string => {
+  return `${islandName(island)}が[b]${turn}ターン杯[/b]を受賞しました！`;
+};

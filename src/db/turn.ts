@@ -7,7 +7,7 @@ import type {
   islandInfoTurnProgress,
 } from '@/db/kysely';
 import { db } from '@/db/kysely';
-import { logTurnResult } from '@/global/define/logType';
+import { logTurnCup, logTurnResult } from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
@@ -42,6 +42,62 @@ import { Kysely, Transaction } from 'kysely';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
+
+// -----------------------------------------------------------------------------
+// Turn Cup Award
+// -----------------------------------------------------------------------------
+
+/**
+ * ターン杯の付与
+ * 100ターンごとに人口が最多の島に「turn_X」称号を付与する
+ * @param db DB接続情報
+ * @param finalData 最終島情報一覧
+ * @param nextTurn 次のターン数
+ * @param logArray ログ配列
+ */
+async function awardTurnCup(
+  db: Kysely<Database>,
+  finalData: islandInfoTurnProgress[],
+  nextTurn: number,
+  logArray: TurnLog[]
+) {
+  if (nextTurn % 100 !== 0) return;
+
+  const prizeType = `turn_${nextTurn}`;
+
+  // 再実行時の重複付与を防ぐ
+  const alreadyAwarded = await db
+    .selectFrom('prize')
+    .select('uuid')
+    .where('prize', '=', prizeType)
+    .executeTakeFirst();
+  if (alreadyAwarded) return;
+
+  // 生存島の中で人口最多の島を選出
+  const aliveIslands = finalData.filter((island) => island.population > 0);
+  if (aliveIslands.length === 0) return;
+
+  const winner = aliveIslands.reduce((best, island) =>
+    island.population > best.population ? island : best
+  );
+
+  // island テーブルの prize 列を更新（updateIslands で DB に反映される）
+  winner.prize = prizeType;
+
+  // prize テーブルに挿入
+  await db.insertInto('prize').values({ uuid: winner.uuid, prize: prizeType }).execute();
+
+  // ログ追加
+  const logMessage = logTurnCup(winner, nextTurn);
+  logArray.push({
+    log_uuid: createUuid25(),
+    from_uuid: winner.uuid,
+    to_uuid: winner.uuid,
+    turn: nextTurn,
+    log: logMessage,
+    secret_log: logMessage,
+  });
+}
 
 /** 再実行時の待機時間(ms) */
 const WAIT_TIME = 2000;
@@ -406,6 +462,9 @@ async function turnProceed(recursiveCount = 0) {
     islandList = undefined;
     const finalData = islandDataStore.getState().data;
     if (!finalData) throw new Error('島データの取得に失敗しました。');
+
+    // 100ターンごとにターン杯を付与（updateIslands より前に実行して prize を反映）
+    await awardTurnCup(db, finalData, turnInfo.turn + 1, logArray);
 
     await updateIslands(db, finalData);
     await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
