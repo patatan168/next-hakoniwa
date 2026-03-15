@@ -94,6 +94,17 @@ export const Tooltip = memo(
       setVisible(false);
     };
 
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (visible) {
+        setVisible(false);
+      } else {
+        updatePosition();
+        setVisible(true);
+        setAdjustedStyle({ visibility: 'hidden' });
+      }
+    };
+
     useEffect(() => {
       if (!visible) return;
 
@@ -131,9 +142,15 @@ export const Tooltip = memo(
       // 画面内のいかなるスクロールでもツールチップを消すために capture: true
       window.addEventListener('scroll', handleScroll, true);
 
+      const handleOutsideClick = () => {
+        setVisible(false);
+      };
+      document.addEventListener('click', handleOutsideClick);
+
       return () => {
         cancelAnimationFrame(timer);
         window.removeEventListener('scroll', handleScroll, true);
+        document.removeEventListener('click', handleOutsideClick);
       };
     }, [visible, coords]);
 
@@ -143,6 +160,7 @@ export const Tooltip = memo(
         className="relative inline-block h-full w-full"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
       >
         <Children>{children}</Children>
         {visible &&

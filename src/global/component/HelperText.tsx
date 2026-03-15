@@ -1,6 +1,7 @@
 import { isEqual } from 'es-toolkit';
 import { CSSProperties, memo } from 'react';
 import { FieldError } from 'react-hook-form';
+import Tooltip from './Tooltip';
 
 type HelperTextProps = {
   style?: CSSProperties;
@@ -15,15 +16,19 @@ export default memo(
     if (isError && error !== undefined) {
       // Error Message
       return (
-        <li style={style} className="truncate text-red-600">
-          {error.message}
+        <li style={style} className="min-w-0 text-red-600">
+          <Tooltip tooltipComp={error.message}>
+            <span className="block truncate">{error.message}</span>
+          </Tooltip>
         </li>
       );
     } else if (helperText !== undefined && helperText !== '') {
       // Helper Message
       return (
-        <li style={style} className="truncate">
-          {helperText}
+        <li style={style} className="min-w-0">
+          <Tooltip tooltipComp={helperText}>
+            <span className="block truncate">{helperText}</span>
+          </Tooltip>
         </li>
       );
     } else if (isBottomSpace === undefined || isBottomSpace) {
