@@ -7,6 +7,8 @@ export type achievementType = {
   readonly description: string;
   /** 達成条件 */
   readonly condition: string;
+  /** ターン進行時に自動付与する閾値（設定がある称号のみ） */
+  readonly threshold?: number;
 };
 
 export const achievements: achievementType[] = [
@@ -23,18 +25,21 @@ export const achievements: achievementType[] = [
     name: '繁栄賞',
     description: '島の人口が一定数に達し、大きく発展した証。',
     condition: '人口100,000人達成',
+    threshold: 100_000,
   },
   {
     type: 'prosperity_2',
     name: '超繁栄賞',
     description: '島の人口が非常に多くなり、驚異的な発展を遂げた証。',
     condition: '人口300,000人達成',
+    threshold: 300_000,
   },
   {
     type: 'prosperity_3',
     name: '究極繁栄賞',
     description: '島の人口が極限に達し、これ以上ないほど発展した証。',
     condition: '人口500,000人達成',
+    threshold: 500_000,
   },
   // 平和賞
   {
@@ -61,18 +66,21 @@ export const achievements: achievementType[] = [
     name: '災難賞',
     description: '度重なる災害に見舞われながらも生き延びた証。',
     condition: '1ターンに5000人以上の人口が死亡する',
+    threshold: 5_000,
   },
   {
     type: 'disaster_2',
     name: '超災難賞',
     description: '更に度重なる災害に見舞われながらも生き延びた証。',
     condition: '1ターンに10000人以上の人口が死亡する',
+    threshold: 10_000,
   },
   {
     type: 'disaster_3',
     name: '究極災難賞',
     description: '天変地異に見舞われながらも生き延びた証。',
     condition: '1ターンに20000人以上の人口が死亡する',
+    threshold: 20_000,
   },
   // 怪獣討伐賞
   {
@@ -144,3 +152,18 @@ export const getAchievement = (type: string): achievementType | undefined => {
   // それ以外の固定称号から検索
   return achievements.find((a) => a.type === type);
 };
+
+/** threshold を持つ achievementType の型 */
+export type achievementTypeWithThreshold = achievementType & { threshold: number };
+
+/** 繁栄賞一覧（閾値付き） */
+export const prosperityAchievements = achievements.filter(
+  (a): a is achievementTypeWithThreshold =>
+    a.type.startsWith('prosperity_') && a.threshold !== undefined
+);
+
+/** 災難賞一覧（閾値付き） */
+export const disasterAchievements = achievements.filter(
+  (a): a is achievementTypeWithThreshold =>
+    a.type.startsWith('disaster_') && a.threshold !== undefined
+);

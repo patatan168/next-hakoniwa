@@ -1342,3 +1342,31 @@ export const logTurnResult = (
 export const logTurnCup = (island: Island & Pick<User, 'island_name'>, turn: number): string => {
   return `${islandName(island)}が[b]${turn}ターン杯[/b]を受賞しました！`;
 };
+
+/**
+ * 繁栄賞受賞ログ
+ * @param island 受賞した島情報
+ * @param prizeName 称号名
+ * @returns ログ文字列
+ */
+export const logProsperity = (
+  island: Island & Pick<User, 'island_name'>,
+  prizeName: string
+): string => {
+  return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（人口：${island.population}人）`;
+};
+
+/**
+ * 災難賞受賞ログ
+ * @param island 受賞した島情報
+ * @param prizeName 称号名
+ * @param deaths 今ターンの死亡者数
+ * @returns ログ文字列
+ */
+export const logDisaster = (
+  island: Island & Pick<User, 'island_name'>,
+  prizeName: string,
+  deaths: number
+): string => {
+  return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（今ターン死亡：${deaths}人）`;
+};

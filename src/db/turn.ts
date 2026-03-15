@@ -7,7 +7,12 @@ import type {
   islandInfoTurnProgress,
 } from '@/db/kysely';
 import { db } from '@/db/kysely';
-import { logTurnCup, logTurnResult } from '@/global/define/logType';
+import {
+  disasterAchievements,
+  getAchievement,
+  prosperityAchievements,
+} from '@/global/define/achievementType';
+import { logDisaster, logProsperity, logTurnCup, logTurnResult } from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
@@ -42,6 +47,87 @@ import { Kysely, Transaction } from 'kysely';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
+
+// -----------------------------------------------------------------------------
+// Achievement Awards
+// -----------------------------------------------------------------------------
+
+/**
+ * 繁栄賞・災難賞の付与
+ * @param db DB接続情報
+ * @param finalData 最終島情報一覧
+ * @param prevPopulations ターン前の人口マップ (uuid -> population)
+ * @param nextTurn 次のターン数
+ * @param logArray ログ配列
+ */
+async function awardIslandAchievements(
+  db: Kysely<Database>,
+  finalData: islandInfoTurnProgress[],
+  prevPopulations: Map<string, number>,
+  nextTurn: number,
+  logArray: TurnLog[]
+) {
+  const aliveIslands = finalData.filter((island) => island.population > 0);
+  if (aliveIslands.length === 0) return;
+
+  const uuids = aliveIslands.map((island) => island.uuid);
+
+  // 対象UUIDの既存称号を一括取得して重複付与を防ぐ
+  const existingPrizes = await db
+    .selectFrom('prize')
+    .select(['uuid', 'prize'])
+    .where('uuid', 'in', uuids)
+    .execute();
+  const prizeSet = new Set(existingPrizes.map((p) => `${p.uuid}:${p.prize}`));
+
+  const newPrizes: Array<{ uuid: string; prize: string }> = [];
+
+  for (const island of aliveIslands) {
+    // 繁栄賞チェック
+    for (const { type, threshold } of prosperityAchievements) {
+      const key = `${island.uuid}:${type}`;
+      if (island.population >= threshold && !prizeSet.has(key)) {
+        prizeSet.add(key);
+        newPrizes.push({ uuid: island.uuid, prize: type });
+        const prizeName = getAchievement(type)?.name ?? type;
+        const logMessage = logProsperity(island, prizeName);
+        logArray.push({
+          log_uuid: createUuid25(),
+          from_uuid: island.uuid,
+          to_uuid: island.uuid,
+          turn: nextTurn,
+          log: logMessage,
+          secret_log: logMessage,
+        });
+      }
+    }
+
+    // 災難賞チェック（今ターンの死亡者数 = ターン前人口 - 現在人口）
+    const prevPop = prevPopulations.get(island.uuid) ?? island.population;
+    const deaths = Math.max(0, prevPop - island.population);
+    for (const { type, threshold } of disasterAchievements) {
+      const key = `${island.uuid}:${type}`;
+      if (deaths >= threshold && !prizeSet.has(key)) {
+        prizeSet.add(key);
+        newPrizes.push({ uuid: island.uuid, prize: type });
+        const prizeName = getAchievement(type)?.name ?? type;
+        const logMessage = logDisaster(island, prizeName, deaths);
+        logArray.push({
+          log_uuid: createUuid25(),
+          from_uuid: island.uuid,
+          to_uuid: island.uuid,
+          turn: nextTurn,
+          log: logMessage,
+          secret_log: logMessage,
+        });
+      }
+    }
+  }
+
+  if (newPrizes.length > 0) {
+    await db.insertInto('prize').values(newPrizes).execute();
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Turn Cup Award
@@ -311,7 +397,7 @@ async function processTurnForIslands(
   islandList: Island[],
   turnInfo: { turn: number },
   logArray: TurnLog[]
-) {
+): Promise<Map<string, number>> {
   const allPlans = await fetchActivePlans(
     db,
     islandList.map((i) => i.uuid)
@@ -380,6 +466,11 @@ async function processTurnForIslands(
       });
     }
   }
+
+  // ターン前の人口マップを返す（称号判定に使用）
+  const prevPopulations = new Map<string, number>();
+  prevStats.forEach((prev, uuid) => prevPopulations.set(uuid, prev.population));
+  return prevPopulations;
 }
 
 async function saveTurnResourceHistory(
@@ -457,13 +548,14 @@ async function turnProceed(recursiveCount = 0) {
     const logArray: TurnLog[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
-    await processTurnForIslands(db, islandList, turnInfo, logArray);
+    const prevPopulations = await processTurnForIslands(db, islandList, turnInfo, logArray);
 
     islandList = undefined;
     const finalData = islandDataStore.getState().data;
     if (!finalData) throw new Error('島データの取得に失敗しました。');
 
-    // 100ターンごとにターン杯を付与（updateIslands より前に実行して prize を反映）
+    // 称号付与（updateIslands より前に実行して island.prize を反映）
+    await awardIslandAchievements(db, finalData, prevPopulations, turnInfo.turn + 1, logArray);
     await awardTurnCup(db, finalData, turnInfo.turn + 1, logArray);
 
     await updateIslands(db, finalData);
