@@ -19,7 +19,7 @@ const HeaderModal = memo(
       <div className="flex items-center justify-between rounded-t border-b border-gray-200 p-2 md:p-4">
         {header !== undefined &&
           (typeof header === 'string' ? (
-            <h2 className="text-2xl text-gray-800 dark:text-white">{header}</h2>
+            <h2 className="min-w-0 text-2xl break-words text-gray-800 dark:text-white">{header}</h2>
           ) : (
             <>{header}</>
           ))}
@@ -41,7 +41,7 @@ const HeaderModal = memo(
 
 const BodyModal = memo(
   function BodyModal({ body }: { body: ReactNode }) {
-    return <div className="px-2 py-4 md:px-4">{body}</div>;
+    return <div className="min-w-0 px-2 py-4 break-words md:px-4">{body}</div>;
   },
   (oldProps, newProps) => isEqual(oldProps, newProps)
 );
@@ -95,11 +95,11 @@ const ModalContent = memo(
           role="dialog"
           tabIndex={-1}
           onKeyDown={modalFunction}
-          className={`card-border pointer-events-auto flex ${portal ? 'max-h-[96%] max-w-[96%] md:max-h-screen md:max-w-screen' : 'max-h-[95%] max-w-[95%]'} flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${className} ${bottomOnMobile ? 'max-sm:mb-2' : ''}`}
+          className={`card-border pointer-events-auto flex ${portal ? 'max-h-[96%] max-w-[96%] md:max-h-screen md:max-w-screen' : 'max-h-[95%] max-w-[95%]'} min-w-0 flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${className} ${bottomOnMobile ? 'max-sm:mb-2' : ''}`}
         >
           <IfComponent isRendered={isContentRendered}>
             <HeaderModal header={header} openToggle={openToggle} />
-            <div className="flex-1 overflow-y-auto">
+            <div className="min-w-0 flex-1 overflow-x-auto overflow-y-auto">
               <BodyModal body={body} />
             </div>
             <FooterModal footer={footer} />

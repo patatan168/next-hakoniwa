@@ -116,7 +116,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <ul className="w-[500] max-w-[96vw] list-none">
+      <ul className="w-[500px] max-w-full list-none">
         <li>
           {(error.post || passkeyError) && (
             <p className="mb-4 rounded-md bg-red-100 p-3 text-red-700">
