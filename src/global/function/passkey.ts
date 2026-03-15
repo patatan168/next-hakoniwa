@@ -124,10 +124,8 @@ export const createRegistrationOptions = async (
     userName,
     attestationType: 'none',
     // 既存のPasskeyと同じデバイスへの重複登録を防止
-    excludeCredentials: existingCredentialIds.map((id) => ({
-      id,
-      transports: ['internal', 'hybrid'],
-    })),
+    // transportsヒントは実装差でcreate()が失敗するブラウザがあるため省略する
+    excludeCredentials: existingCredentialIds.map((id) => ({ id })),
     authenticatorSelection: {
       residentKey: 'required',
       userVerification: 'preferred',

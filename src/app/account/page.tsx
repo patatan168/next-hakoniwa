@@ -440,6 +440,26 @@ function PasskeySection() {
   /** Passkeyを登録する */
   const handleRegister = async () => {
     setStatus(null);
+
+    // WebAuthnはSecure Context(HTTPSまたはlocalhost)でのみ利用可能
+    if (!window.isSecureContext) {
+      setStatus('Passkey登録にはHTTPS接続が必要です。');
+      return;
+    }
+
+    if (typeof PublicKeyCredential === 'undefined') {
+      setStatus('このブラウザはPasskeyに対応していません。');
+      return;
+    }
+
+    const host = window.location.hostname;
+    const rpId = META_DATA.RP_ID;
+    const isRpMatched = host === rpId || host.endsWith(`.${rpId}`);
+    if (!isRpMatched) {
+      setStatus(`Passkey設定エラー: 現在のホスト(${host})とRP ID(${rpId})が一致していません。`);
+      return;
+    }
+
     setLoading(true);
     try {
       const startRes = await csrfFetch('/api/auth/passkey/register/start', { method: 'POST' });
@@ -463,8 +483,14 @@ function PasskeySection() {
         const json = (await finishRes.json()) as { error?: string };
         setStatus(json.error ?? '登録に失敗しました');
       }
-    } catch {
-      setStatus('Passkeyの登録がキャンセルされたか、対応していません');
+    } catch (e) {
+      const errorText = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      const lower = errorText.toLowerCase();
+
+      const message = lower.includes('insecure')
+        ? 'Passkey登録に失敗しました: セキュアでない接続です。HTTPSで開いて再試行してください。'
+        : `Passkey登録に失敗しました: ${errorText}`;
+      setStatus(message);
     } finally {
       setLoading(false);
     }
