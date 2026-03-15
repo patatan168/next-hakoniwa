@@ -282,6 +282,30 @@ export const insertLogs = async (
 };
 
 /**
+ * 成功した計画の統計をDBに保存（upsert）
+ * @param db DB接続情報
+ * @param stats uuid -> (planType -> successCount) のマップ
+ */
+export const savePlanStats = async (
+  db: Kysely<Database> | Transaction<Database>,
+  stats: Map<string, Map<string, number>>
+): Promise<void> => {
+  if (stats.size === 0) return;
+
+  for (const [uuid, planCounts] of stats) {
+    for (const [plan, count] of planCounts) {
+      if (isSqlite) {
+        await sql`INSERT INTO plan_stats (uuid, plan, count) VALUES (${uuid}, ${plan}, ${count})
+          ON CONFLICT(uuid, plan) DO UPDATE SET count = count + ${count}`.execute(db);
+      } else {
+        await sql`INSERT INTO plan_stats (uuid, plan, \`count\`) VALUES (${uuid}, ${plan}, ${count})
+          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
+      }
+    }
+  }
+};
+
+/**
  * 計画の挿入と削除
  * @param db DB接続情報
  * @param updatePlan 更新する計画情報

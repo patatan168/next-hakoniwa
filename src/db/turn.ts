@@ -33,6 +33,7 @@ import {
   meteoriteExecute,
   monumentAttackExecute,
   popMonsterExecute,
+  savePlanStats,
   setAllIslandStats,
   tsunamiExecute,
   typhoonExecute,
@@ -217,6 +218,7 @@ function incomeAndEatenPhase(fromUuid: string) {
 
 /**
  * 計画実行フェーズ
+ * @returns 成功した計画の planType -> 実行数 のマップ
  */
 async function planPhase(
   db: Kysely<Database> | Transaction<Database>,
@@ -224,10 +226,11 @@ async function planPhase(
   fromUuid: string,
   plans: Plan[],
   logArray: TurnLog[]
-) {
+): Promise<Map<string, number>> {
   const nextTurn = currentTurn + 1;
   const dropPlans: Plan[] = [];
   let financingFlag = plans.length === 0;
+  const successCounts = new Map<string, number>();
 
   for (let i = 0; i < plans.length; i++) {
     const { to_uuid: toUuid, plan, plan_no } = plans[i];
@@ -242,6 +245,10 @@ async function planPhase(
       turn: nextTurn,
       uuid: { toIsland: toUuid, fromIsland: fromUuid },
     });
+
+    if (result.success !== false) {
+      successCounts.set(plan, (successCounts.get(plan) ?? 0) + 1);
+    }
 
     logArray.push(...result.log);
     if (plans[i].times < 1) dropPlans.push(plans[i]);
@@ -272,6 +279,7 @@ async function planPhase(
     const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
     await insertDeletePlan(db, insertPlans, dropLength, fromUuid);
   }
+  return successCounts;
 }
 
 function processSingleCell(
@@ -397,7 +405,7 @@ async function processTurnForIslands(
   islandList: Island[],
   turnInfo: { turn: number },
   logArray: TurnLog[]
-): Promise<Map<string, number>> {
+): Promise<{ prevPopulations: Map<string, number>; planStats: Map<string, Map<string, number>> }> {
   const allPlans = await fetchActivePlans(
     db,
     islandList.map((i) => i.uuid)
@@ -406,6 +414,8 @@ async function processTurnForIslands(
 
   // ターン開始前の値を保持するマップ
   const prevStats = new Map<string, { money: number; food: number; population: number }>();
+  // 成功した計画の統計（uuid -> planType -> 実行数）
+  const planStats = new Map<string, Map<string, number>>();
 
   // フェーズ1: 実際のターン処理を全島に対して実行
   for (const index of randomIndices) {
@@ -420,7 +430,10 @@ async function processTurnForIslands(
     });
 
     incomeAndEatenPhase(uuid);
-    await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    const successCounts = await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    if (successCounts.size > 0) {
+      planStats.set(uuid, successCounts);
+    }
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
   }
@@ -470,7 +483,7 @@ async function processTurnForIslands(
   // ターン前の人口マップを返す（称号判定に使用）
   const prevPopulations = new Map<string, number>();
   prevStats.forEach((prev, uuid) => prevPopulations.set(uuid, prev.population));
-  return prevPopulations;
+  return { prevPopulations, planStats };
 }
 
 async function saveTurnResourceHistory(
@@ -548,19 +561,25 @@ async function turnProceed(recursiveCount = 0) {
     const logArray: TurnLog[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
-    const prevPopulations = await processTurnForIslands(db, islandList, turnInfo, logArray);
+    const { prevPopulations, planStats } = await processTurnForIslands(
+      db,
+      islandList,
+      turnInfo,
+      logArray
+    );
 
     islandList = undefined;
     const finalData = islandDataStore.getState().data;
     if (!finalData) throw new Error('島データの取得に失敗しました。');
 
-    // 称号付与（updateIslands より前に実行して island.prize を反映）
+    // 称号付与(updateIslands より前に実行して island.prize を反映)
     await awardIslandAchievements(db, finalData, prevPopulations, turnInfo.turn + 1, logArray);
     await awardTurnCup(db, finalData, turnInfo.turn + 1, logArray);
 
     await updateIslands(db, finalData);
     await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
     await saveTurnResourceHistory(db, finalData, turnInfo.turn + 1);
+    await savePlanStats(db, planStats);
     await updateTurn(db, turnInfo.turn + 1);
     await insertLogs(db, logArray);
   } catch (error) {

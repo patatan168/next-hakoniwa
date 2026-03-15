@@ -168,6 +168,11 @@ export async function up(db: Kysely<Database>): Promise<void> {
       y: { type: 'integer', config: (col) => col.notNull() },
       plan: { type: 'varchar(511)', config: (col) => col.notNull() },
     },
+    plan_stats: {
+      uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      plan: { type: 'varchar(511)', config: (col) => col.notNull() },
+      count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
     event_rate: {
       uuid: {
         type: 'varchar(25)',
@@ -248,7 +253,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
   console.log('[DEBUG] Starting table sync loops...');
   for (const [tableName, columns] of Object.entries(desiredSchema)) {
     console.log(`[DEBUG] Processing table: ${tableName}`);
-    // prizeテーブルのみ複合主キーを設定するため個別に処理
+    // 複合主キーを持つテーブルは個別に処理
     if (tableName === 'prize') {
       const existingTables = await db.introspection.getTables();
       const existingTable = existingTables.find((t) => t.name === tableName);
@@ -258,6 +263,21 @@ export async function up(db: Kysely<Database>): Promise<void> {
           .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
           .addColumn('prize', 'varchar(63)', (col) => col.notNull())
           .addPrimaryKeyConstraint('prize_pk', ['uuid', 'prize'])
+          .execute();
+        console.log(`Created table: ${tableName} with composite primary key`);
+        continue;
+      }
+    }
+    if (tableName === 'plan_stats') {
+      const existingTables = await db.introspection.getTables();
+      const existingTable = existingTables.find((t) => t.name === tableName);
+      if (!existingTable) {
+        await db.schema
+          .createTable('plan_stats')
+          .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+          .addColumn('plan', 'varchar(511)', (col) => col.notNull())
+          .addColumn('count', 'integer', (col) => col.defaultTo(0).notNull())
+          .addPrimaryKeyConstraint('plan_stats_pk', ['uuid', 'plan'])
           .execute();
         console.log(`Created table: ${tableName} with composite primary key`);
         continue;

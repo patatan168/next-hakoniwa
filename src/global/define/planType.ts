@@ -26,6 +26,8 @@ export type planResult = {
   nextPlan: boolean;
   /** ログ */
   log: Array<TurnLog>;
+  /** 計画が正常に実行されたかどうか（falseの場合は地形不適合・資金不足による中止） */
+  success?: boolean;
 };
 
 export type changeDataArgs = {
@@ -233,12 +235,12 @@ export const validCostAndLandType = (
   // 地形整備が不可能なら中止
   if (!validLandType(island, plan, x, y, true)) {
     const log = logLandFail(island, plan, x, y);
-    return { nextPlan: true, log: [{ ...baseLog, secret_log: log, log: log }] };
+    return { nextPlan: true, log: [{ ...baseLog, secret_log: log, log: log }], success: false };
   }
   // 資金不足の場合は中止
   if (!hasSufficientCosts(island, plan)) {
     const log = logLackCosts(island, plan);
-    return { nextPlan: true, log: [{ ...baseLog, secret_log: log, log: log }] };
+    return { nextPlan: true, log: [{ ...baseLog, secret_log: log, log: log }], success: false };
   }
 
   return { nextPlan: false, log: [{ ...baseLog, secret_log: 'dummy', log: 'dummy' }] };

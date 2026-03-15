@@ -111,7 +111,21 @@
 | `y`         | `integer`      | NOT NULL      | 座標 Y           |
 | `plan`      | `varchar(511)` | NOT NULL      | 実行コマンド内容 |
 
-### 8. その他
+### 8. `plan_stats` (計画成功統計)
+
+各ユーザーの計画タイプごとの成功実行回数を累積管理します。
+
+| カラム名   | データ型       | 制約                          | 説明                                     |
+| :--------- | :------------- | :---------------------------- | :--------------------------------------- |
+| **`uuid`** | `varchar(25)`  | PRIMARY KEY[1], FK(user.uuid) | ユーザーID                               |
+| **`plan`** | `varchar(511)` | PRIMARY KEY[2]                | 計画タイプ識別子（例: `farm_dev`）       |
+| `count`    | `integer`      | DEFAULT 0, NOT NULL           | 地形不適合・資金不足以外で実行された回数 |
+
+> [!NOTE]
+> `(uuid, plan)` の複合主キーにより、同一ユーザー・同一計画タイプのレコードが重複して作成されることを防ぎます。
+> ターン進行時に成功した計画のみをカウントし、upsert で累積加算します。
+
+### 9. その他
 
 - **`role`**: 管理権限設定(`uuid`, `role`)
 - **`last_login`**: ログイン統計(`uuid`, `last_login_at`, `consecutive_login_days`, etc.)

@@ -47,6 +47,7 @@ export type AccessToken = Selectable<GeneratedDB['access_token']>;
 export type RefreshToken = Selectable<GeneratedDB['refresh_token']>;
 export type Passkey = Selectable<GeneratedDB['passkey']>;
 export type Prize = Selectable<GeneratedDB['prize']>;
+export type PlanStat = Selectable<GeneratedDB['plan_stats']>;
 
 export type { islandInfo, islandInfoData } from './schema/islandTypes';
 
