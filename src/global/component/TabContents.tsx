@@ -15,6 +15,7 @@ type BaseTabsProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange: (value: any) => void;
   orientation?: 'horizontal' | 'vertical-left' | 'vertical-right';
+  size?: 'sm' | 'md';
 };
 
 const baseCommon =
@@ -23,15 +24,17 @@ const baseCommon =
 const getTabStyle = (
   isSelected: boolean,
   isDisabled: boolean,
-  orientation: 'horizontal' | 'vertical-left' | 'vertical-right' = 'horizontal'
+  orientation: 'horizontal' | 'vertical-left' | 'vertical-right' = 'horizontal',
+  size: 'sm' | 'md' = 'md'
 ) => {
+  const verticalH = size === 'sm' ? 'h-24 lg:h-28' : 'h-40 lg:h-48';
   let orientationStyle = '';
   if (orientation === 'horizontal') {
     orientationStyle = 'pt-2.5 pb-1 w-40 lg:w-48 rounded-t-lg';
   } else if (orientation === 'vertical-left') {
-    orientationStyle = 'px-1 w-10 lg:w-12 h-40 lg:h-48 rounded-l-lg';
+    orientationStyle = `px-1 w-10 lg:w-12 ${verticalH} rounded-l-lg`;
   } else if (orientation === 'vertical-right') {
-    orientationStyle = 'px-1 w-10 lg:w-12 h-40 lg:h-48 rounded-r-lg';
+    orientationStyle = `px-1 w-10 lg:w-12 ${verticalH} rounded-r-lg`;
   }
 
   const stateStyle = isSelected
@@ -55,6 +58,7 @@ export default memo(
     value,
     onChange,
     orientation = 'horizontal',
+    size = 'md',
   }: BaseTabsProps) {
     const isVertical = orientation.startsWith('vertical');
     let listClassName = `flex border-gray-200 text-center font-semibold text-gray-500 `;
@@ -72,7 +76,7 @@ export default memo(
         {tabContents.map((tab: TabType) => {
           const { value: tabVal, label, disabled, icons } = tab;
           const isSelected = tabVal === value;
-          const tabStyle = getTabStyle(isSelected, !!disabled, orientation);
+          const tabStyle = getTabStyle(isSelected, !!disabled, orientation, size);
 
           let rotationClass = '';
           if (orientation === 'vertical-left') {

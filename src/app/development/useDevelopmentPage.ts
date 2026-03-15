@@ -5,6 +5,7 @@ import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
 import { planStore } from '@/global/store/api/auth/plan';
+import { planStatsStore } from '@/global/store/api/auth/planStats';
 import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
 import { turnResourceHistoryStore } from '@/global/store/api/auth/turnResourceHistory';
 import { islandListStore } from '@/global/store/api/public/islandList';
@@ -66,8 +67,9 @@ export const useDevelopmentPage = () => {
   } = useClientFetch(turnLogAuthStore);
   const { data: turnResourceHistory, fetchIfNeeded: fetchTurnResourceHistoryIfNeeded } =
     useClientFetch(turnResourceHistoryStore);
+  const { data: planStats, fetchIfNeeded: fetchPlanStatsIfNeeded } = useClientFetch(planStatsStore);
 
-  const [view, setView] = useState<'plan' | 'log' | 'history' | 'settings'>('plan');
+  const [view, setView] = useState<'plan' | 'log' | 'history' | 'stats' | 'settings'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
   const { width } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
@@ -132,6 +134,8 @@ export const useDevelopmentPage = () => {
       }
     } else if (view === 'history') {
       fetchTurnResourceHistoryIfNeeded({ method: 'GET' });
+    } else if (view === 'stats') {
+      fetchPlanStatsIfNeeded({ method: 'GET' });
     }
   }, [view, lazyFlag]);
 
@@ -148,6 +152,7 @@ export const useDevelopmentPage = () => {
     islandList,
     turnLog,
     turnResourceHistory,
+    planStats,
     view,
     setView,
     lazyFlag,

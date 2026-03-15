@@ -1,5 +1,6 @@
 import type { Island, Plan, TurnLog, TurnResourceHistory, TurnState } from '@/db/kysely';
 import BaseTabs from '@/global/component/TabContents';
+import { PlanStatItem } from '@/global/store/api/auth/planStats';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
 import IslandSettingsPanel from './IslandSettingsPanel';
@@ -9,13 +10,15 @@ const TurnLogComponent = dynamic(() => import('@/global/component/TurnLog'), { s
 const TurnResourceChart = dynamic(() => import('@/global/component/TurnResourceChart'), {
   ssr: false,
 });
+const PlanStatsTable = dynamic(() => import('@/global/component/PlanStatsTable'), { ssr: false });
 
-type ViewMode = 'plan' | 'log' | 'history' | 'settings';
+type ViewMode = 'plan' | 'log' | 'history' | 'stats' | 'settings';
 
 const VIEW_LABEL: Record<ViewMode, string> = {
   plan: '開発計画',
   log: '開発記録',
   history: '資源推移',
+  stats: '計画統計',
   settings: '島の設定',
 };
 
@@ -23,6 +26,7 @@ const TAB_CONTENTS: Array<{ label: string; value: ViewMode }> = [
   { label: '計画', value: 'plan' },
   { label: '記録', value: 'log' },
   { label: '推移', value: 'history' },
+  { label: '統計', value: 'stats' },
   { label: '設定', value: 'settings' },
 ];
 
@@ -63,6 +67,7 @@ function MenuPanels({
   turnLog,
   setLazyFlag,
   turnResourceHistory,
+  planStats,
   refreshDevelopData,
 }: {
   view: ViewMode;
@@ -74,6 +79,7 @@ function MenuPanels({
   turnLog?: Props['turnLog'];
   setLazyFlag: Props['setLazyFlag'];
   turnResourceHistory?: Props['turnResourceHistory'];
+  planStats?: Props['planStats'];
   refreshDevelopData: Props['refreshDevelopData'];
 }) {
   return (
@@ -95,6 +101,9 @@ function MenuPanels({
         <div className="flex-1 overflow-y-auto">
           <TurnResourceChart data={turnResourceHistory} />
         </div>
+      </Activity>
+      <Activity mode={activityMode(view, 'stats')}>
+        <PlanStatsTable className="flex-1" data={planStats} />
       </Activity>
       <Activity mode={activityMode(view, 'settings')}>
         <IslandSettingsPanel
@@ -154,6 +163,8 @@ type Props = {
   })[];
   /** 100ターン分の人口・食料・資金履歴 */
   turnResourceHistory?: Omit<TurnResourceHistory, 'uuid'>[];
+  /** 計画成功統計 */
+  planStats?: PlanStatItem[];
   /** ログの遅延読み込みフラグを設定するコールバック */
   setLazyFlag: (flag: boolean) => void;
   /** ビューモードを変更するコールバック */
@@ -179,6 +190,7 @@ export const MenuContent = ({
   fetchPlanData,
   turnLog,
   turnResourceHistory,
+  planStats,
   setLazyFlag,
   setView,
   refreshDevelopData,
@@ -203,12 +215,14 @@ export const MenuContent = ({
           turnLog={turnLog}
           setLazyFlag={setLazyFlag}
           turnResourceHistory={turnResourceHistory}
+          planStats={planStats}
           refreshDevelopData={refreshDevelopData}
         />
       </div>
       <div className="-ml-[3px] flex h-full min-h-0 items-center">
         <BaseTabs
           orientation="vertical-right"
+          size="sm"
           value={view}
           onChange={setView}
           tabContents={TAB_CONTENTS}
