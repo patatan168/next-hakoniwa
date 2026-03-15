@@ -1,4 +1,6 @@
 import { db, Island, isSqlite, parseJsonIslandData, User } from '@/db/kysely';
+import { getAchievement } from '@/global/define/achievementType';
+import { getIslandNameChangeCooldownSeconds } from '@/global/function/islandNameChangeCooldown';
 import { accessLogger } from '@/global/function/logger';
 import { grantLoginBonus } from '@/global/function/loginBonus';
 import { sql } from 'kysely';
@@ -31,14 +33,15 @@ export async function GET(request: NextRequest) {
           'island.factory',
           'island.mining',
           'island.missile',
+          'user.user_name',
+          'user.island_name_prefix',
           'user.island_name',
+          'user.island_name_changed_at',
           // SQLite: json() で文字列変換が必要、MySQL: JSON 型はそのまま参照
           isSqlite
             ? sql<string>`json(island.island_info)`.as('island_info')
             : sql<string>`island.island_info`.as('island_info'),
-          isSqlite
-            ? sql<string>`json(island.prize)`.as('prize')
-            : sql<string>`island.prize`.as('prize'),
+          sql<string>`island.prize`.as('prize'),
           sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
         ])
         .as('ranked')
@@ -47,7 +50,8 @@ export async function GET(request: NextRequest) {
     .where('uuid', '=', uuid)
     .executeTakeFirst();
 
-  const islandData = islandDataRaw as unknown as Island & Pick<User, 'island_name'>;
+  const islandData = islandDataRaw as unknown as Island &
+    Pick<User, 'island_name' | 'user_name' | 'island_name_prefix' | 'island_name_changed_at'>;
   if (islandData === undefined) {
     accessLogger(request).warn(`Internal Server Error: Development uuid=${uuid}`);
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 500 });
@@ -57,5 +61,33 @@ export async function GET(request: NextRequest) {
 
   const loginBonus = await grantLoginBonus(uuid, islandData);
 
-  return NextResponse.json({ ...islandData, loginBonus });
+  const ownedTitles = await db
+    .selectFrom('prize')
+    .select('prize')
+    .where('uuid', '=', uuid)
+    .orderBy('prize', 'asc')
+    .execute();
+
+  const currentTitleType = typeof islandData.prize === 'string' ? islandData.prize : '';
+  const currentTitleName = currentTitleType
+    ? (getAchievement(currentTitleType)?.name ?? currentTitleType)
+    : '';
+  const nextIslandNameChangeAt =
+    islandData.island_name_changed_at + getIslandNameChangeCooldownSeconds();
+  const canChangeIslandName =
+    islandData.island_name_changed_at === 0 ||
+    Math.floor(Date.now() / 1000) >= nextIslandNameChangeAt;
+
+  return NextResponse.json({
+    ...islandData,
+    current_title_type: currentTitleType,
+    current_title_name: currentTitleName,
+    available_titles: ownedTitles.map((t) => ({
+      type: t.prize,
+      name: getAchievement(t.prize)?.name ?? t.prize,
+    })),
+    can_change_island_name: canChangeIslandName,
+    next_island_name_change_at: nextIslandNameChangeAt,
+    loginBonus,
+  });
 }

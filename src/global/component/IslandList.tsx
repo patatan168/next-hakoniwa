@@ -6,8 +6,10 @@ import META_DATA from '../define/metadata';
 
 type IslandListItem = {
   uuid: string;
+  island_name_prefix?: string;
   island_name: string;
   user_name?: string;
+  current_title_name?: string;
   rank: number;
   population?: number;
   money?: number;
@@ -47,10 +49,21 @@ export default memo(
         style={style}
         data={islands}
         itemContent={(_index, island) => {
-          const { rank, island_name, uuid, user_name, population, money, food } = island;
+          const {
+            rank,
+            island_name_prefix,
+            island_name,
+            uuid,
+            user_name,
+            current_title_name,
+            population,
+            money,
+            food,
+          } = island;
+          const displayIslandName = `${island_name_prefix ?? ''}${island_name}島`;
 
           return (
-            <div className="my-2 rounded-sm border-1 border-gray-400 bg-white/70 p-1">
+            <div className="mb-2 rounded-sm border-1 border-gray-400 bg-white/70 p-1">
               <div className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-0.5">
                 <div className="grid h-full min-h-12 grid-rows-[auto_1fr] gap-0.5">
                   <div className={`${titleCenter} py-0.5`}>順位</div>
@@ -61,34 +74,87 @@ export default memo(
                 <div className="space-y-0.5">
                   <Link
                     href={`/sight?uuid=${uuid}`}
-                    className="flex min-h-12 items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 py-0.5 text-center"
+                    className="flex min-h-12 items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 py-0.5 text-center md:hidden"
                   >
                     <span className="line-clamp-1 min-w-0 text-center text-base text-lg font-semibold text-red-900">
-                      {`${island_name}島`}
+                      {displayIslandName}
                     </span>
                   </Link>
 
-                  <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-0.5">
-                    <div className={titleCenter}>所有者</div>
-                    <div
-                      className={`flex items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 text-center text-lg text-shadow-xs/30`}
-                    >
-                      <span className="line-clamp-1 break-all">{user_name ?? '-'}</span>
+                  <div className="space-y-0.5 md:hidden">
+                    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-0.5">
+                      <div className={titleCenter}>所有者</div>
+                      <div className={`${value} flex items-center justify-center px-2`}>
+                        <span className="line-clamp-1 break-all">{user_name ?? '-'}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-0.5">
+                      <div className={titleCenter}>称号</div>
+                      <div className={`${value} flex items-center justify-center px-2`}>
+                        <span className="line-clamp-1 break-all">
+                          {current_title_name && current_title_name.trim() !== ''
+                            ? current_title_name
+                            : '-'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-6 gap-0.5">
+                      <div className={`${titleCenter} col-span-2`}>人口</div>
+                      <div className={`${titleCenter} col-span-2`}>資金 (推定)</div>
+                      <div className={`${titleCenter} col-span-2`}>食糧</div>
+                      <div className={`${value} col-span-2`}>
+                        {population !== undefined ? `${population}人` : '-'}
+                      </div>
+                      <div className={`${value} col-span-2`}>
+                        {money !== undefined ? `${money}${META_DATA.UNIT_MONEY}` : '-'}
+                      </div>
+                      <div className={`${value} col-span-2`}>
+                        {food !== undefined ? `${food}${META_DATA.UNIT_FOOD}` : '-'}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-6 gap-0.5">
-                    <div className={`${titleCenter} col-span-2`}>人口</div>
-                    <div className={`${titleCenter} col-span-2`}>資金 (推定)</div>
-                    <div className={`${titleCenter} col-span-2`}>食糧</div>
-                    <div className={`${value} col-span-2`}>
-                      {population !== undefined ? `${population}人` : '-'}
+                  <div className="hidden md:grid md:grid-cols-[4rem_minmax(0,1fr)_4rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] md:gap-0.5">
+                    <Link
+                      href={`/sight?uuid=${uuid}`}
+                      className="col-span-4 flex min-h-12 items-center justify-center border-1 border-gray-400 bg-cyan-100 px-2 py-0.5 text-center"
+                    >
+                      <span className="line-clamp-1 min-w-0 text-center text-base text-lg font-semibold text-red-900">
+                        {displayIslandName}
+                      </span>
+                    </Link>
+                    <div className="row-span-2 grid grid-rows-[auto_1fr] gap-0.5">
+                      <div className={`${titleCenter} self-start`}>人口</div>
+                      <div className={`${value} flex items-center justify-center`}>
+                        {population !== undefined ? `${population}人` : '-'}
+                      </div>
                     </div>
-                    <div className={`${value} col-span-2`}>
-                      {money !== undefined ? `${money}${META_DATA.UNIT_MONEY}` : '-'}
+                    <div className="row-span-2 grid grid-rows-[auto_1fr] gap-0.5">
+                      <div className={`${titleCenter} self-start`}>資金 (推定)</div>
+                      <div className={`${value} flex items-center justify-center`}>
+                        {money !== undefined ? `${money}${META_DATA.UNIT_MONEY}` : '-'}
+                      </div>
                     </div>
-                    <div className={`${value} col-span-2`}>
-                      {food !== undefined ? `${food}${META_DATA.UNIT_FOOD}` : '-'}
+                    <div className="row-span-2 grid grid-rows-[auto_1fr] gap-0.5">
+                      <div className={`${titleCenter} self-start`}>食糧</div>
+                      <div className={`${value} flex items-center justify-center`}>
+                        {food !== undefined ? `${food}${META_DATA.UNIT_FOOD}` : '-'}
+                      </div>
+                    </div>
+
+                    <div className={titleCenter}>所有者</div>
+                    <div className={`${value} flex items-center justify-center px-2`}>
+                      <span className="line-clamp-1 break-all">{user_name ?? '-'}</span>
+                    </div>
+                    <div className={titleCenter}>称号</div>
+                    <div className={`${value} flex items-center justify-center px-2`}>
+                      <span className="line-clamp-1 break-all">
+                        {current_title_name && current_title_name.trim() !== ''
+                          ? current_title_name
+                          : '-'}
+                      </span>
                     </div>
                   </div>
                 </div>

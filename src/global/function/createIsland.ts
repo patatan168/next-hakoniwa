@@ -170,6 +170,7 @@ export const createIsland = async (
   client: Kysely<Database> | Transaction<Database>,
   uuid: string
 ) => {
+  const beginnerPrize = 'beginner';
   const center = Math.trunc(META_DATA.MAP_SIZE / 2) - 1;
   const data: islandInfoData = initIsland();
   const initMoney = META_DATA.INIT_MONEY;
@@ -186,7 +187,6 @@ export const createIsland = async (
   // Transaction
   await client.transaction().execute(async (trx) => {
     // SQLite: jsonb() で BLOB として格納、MySQL: JSON 型にはそのまま文字列を渡す
-    const prizeVal = '';
     const islandInfoVal = isSqlite
       ? sql<string>`jsonb(${JSON.stringify(data)})`
       : sql<string>`${JSON.stringify(data)}`;
@@ -195,7 +195,7 @@ export const createIsland = async (
       .insertInto('island')
       .values({
         uuid,
-        prize: prizeVal,
+        prize: beginnerPrize,
         money: initMoney,
         food: initFood,
         area: countArea(data),
@@ -224,5 +224,14 @@ export const createIsland = async (
       .execute();
 
     await trx.insertInto('event_rate').values({ uuid }).execute();
+
+    // 初回称号を付与
+    await trx
+      .insertInto('prize')
+      .values({
+        uuid,
+        prize: beginnerPrize,
+      })
+      .execute();
   });
 };

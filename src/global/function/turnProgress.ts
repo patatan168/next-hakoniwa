@@ -87,9 +87,7 @@ export async function getAllIslands(db: Kysely<Database> | Transaction<Database>
         ? sql<string>`json(island.island_info)`.as('island_info')
         : sql<string>`island.island_info`.as('island_info')
     )
-    .select(
-      isSqlite ? sql<string>`json(island.prize)`.as('prize') : sql<string>`island.prize`.as('prize')
-    )
+    .select(sql<string>`island.prize`.as('prize'))
     .where('user.inhabited', '=', 1)
     .execute()) as unknown as islandInfoTurnProgress[];
   if (islands) {
@@ -183,10 +181,8 @@ export const updateIslands = async (
 ) => {
   await db.transaction().execute(async (trx) => {
     for (const tmp of islandData) {
-      // SQLite: jsonb() で BLOB として格納、MySQL: JSON 型にはそのまま文字列を渡す
-      const prizeJson = JSON.stringify(tmp.prize);
+      // island_infoのみJSONとして保存する
       const islandInfoJson = JSON.stringify(tmp.island_info);
-      const prizeSql = isSqlite ? sql<string>`jsonb(${prizeJson})` : sql<string>`${prizeJson}`;
       const islandInfoSql = isSqlite
         ? sql<string>`jsonb(${islandInfoJson})`
         : sql<string>`${islandInfoJson}`;
@@ -194,7 +190,7 @@ export const updateIslands = async (
       await trx
         .updateTable('island')
         .set({
-          prize: prizeSql,
+          prize: typeof tmp.prize === 'string' ? tmp.prize : '',
           money: tmp.money,
           area: tmp.area,
           population: tmp.population,

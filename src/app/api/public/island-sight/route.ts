@@ -35,15 +35,14 @@ export async function GET(request: NextRequest) {
             'island.factory',
             'island.mining',
             'island.missile',
+            'user.island_name_prefix',
             'user.island_name',
             'user.inhabited',
             // SQLite: json() で文字列変換が必要、MySQL: JSON 型はそのまま参照
             isSqlite
               ? sql<string>`json(island.island_info)`.as('island_info')
               : sql<string>`island.island_info`.as('island_info'),
-            isSqlite
-              ? sql<string>`json(island.prize)`.as('prize')
-              : sql<string>`island.prize`.as('prize'),
+            sql<string>`island.prize`.as('prize'),
             sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
           ])
           .where('user.inhabited', '=', 1)

@@ -10,6 +10,13 @@ export type achievementType = {
 };
 
 export const achievements: achievementType[] = [
+  // 初心者
+  {
+    type: 'beginner',
+    name: '初心者',
+    description: '新しい島を開拓した証。',
+    condition: '島を開拓する',
+  },
   // 繁栄賞
   {
     type: 'prosperity_1',

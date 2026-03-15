@@ -17,6 +17,7 @@ export default function MapSight({
 }) {
   const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
   const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
+  const displayIslandName = `${islandData.get?.island_name_prefix ?? ''}${islandData.get?.island_name ?? ''}`;
 
   const mapSize = mapRect
     ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
@@ -29,7 +30,7 @@ export default function MapSight({
   return (
     <div className="grid grid-rows-[auto_auto_auto_1fr] justify-items-center gap-1 px-1">
       <span className="text-bold text-3xl text-red-900">
-        {`「${islandData.get?.island_name || ''}島」`}
+        {`「${displayIslandName}島」`}
         {create && <span className="text-black">{`が発見されました！！`}</span>}
         {!create && <span className="text-black">{`へようこそ！！`}</span>}
       </span>
@@ -48,7 +49,7 @@ export default function MapSight({
         ref={mapCallback}
         style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
         isLoading={isLoading.get}
-        islandName={islandData.get?.island_name}
+        islandName={displayIslandName}
         data={islandData.get?.island_info}
       />
     </div>

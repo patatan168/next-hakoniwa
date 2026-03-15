@@ -8,7 +8,7 @@ export type islandData = Array<Island>;
  * ターン進行用の拡張島情報型
  * Selectable<IslandTable> をベースに、User 名やイベントレート、
  * ターン実行中のみ使用する一時的なプロパティを追加。
- * JSON カラム（island_info, prize）は Kysely オーバーライドにより自動でパース済み型になります。
+ * JSON カラム（island_info）と文字列カラム（prize）を扱う拡張型。
  */
 export interface islandInfoTurnProgress
   extends Island, Omit<EventRate, 'uuid'>, Pick<User, 'island_name'> {
@@ -57,10 +57,7 @@ export const parseJsonIslandData = <T extends Island>(
     money: number;
   };
 
-  // すでにパースされている場合は何もしない（Kyselyプラグインによりパース済みの場合など）
-  if (typeof mutIsland.prize === 'string') {
-    mutIsland.prize = resolveJsonColumn(mutIsland.prize) as object;
-  }
+  mutIsland.prize = typeof mutIsland.prize === 'string' ? mutIsland.prize : '';
 
   if (typeof mutIsland.island_info === 'string') {
     const parsed = resolveJsonColumn(mutIsland.island_info);

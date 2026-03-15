@@ -2,12 +2,116 @@ import type { Island, Plan, TurnLog, TurnResourceHistory, TurnState } from '@/db
 import BaseTabs from '@/global/component/TabContents';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
+import IslandSettingsPanel from './IslandSettingsPanel';
 
 const PlanList = dynamic(() => import('@/global/component/PlanList'), { ssr: false });
 const TurnLogComponent = dynamic(() => import('@/global/component/TurnLog'), { ssr: false });
 const TurnResourceChart = dynamic(() => import('@/global/component/TurnResourceChart'), {
   ssr: false,
 });
+
+type ViewMode = 'plan' | 'log' | 'history' | 'settings';
+
+const VIEW_LABEL: Record<ViewMode, string> = {
+  plan: '開発計画',
+  log: '開発記録',
+  history: '資源推移',
+  settings: '島の設定',
+};
+
+const TAB_CONTENTS: Array<{ label: string; value: ViewMode }> = [
+  { label: '計画', value: 'plan' },
+  { label: '記録', value: 'log' },
+  { label: '推移', value: 'history' },
+  { label: '設定', value: 'settings' },
+];
+
+const activityMode = (view: ViewMode, target: ViewMode): 'visible' | 'hidden' =>
+  view === target ? 'visible' : 'hidden';
+
+const getIslandSettingsPanelKey = (developData?: Props['developData']) =>
+  `${developData?.island_name_prefix ?? ''}:${developData?.island_name ?? ''}:${developData?.current_title_type ?? ''}`;
+
+function MenuHeader({ developData, view }: { developData?: Props['developData']; view: ViewMode }) {
+  const islandName = `${developData?.island_name_prefix ?? ''}${developData?.island_name ?? ''}`;
+  const titleText = developData?.current_title_name?.trim() ?? '';
+
+  return (
+    <div className="text-bold mt-2 text-center text-3xl text-red-900">
+      {`「${islandName}島」`}
+      <span className="text-black">{VIEW_LABEL[view]}</span>
+      {titleText !== '' ? (
+        <div className="ml-2 text-xl text-cyan-800">{`[${titleText}]`}</div>
+      ) : null}
+      <div className="text-center text-base text-black">
+        {'ミサイル保有数: '}
+        <span className="font-mono text-lg font-bold text-red-900">{developData?.missile}</span>
+        {'発'}
+      </div>
+      <hr className="my-2 border-gray-200" />
+    </div>
+  );
+}
+
+function MenuPanels({
+  view,
+  islandList,
+  turnData,
+  isPlanLoading,
+  fetchPlanData,
+  developData,
+  turnLog,
+  setLazyFlag,
+  turnResourceHistory,
+  refreshDevelopData,
+}: {
+  view: ViewMode;
+  islandList?: Props['islandList'];
+  turnData?: Props['turnData'];
+  isPlanLoading: boolean;
+  fetchPlanData?: Props['fetchPlanData'];
+  developData?: Props['developData'];
+  turnLog?: Props['turnLog'];
+  setLazyFlag: Props['setLazyFlag'];
+  turnResourceHistory?: Props['turnResourceHistory'];
+  refreshDevelopData: Props['refreshDevelopData'];
+}) {
+  return (
+    <div className={'flex flex-1 flex-col overflow-hidden'}>
+      <Activity mode={activityMode(view, 'plan')}>
+        <PlanList
+          className="flex-1 overflow-y-auto p-2"
+          islandList={islandList}
+          turn={turnData?.turn}
+          isPlanLoading={isPlanLoading}
+          initPlanData={fetchPlanData}
+          uuid={developData?.uuid}
+        />
+      </Activity>
+      <Activity mode={activityMode(view, 'log')}>
+        <TurnLogComponent className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
+      </Activity>
+      <Activity mode={activityMode(view, 'history')}>
+        <div className="flex-1 overflow-y-auto">
+          <TurnResourceChart data={turnResourceHistory} />
+        </div>
+      </Activity>
+      <Activity mode={activityMode(view, 'settings')}>
+        <IslandSettingsPanel
+          key={getIslandSettingsPanelKey(developData)}
+          currentIslandName={developData?.island_name}
+          currentIslandNamePrefix={developData?.island_name_prefix}
+          currentTitleType={developData?.current_title_type}
+          currentTitleName={developData?.current_title_name}
+          availableTitles={developData?.available_titles}
+          canChangeIslandName={developData?.can_change_island_name}
+          nextIslandNameChangeAt={developData?.next_island_name_change_at}
+          onSaved={refreshDevelopData}
+        />
+      </Activity>
+    </div>
+  );
+}
 
 /**
  * 島開発メニューのコンテンツを表示するコンポーネント
@@ -21,9 +125,20 @@ type Props = {
   /** リストコンテナの高さ */
   listHeight: string;
   /** 島の開発データ */
-  developData?: Island & { island_name: string } & { rank: number };
-  /** 現在のビューモード（'plan' | 'log' | 'history'） */
-  view: 'plan' | 'log' | 'history';
+  developData?: Island & {
+    island_name: string;
+    island_name_prefix: string;
+    user_name: string;
+    island_name_changed_at: number;
+    rank: number;
+    current_title_type: string;
+    current_title_name: string;
+    available_titles: Array<{ type: string; name: string }>;
+    can_change_island_name: boolean;
+    next_island_name_change_at: number;
+  };
+  /** 現在のビューモード（'plan' | 'log' | 'history' | 'settings'） */
+  view: ViewMode;
   /** 移住可能な島のリスト */
   islandList?: { uuid: string; island_name: string }[];
   /** 現在のターンデータ */
@@ -42,7 +157,9 @@ type Props = {
   /** ログの遅延読み込みフラグを設定するコールバック */
   setLazyFlag: (flag: boolean) => void;
   /** ビューモードを変更するコールバック */
-  setView: (view: 'plan' | 'log' | 'history') => void;
+  setView: (view: ViewMode) => void;
+  /** 設定保存後に開発データを再取得する */
+  refreshDevelopData: () => void;
 };
 
 /**
@@ -64,57 +181,37 @@ export const MenuContent = ({
   turnResourceHistory,
   setLazyFlag,
   setView,
+  refreshDevelopData,
 }: Props) => {
+  const mobileCardClass = isMobile ? 'rounded-lg bg-white p-2 shadow-xl' : '';
+
   return (
-    <div className={`flex h-full ${isMobile ? 'rounded-lg bg-white p-2 shadow-xl' : ''}`}>
+    <div className={`flex h-full min-h-0 ${mobileCardClass}`}>
       <div
         ref={listCallback}
-        className="double flex flex-1 flex-col overflow-hidden rounded-lg border-3 border-gray-200 bg-teal-50/50"
+        className="double flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border-3 border-gray-200 bg-teal-50/50"
         style={{ height: listHeight }}
       >
-        <div className="text-bold mt-2 text-center text-3xl text-red-900">
-          {`「${developData?.island_name || ''}島」`}
-          <span className="text-black">
-            {view === 'plan' ? '開発計画' : view === 'log' ? '開発記録' : '資源推移'}
-          </span>
-          <div className="text-center text-base text-black">
-            {'ミサイル保有数: '}
-            <span className="font-mono text-lg font-bold text-red-900">{developData?.missile}</span>
-            {'発'}
-          </div>
-          <hr className="my-2 border-gray-200" />
-        </div>
-        <div className={'flex flex-1 flex-col overflow-hidden'}>
-          <Activity mode={view === 'plan' ? 'visible' : 'hidden'}>
-            <PlanList
-              className="flex-1 overflow-y-auto p-2"
-              islandList={islandList}
-              turn={turnData?.turn}
-              isPlanLoading={isPlanLoading}
-              initPlanData={fetchPlanData}
-              uuid={developData?.uuid}
-            />
-          </Activity>
-          <Activity mode={view === 'log' ? 'visible' : 'hidden'}>
-            <TurnLogComponent className="flex-1" logs={turnLog} setLazyFlag={setLazyFlag} />
-          </Activity>
-          <Activity mode={view === 'history' ? 'visible' : 'hidden'}>
-            <div className="flex-1 overflow-y-auto">
-              <TurnResourceChart data={turnResourceHistory} />
-            </div>
-          </Activity>
-        </div>
+        <MenuHeader developData={developData} view={view} />
+        <MenuPanels
+          view={view}
+          islandList={islandList}
+          turnData={turnData}
+          isPlanLoading={isPlanLoading}
+          fetchPlanData={fetchPlanData}
+          developData={developData}
+          turnLog={turnLog}
+          setLazyFlag={setLazyFlag}
+          turnResourceHistory={turnResourceHistory}
+          refreshDevelopData={refreshDevelopData}
+        />
       </div>
-      <div className="-ml-[3px] flex h-full items-center">
+      <div className="-ml-[3px] flex h-full min-h-0 items-center">
         <BaseTabs
           orientation="vertical-right"
           value={view}
           onChange={setView}
-          tabContents={[
-            { label: '計画', value: 'plan' },
-            { label: '記録', value: 'log' },
-            { label: '推移', value: 'history' },
-          ]}
+          tabContents={TAB_CONTENTS}
         />
       </div>
     </div>

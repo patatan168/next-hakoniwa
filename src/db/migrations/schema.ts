@@ -88,7 +88,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     user: {
       uuid: { type: 'varchar(25)', config: (col) => col.primaryKey().unique().notNull() },
       user_name: { type: 'varchar(64)', config: (col) => col.notNull() },
+      island_name_prefix: { type: 'varchar(16)', config: (col) => col.defaultTo('').notNull() },
       island_name: { type: 'varchar(64)', config: (col) => col.notNull() },
+      island_name_changed_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
       inhabited: { type: 'integer', config: (col) => col.defaultTo(1).notNull() },
     },
     auth: {

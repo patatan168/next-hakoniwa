@@ -27,6 +27,7 @@
   --real-vh: 99.8dvh;
   --real-vw: 99.8dvw;
   --real-vh-minus-footer: 99dvh;
+  --browser-address-bar-height: 0px;
 }
 
 body {
@@ -73,6 +74,19 @@ footer {
 
 .h-minus-footer-screen {
   height: var(--real-vh-minus-footer);
+}
+
+@media (max-width: 767px) {
+  .development-menu-modal {
+    height: calc(
+      var(--real-vh-minus-footer) - var(--browser-address-bar-height) -
+        env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    ) !important;
+    max-height: calc(
+      var(--real-vh-minus-footer) - var(--browser-address-bar-height) -
+        env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    ) !important;
+  }
 }
 
 .title {

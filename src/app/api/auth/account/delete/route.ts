@@ -69,9 +69,7 @@ export async function DELETE(request: NextRequest) {
         isSqlite
           ? sql<string>`json(island.island_info)`.as('island_info')
           : sql<string>`island.island_info`.as('island_info'),
-        isSqlite
-          ? sql<string>`json(island.prize)`.as('prize')
-          : sql<string>`island.prize`.as('prize'),
+        sql<string>`island.prize`.as('prize'),
       ])
       .where('user.uuid', '=', uuid)
       .executeTakeFirst();

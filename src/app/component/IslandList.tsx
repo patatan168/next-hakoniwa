@@ -47,7 +47,7 @@ export default function IslandList() {
   return (
     <>
       <TabContents value={tab} onChange={handleChange} tabContents={tabTest} />
-      <div ref={listCallback}>
+      <div className="mt-2" ref={listCallback}>
         {tab === 0 && (
           <IslandListData
             style={{ height: listHeight, backgroundColor: 'transparent' }}

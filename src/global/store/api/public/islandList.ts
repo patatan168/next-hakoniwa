@@ -3,7 +3,9 @@ import { FetchStore } from '@/global/function/fetch/fetch';
 type PublicIslandListItem = {
   uuid: string;
   user_name: string;
+  island_name_prefix: string;
   island_name: string;
+  current_title_name: string;
   rank: number;
   population: number;
   money: number;

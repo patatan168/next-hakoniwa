@@ -1,4 +1,5 @@
 import { db } from '@/db/kysely';
+import { getAchievement } from '@/global/define/achievementType';
 import { sql } from 'kysely';
 import { NextResponse } from 'next/server';
 
@@ -15,7 +16,9 @@ export async function GET() {
         .select([
           'user.uuid',
           'user.user_name',
+          'user.island_name_prefix',
           'user.island_name',
+          'island.prize',
           'island.population',
           'island.money',
           'island.food',
@@ -34,6 +37,7 @@ export async function GET() {
 
   const rounded = user.map((row) => ({
     ...row,
+    current_title_name: row.prize ? (getAchievement(row.prize)?.name ?? row.prize) : '',
     money: Math.round(row.money / 1000) * 1000,
   }));
 

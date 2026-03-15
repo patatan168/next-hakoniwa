@@ -48,6 +48,7 @@ const normalizePlanItems = (initPlans: Plan[], uuid: string) => {
 export const useDevelopmentPage = () => {
   const {
     data: developData,
+    fetch: fetchDevelop,
     fetchIfNeeded: fetchDev,
     isLoading,
   } = useClientFetch(developmentStore);
@@ -66,7 +67,7 @@ export const useDevelopmentPage = () => {
   const { data: turnResourceHistory, fetchIfNeeded: fetchTurnResourceHistoryIfNeeded } =
     useClientFetch(turnResourceHistoryStore);
 
-  const [view, setView] = useState<'plan' | 'log' | 'history'>('plan');
+  const [view, setView] = useState<'plan' | 'log' | 'history' | 'settings'>('plan');
   const [lazyFlag, setLazyFlag] = useState(false);
   const { width } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
@@ -93,7 +94,7 @@ export const useDevelopmentPage = () => {
     : 'var(--real-vh-minus-footer)';
 
   useEffect(() => {
-    fetchDev({ method: 'GET' });
+    fetchDevelop({ method: 'GET' });
     fetchTurn({ method: 'GET' });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
@@ -134,6 +135,11 @@ export const useDevelopmentPage = () => {
     }
   }, [view, lazyFlag]);
 
+  const refreshDevelopData = () => {
+    fetchDevelop({ method: 'GET' });
+    fetchDev({ method: 'GET' });
+  };
+
   return {
     developData,
     turnData,
@@ -156,5 +162,6 @@ export const useDevelopmentPage = () => {
     isLoading,
     showLoginBonus,
     setShowLoginBonus,
+    refreshDevelopData,
   };
 };

@@ -6,9 +6,10 @@ type WindowSize = {
   width: number;
   height: number;
   minusFooterHeight: number;
+  addressBarHeight: number;
 };
 
-const initSnapshot: WindowSize = { width: 0, height: 0, minusFooterHeight: 0 };
+const initSnapshot: WindowSize = { width: 0, height: 0, minusFooterHeight: 0, addressBarHeight: 0 };
 let snapshot: WindowSize = initSnapshot;
 const listeners = new Set<() => void>();
 
@@ -25,6 +26,18 @@ const getBaseDimensions = () => ({
   width: window.innerWidth || document.documentElement.clientWidth,
   height: window.innerHeight || document.documentElement.clientHeight,
 });
+
+const isEditableElement = (element: Element | null): element is HTMLElement => {
+  if (!(element instanceof HTMLElement)) return false;
+
+  const tagName = element.tagName;
+  return (
+    element.isContentEditable ||
+    tagName === 'INPUT' ||
+    tagName === 'TEXTAREA' ||
+    tagName === 'SELECT'
+  );
+};
 
 const calculateExactDimensions = () => {
   const { width: baseWidth, height: baseHeight } = getBaseDimensions();
@@ -44,24 +57,41 @@ const calculateExactDimensions = () => {
 
 const roundValue = (value: number) => Math.round(value * 1000) / 1000;
 
+const shouldPreserveHeightWhileTyping = (nextWidth: number, nextHeight: number) => {
+  if (snapshot.height === 0) return false;
+  if (Math.round(nextWidth) !== Math.round(snapshot.width)) return false;
+  if (nextHeight >= snapshot.height) return false;
+  if (!isEditableElement(document.activeElement)) return false;
+
+  const viewport = window.visualViewport;
+  if (!viewport) return false;
+
+  const { height: baseHeight } = getBaseDimensions();
+  return viewport.height < baseHeight;
+};
+
 const updateSnapshot = () => {
   if (!isClientSafe()) return;
 
   const footer = document.querySelector('footer');
   const footerHeight = footer ? footer.clientHeight : 0;
+  const addressBarHeight = getAddressBarHeightOffset();
 
   const { width, height } = calculateExactDimensions();
+  const safeHeight = shouldPreserveHeightWhileTyping(width, height) ? snapshot.height : height;
 
   const newSnapshot = {
     width: roundValue(width),
-    height: roundValue(height),
-    minusFooterHeight: roundValue(height - footerHeight - 7),
+    height: roundValue(safeHeight),
+    minusFooterHeight: roundValue(safeHeight - footerHeight - 7),
+    addressBarHeight: roundValue(addressBarHeight),
   };
 
   const isChanged =
     newSnapshot.width !== snapshot.width ||
     newSnapshot.height !== snapshot.height ||
-    newSnapshot.minusFooterHeight !== snapshot.minusFooterHeight;
+    newSnapshot.minusFooterHeight !== snapshot.minusFooterHeight ||
+    newSnapshot.addressBarHeight !== snapshot.addressBarHeight;
 
   if (isChanged) {
     snapshot = newSnapshot;

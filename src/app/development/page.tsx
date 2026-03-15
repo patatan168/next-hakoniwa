@@ -32,6 +32,7 @@ export default function IslandList() {
     isLoading,
     showLoginBonus,
     setShowLoginBonus,
+    refreshDevelopData,
   } = useDevelopmentPage();
 
   return (
@@ -66,6 +67,7 @@ export default function IslandList() {
             turnResourceHistory={turnResourceHistory.get}
             setLazyFlag={setLazyFlag}
             setView={setView}
+            refreshDevelopData={refreshDevelopData}
           />
         )}
 
@@ -88,7 +90,7 @@ export default function IslandList() {
                   onClick={() => setShowMenu(false)}
                 >
                   <div
-                    className="h-minus-footer-screen relative w-full max-w-5xl"
+                    className="development-menu-modal relative w-full max-w-5xl overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -100,7 +102,7 @@ export default function IslandList() {
                     <MenuContent
                       isMobile={true}
                       listCallback={listCallback}
-                      listHeight={listHeight}
+                      listHeight="100%"
                       developData={developData.get}
                       view={view}
                       islandList={islandList.get}
@@ -111,6 +113,7 @@ export default function IslandList() {
                       turnResourceHistory={turnResourceHistory.get}
                       setLazyFlag={setLazyFlag}
                       setView={setView}
+                      refreshDevelopData={refreshDevelopData}
                     />
                   </div>
                 </div>,
