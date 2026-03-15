@@ -7,7 +7,7 @@ export default function Title() {
     <div className="flex flex-col items-start gap-1 p-2">
       <h1 className="title ml-1 text-5xl">{META.TITLE}</h1>
       <p className="title ml-5">{`Version: ${META.VERSION}`}</p>
-      <div className="ml-4">
+      <div className="w-full px-1 sm:w-auto">
         <ScheduleBadge />
       </div>
     </div>

@@ -108,7 +108,7 @@ export default function ScheduleBadge() {
     return (
       <div className="mt-1 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 px-4 py-3 shadow-sm">
         {/* ヘッダー行 */}
-        <div className="mb-2.5 flex items-center justify-between gap-3">
+        <div className="mb-2.5 flex items-center gap-4">
           <div className="flex items-center gap-2">
             <MdOutlineUpdate className="shrink-0 text-emerald-600" size={20} />
             <span className="text-sm font-semibold text-emerald-700">{parsed.text}</span>
@@ -116,8 +116,8 @@ export default function ScheduleBadge() {
           {turnNumberDisplay}
         </div>
 
-        {/* 時刻グリッド */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* 時刻タイムライン */}
+        <div className="relative flex flex-wrap items-end gap-1 sm:gap-1.5">
           {localHours.map((h) => {
             const isNext = h === nextHour;
             const past = isPast(h);
@@ -126,10 +126,10 @@ export default function ScheduleBadge() {
             if (isNext) {
               return (
                 <div key={h} className="relative flex flex-col items-center">
-                  <div className="mb-0.5 rounded-full bg-amber-500 px-1.5 py-0 text-[9px] font-black tracking-wider text-white uppercase">
+                  <div className="mb-0.5 rounded-full bg-amber-500 px-1 py-0 text-[8px] font-black tracking-wider text-white uppercase sm:px-2 sm:text-xs">
                     NEXT
                   </div>
-                  <div className="animate-pulse rounded-lg border-2 border-amber-500 bg-amber-400 px-3 py-1.5 text-sm font-black text-white shadow-md shadow-amber-200 sm:text-base">
+                  <div className="rounded-lg border-2 border-amber-500 bg-amber-50 px-2 py-1 text-xs font-black text-amber-700 shadow-sm sm:px-4 sm:py-2 sm:text-lg">
                     {timeStr}
                   </div>
                 </div>
@@ -138,8 +138,9 @@ export default function ScheduleBadge() {
 
             if (past) {
               return (
-                <div key={h} className="flex items-end pb-0.5">
-                  <div className="rounded border border-gray-200 bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-400 line-through sm:text-sm">
+                <div key={h} className="flex flex-col items-center gap-0.5">
+                  <div className="h-1 w-1 rounded-full bg-emerald-300 sm:h-1.5 sm:w-1.5" />
+                  <div className="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-400 sm:px-2.5 sm:py-1.5 sm:text-sm">
                     {timeStr}
                   </div>
                 </div>
@@ -148,7 +149,7 @@ export default function ScheduleBadge() {
 
             return (
               <div key={h} className="flex items-end pb-0.5">
-                <div className="rounded-lg border border-emerald-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm sm:text-base">
+                <div className="rounded-lg border border-emerald-300 bg-white px-2 py-1 text-xs font-semibold text-emerald-700 shadow-sm sm:px-2.5 sm:py-1.5 sm:text-base">
                   {timeStr}
                 </div>
               </div>
