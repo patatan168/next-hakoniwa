@@ -223,10 +223,42 @@ export const abandonIsland = async (
   await client.deleteFrom('missile_stats').where('uuid', '=', uuid).execute();
   await client.deleteFrom('missile_destroy_map_stats').where('uuid', '=', uuid).execute();
   await client.deleteFrom('missile_kill_monster_stats').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('plan_stats').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('turn_resource_history').where('uuid', '=', uuid).execute();
   await client.deleteFrom('auth').where('uuid', '=', uuid).execute();
   await client.deleteFrom('last_login').where('uuid', '=', uuid).execute();
   await client.deleteFrom('refresh_token').where('uuid', '=', uuid).execute();
   await client.deleteFrom('role').where('uuid', '=', uuid).execute();
+};
+
+/**
+ * 複数の島を一括放棄
+ * @param client DB接続情報
+ * @param uuids 放棄する島のUUID配列
+ */
+const abandonIslands = async (
+  client: Kysely<Database> | Transaction<Database>,
+  uuids: string[]
+) => {
+  if (uuids.length === 0) return;
+  await client.updateTable('user').set({ inhabited: 0 }).where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('island').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('prize').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('event_rate').where('uuid', 'in', uuids).execute();
+  await client
+    .deleteFrom('plan')
+    .where((eb) => eb.or([eb('from_uuid', 'in', uuids), eb('to_uuid', 'in', uuids)]))
+    .execute();
+  await client.deleteFrom('access_token').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('missile_stats').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('missile_destroy_map_stats').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('missile_kill_monster_stats').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('plan_stats').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('turn_resource_history').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('auth').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('last_login').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('refresh_token').where('uuid', 'in', uuids).execute();
+  await client.deleteFrom('role').where('uuid', 'in', uuids).execute();
 };
 
 /**
@@ -244,9 +276,13 @@ export const updateUserInhabited = async (
   if (deadIslands.length === 0) return;
 
   await db.transaction().execute(async (trx) => {
+    // 一括放棄
+    await abandonIslands(
+      trx,
+      deadIslands.map((i) => i.uuid)
+    );
+    // 個別の無人化ログ
     for (const island of deadIslands) {
-      await abandonIsland(trx, island.uuid);
-      // 無人化ログ
       logArray.push({
         log_uuid: createUuid25(),
         from_uuid: island.uuid,
@@ -303,54 +339,73 @@ export const saveMissileStats = async (
 ): Promise<void> => {
   if (stats.size === 0) return;
 
+  const mainRows: Array<{ uuid: string; monsterKill: number; cityKill: number }> = [];
+  const destroyRows: Array<{ uuid: string; mapType: string; count: number }> = [];
+  const killRows: Array<{ uuid: string; monsterType: string; count: number }> = [];
+
   for (const [uuid, { monsterKill, cityKill, destroyedMaps, killedMonsters }] of stats) {
-    if (
-      monsterKill === 0 &&
-      cityKill === 0 &&
-      Object.keys(destroyedMaps).length === 0 &&
-      Object.keys(killedMonsters).length === 0
-    ) {
-      continue;
+    if (monsterKill > 0 || cityKill > 0) {
+      mainRows.push({ uuid, monsterKill, cityKill });
     }
-
-    if (isSqlite) {
-      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
-        VALUES (${uuid}, ${monsterKill}, ${cityKill})
-        ON CONFLICT(uuid) DO UPDATE SET
-          monster_kill = monster_kill + ${monsterKill},
-          city_kill = city_kill + ${cityKill}`.execute(db);
-    } else {
-      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
-        VALUES (${uuid}, ${monsterKill}, ${cityKill})
-        ON DUPLICATE KEY UPDATE
-          monster_kill = monster_kill + ${monsterKill},
-          city_kill = city_kill + ${cityKill}`.execute(db);
-    }
-
     for (const [mapType, count] of Object.entries(destroyedMaps)) {
-      if (count <= 0) continue;
-      if (isSqlite) {
-        await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, count)
-          VALUES (${uuid}, ${mapType}, ${count})
-          ON CONFLICT(uuid, map_type) DO UPDATE SET count = count + ${count}`.execute(db);
-      } else {
-        await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, \`count\`)
-          VALUES (${uuid}, ${mapType}, ${count})
-          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
-      }
+      if (count > 0) destroyRows.push({ uuid, mapType, count });
     }
-
     for (const [monsterType, count] of Object.entries(killedMonsters)) {
-      if (count <= 0) continue;
-      if (isSqlite) {
-        await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, count)
-          VALUES (${uuid}, ${monsterType}, ${count})
-          ON CONFLICT(uuid, monster_type) DO UPDATE SET count = count + ${count}`.execute(db);
-      } else {
-        await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, \`count\`)
-          VALUES (${uuid}, ${monsterType}, ${count})
-          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
-      }
+      if (count > 0) killRows.push({ uuid, monsterType, count });
+    }
+  }
+
+  const CHUNK = 200;
+
+  // missile_stats バッチ upsert
+  for (let i = 0; i < mainRows.length; i += CHUNK) {
+    const chunk = mainRows.slice(i, i + CHUNK);
+    if (isSqlite) {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.monsterKill}, ${r.cityKill})`);
+      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
+        VALUES ${sql.join(values)}
+        ON CONFLICT(uuid) DO UPDATE SET
+          monster_kill = monster_kill + excluded.monster_kill,
+          city_kill = city_kill + excluded.city_kill`.execute(db);
+    } else {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.monsterKill}, ${r.cityKill})`);
+      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
+        VALUES ${sql.join(values)}
+        ON DUPLICATE KEY UPDATE
+          monster_kill = monster_kill + VALUES(monster_kill),
+          city_kill = city_kill + VALUES(city_kill)`.execute(db);
+    }
+  }
+
+  // missile_destroy_map_stats バッチ upsert
+  for (let i = 0; i < destroyRows.length; i += CHUNK) {
+    const chunk = destroyRows.slice(i, i + CHUNK);
+    if (isSqlite) {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.mapType}, ${r.count})`);
+      await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, count)
+        VALUES ${sql.join(values)}
+        ON CONFLICT(uuid, map_type) DO UPDATE SET count = count + excluded.count`.execute(db);
+    } else {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.mapType}, ${r.count})`);
+      await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, \`count\`)
+        VALUES ${sql.join(values)}
+        ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
+    }
+  }
+
+  // missile_kill_monster_stats バッチ upsert
+  for (let i = 0; i < killRows.length; i += CHUNK) {
+    const chunk = killRows.slice(i, i + CHUNK);
+    if (isSqlite) {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.monsterType}, ${r.count})`);
+      await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, count)
+        VALUES ${sql.join(values)}
+        ON CONFLICT(uuid, monster_type) DO UPDATE SET count = count + excluded.count`.execute(db);
+    } else {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.monsterType}, ${r.count})`);
+      await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, \`count\`)
+        VALUES ${sql.join(values)}
+        ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
     }
   }
 };
@@ -366,15 +421,25 @@ export const savePlanStats = async (
 ): Promise<void> => {
   if (stats.size === 0) return;
 
+  const rows: Array<{ uuid: string; plan: string; count: number }> = [];
   for (const [uuid, planCounts] of stats) {
     for (const [plan, count] of planCounts) {
-      if (isSqlite) {
-        await sql`INSERT INTO plan_stats (uuid, plan, count) VALUES (${uuid}, ${plan}, ${count})
-          ON CONFLICT(uuid, plan) DO UPDATE SET count = count + ${count}`.execute(db);
-      } else {
-        await sql`INSERT INTO plan_stats (uuid, plan, \`count\`) VALUES (${uuid}, ${plan}, ${count})
-          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
-      }
+      rows.push({ uuid, plan, count });
+    }
+  }
+  if (rows.length === 0) return;
+
+  const CHUNK = 200;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const chunk = rows.slice(i, i + CHUNK);
+    if (isSqlite) {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.plan}, ${r.count})`);
+      await sql`INSERT INTO plan_stats (uuid, plan, count) VALUES ${sql.join(values)}
+        ON CONFLICT(uuid, plan) DO UPDATE SET count = count + excluded.count`.execute(db);
+    } else {
+      const values = chunk.map((r) => sql`(${r.uuid}, ${r.plan}, ${r.count})`);
+      await sql`INSERT INTO plan_stats (uuid, plan, \`count\`) VALUES ${sql.join(values)}
+        ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
     }
   }
 };
@@ -400,6 +465,39 @@ export const insertDeletePlan = async (
     const insertPlans = updatePlan.map((tmp) => ({ ...tmp, plan_no: tmp.plan_no - deleteLength }));
     if (insertPlans.length > 0) {
       await trx.insertInto('plan').values(insertPlans).execute();
+    }
+  });
+};
+
+/**
+ * 計画の一括挿入・削除（バッチ処理）
+ * @param db DB接続情報
+ * @param deferred 遅延書き込みデータの配列
+ */
+export const batchInsertDeletePlans = async (
+  db: Kysely<Database> | Transaction<Database>,
+  deferred: { uuid: string; plans: Plan[]; deleteLength: number }[]
+) => {
+  if (deferred.length === 0) return;
+  await db.transaction().execute(async (trx) => {
+    // 全対象UUIDの計画を一括削除
+    const uuids = deferred.map((d) => d.uuid);
+    for (let i = 0; i < uuids.length; i += 900) {
+      await trx
+        .deleteFrom('plan')
+        .where('from_uuid', 'in', uuids.slice(i, i + 900))
+        .execute();
+    }
+
+    // 全計画を一括挿入
+    const allInserts = deferred.flatMap((d) =>
+      d.plans.map((p) => ({ ...p, plan_no: p.plan_no - d.deleteLength }))
+    );
+    for (let i = 0; i < allInserts.length; i += 500) {
+      await trx
+        .insertInto('plan')
+        .values(allInserts.slice(i, i + 500))
+        .execute();
     }
   });
 };

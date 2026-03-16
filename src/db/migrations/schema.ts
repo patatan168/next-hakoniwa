@@ -369,6 +369,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     await sql`CREATE INDEX IF NOT EXISTS turn_resource_history_uuid_index ON turn_resource_history(uuid)`.execute(
       db
     );
+    await sql`CREATE INDEX IF NOT EXISTS plan_from_uuid_index ON plan(from_uuid)`.execute(db);
   } else {
     await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
     await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
@@ -379,6 +380,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     await runSafe(
       sql`CREATE INDEX turn_resource_history_uuid_index ON turn_resource_history(uuid)`
     );
+    await runSafe(sql`CREATE INDEX plan_from_uuid_index ON plan(from_uuid)`);
     await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
   }
 

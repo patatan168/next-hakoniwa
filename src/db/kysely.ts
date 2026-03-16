@@ -68,9 +68,14 @@ function getDialect(): Kysely<Database> {
     if (!connectionString) {
       throw new Error('DB_CONNECTION_STRING is required for sqlite (path to db file)');
     }
+    const database = new sqlite(connectionString);
+    database.pragma('journal_mode = WAL');
+    database.pragma('synchronous = NORMAL');
+    database.pragma('cache_size = -16000');
+    database.pragma('temp_store = MEMORY');
     return new Kysely<Database>({
       dialect: new SqliteDialect({
-        database: new sqlite(connectionString),
+        database,
       }),
     });
   }

@@ -21,12 +21,12 @@ import { createUuid25 } from '@/global/function/encrypt';
 import { IslandStats, accumulateCellStats, createIslandStats } from '@/global/function/island';
 import { turnProceedLogger } from '@/global/function/logger';
 import {
+  batchInsertDeletePlans,
   earthquakeExecute,
   eruptionExecute,
   getAllIslands,
   getTurnInfo,
   hugeMeteoriteExecute,
-  insertDeletePlan,
   insertLogs,
   lackFoodsExecute,
   landSubsidenceExecute,
@@ -232,23 +232,29 @@ function incomeAndEatenPhase(fromUuid: string) {
   fromIsland.food -= Math.trunc(fromIsland.population * META_DATA.EATEN_FOOD_PER_PEOPLE);
 }
 
+type DeferredPlanWrite = {
+  uuid: string;
+  plans: Plan[];
+  deleteLength: number;
+};
+
 /**
  * 計画実行フェーズ
- * @returns 成功した計画の planType -> 実行数 のマップ
+ * @returns 成功した計画の planType -> 実行数 のマップと遅延書き込みデータ
  */
-async function planPhase(
-  db: Kysely<Database> | Transaction<Database>,
+function planPhase(
   currentTurn: number,
   fromUuid: string,
   plans: Plan[],
   logArray: TurnLog[]
-): Promise<{
+): {
   successCounts: Map<string, number>;
   monsterKills: number;
   cityKills: number;
   destroyedMaps: MissileBreakdown;
   killedMonsters: MissileBreakdown;
-}> {
+  deferredPlan: DeferredPlanWrite | null;
+} {
   const nextTurn = currentTurn + 1;
   const dropPlans: Plan[] = [];
   let financingFlag = plans.length === 0;
@@ -305,12 +311,14 @@ async function planPhase(
     logArray.push(...result.log);
   }
 
-  const insertPlans = plans.filter((plan) => !dropPlans.includes(plan));
+  let deferredPlan: DeferredPlanWrite | null = null;
   if (plans.length > 0) {
+    const insertPlans = plans.filter((plan) => !dropPlans.includes(plan));
     const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
-    await insertDeletePlan(db, insertPlans, dropLength, fromUuid);
+    deferredPlan = { uuid: fromUuid, plans: insertPlans, deleteLength: dropLength };
   }
-  return { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters };
+
+  return { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters, deferredPlan };
 }
 
 function processSingleCell(
@@ -431,6 +439,39 @@ async function fetchActivePlans(
   return planMap;
 }
 
+function accumulateMissileStats(
+  missileStats: Map<string, MissileTurnStat>,
+  uuid: string,
+  monsterKills: number,
+  cityKills: number,
+  destroyedMaps: MissileBreakdown,
+  killedMonsters: MissileBreakdown
+) {
+  if (
+    monsterKills === 0 &&
+    cityKills === 0 &&
+    Object.keys(destroyedMaps).length === 0 &&
+    Object.keys(killedMonsters).length === 0
+  ) {
+    return;
+  }
+  const prev = missileStats.get(uuid) ?? {
+    monsterKill: 0,
+    cityKill: 0,
+    destroyedMaps: {},
+    killedMonsters: {},
+  };
+  const next: MissileTurnStat = {
+    monsterKill: prev.monsterKill + monsterKills,
+    cityKill: prev.cityKill + cityKills,
+    destroyedMaps: { ...prev.destroyedMaps },
+    killedMonsters: { ...prev.killedMonsters },
+  };
+  mergeBreakdowns(next.destroyedMaps, destroyedMaps);
+  mergeBreakdowns(next.killedMonsters, killedMonsters);
+  missileStats.set(uuid, next);
+}
+
 async function processTurnForIslands(
   db: Kysely<Database> | Transaction<Database>,
   islandList: Island[],
@@ -453,6 +494,8 @@ async function processTurnForIslands(
   const planStats = new Map<string, Map<string, number>>();
   // ミサイル統計（uuid -> {monsterKill, cityKill}）
   const missileStats = new Map<string, MissileTurnStat>();
+  // 遅延計画書き込みデータ
+  const deferredPlanWrites: DeferredPlanWrite[] = [];
 
   // フェーズ1: 実際のターン処理を全島に対して実行
   for (const index of randomIndices) {
@@ -467,36 +510,28 @@ async function processTurnForIslands(
     });
 
     incomeAndEatenPhase(uuid);
-    const { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters } =
-      await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    const { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters, deferredPlan } =
+      planPhase(turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    if (deferredPlan) {
+      deferredPlanWrites.push(deferredPlan);
+    }
     if (successCounts.size > 0) {
       planStats.set(uuid, successCounts);
     }
-    if (
-      monsterKills > 0 ||
-      cityKills > 0 ||
-      Object.keys(destroyedMaps).length > 0 ||
-      Object.keys(killedMonsters).length > 0
-    ) {
-      const prev = missileStats.get(uuid) ?? {
-        monsterKill: 0,
-        cityKill: 0,
-        destroyedMaps: {},
-        killedMonsters: {},
-      };
-      const next: MissileTurnStat = {
-        monsterKill: prev.monsterKill + monsterKills,
-        cityKill: prev.cityKill + cityKills,
-        destroyedMaps: { ...prev.destroyedMaps },
-        killedMonsters: { ...prev.killedMonsters },
-      };
-      mergeBreakdowns(next.destroyedMaps, destroyedMaps);
-      mergeBreakdowns(next.killedMonsters, killedMonsters);
-      missileStats.set(uuid, next);
-    }
+    accumulateMissileStats(
+      missileStats,
+      uuid,
+      monsterKills,
+      cityKills,
+      destroyedMaps,
+      killedMonsters
+    );
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
   }
+
+  // 計画の一括書き込み（メインループ外で1トランザクション）
+  await batchInsertDeletePlans(db, deferredPlanWrites);
 
   // フェーズ2: 全島の処理が完了した後、最終的な変動量を計算してログ出力
   for (const island of islandList) {
@@ -575,26 +610,29 @@ async function saveTurnResourceHistory(
     )
     .execute();
 
-  for (const uuid of uuids) {
-    // MySQL では IN 句サブクエリ内の LIMIT が制限されるため、
-    // 100件目の turn を閾値にして古い履歴を削除する
-    const cutoff = await db
-      .selectFrom('turn_resource_history')
-      .select('turn')
-      .where('uuid', '=', uuid)
-      .orderBy('turn', 'desc')
-      .limit(1)
-      .offset(99)
-      .executeTakeFirst();
+  // 古い履歴の一括クリーンアップ（1トランザクションで実行）
+  await db.transaction().execute(async (trx) => {
+    for (const uuid of uuids) {
+      // MySQL では IN 句サブクエリ内の LIMIT が制限されるため、
+      // 100件目の turn を閾値にして古い履歴を削除する
+      const cutoff = await trx
+        .selectFrom('turn_resource_history')
+        .select('turn')
+        .where('uuid', '=', uuid)
+        .orderBy('turn', 'desc')
+        .limit(1)
+        .offset(99)
+        .executeTakeFirst();
 
-    if (!cutoff) continue;
+      if (!cutoff) continue;
 
-    await db
-      .deleteFrom('turn_resource_history')
-      .where('uuid', '=', uuid)
-      .where('turn', '<', cutoff.turn)
-      .execute();
-  }
+      await trx
+        .deleteFrom('turn_resource_history')
+        .where('uuid', '=', uuid)
+        .where('turn', '<', cutoff.turn)
+        .execute();
+    }
+  });
 }
 
 async function turnProceed(recursiveCount = 0) {
@@ -638,11 +676,16 @@ async function turnProceed(recursiveCount = 0) {
 
     await updateIslands(db, finalData);
     await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
-    await saveTurnResourceHistory(db, finalData, turnInfo.turn + 1);
-    await savePlanStats(db, planStats);
-    await saveMissileStats(db, missileStats);
+
+    // 独立した書き込みを並列実行
+    await Promise.all([
+      saveTurnResourceHistory(db, finalData, turnInfo.turn + 1),
+      savePlanStats(db, planStats),
+      saveMissileStats(db, missileStats),
+      insertLogs(db, logArray),
+    ]);
+
     await updateTurn(db, turnInfo.turn + 1);
-    await insertLogs(db, logArray);
   } catch (error) {
     const msg = error instanceof Error ? error.stack : `${error}`;
     turnProceedLogger.error(msg);
