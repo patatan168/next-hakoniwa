@@ -91,7 +91,7 @@ export const useDevelopmentPage = () => {
   };
 
   const mapSize = mapRect
-    ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
+    ? `min(calc(var(--real-vw) - ${mapRect.x}px - 0.25rem), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
     : 'min(var(--real-vw), var(--real-vh-minus-footer))';
 
   const listHeight = listRect

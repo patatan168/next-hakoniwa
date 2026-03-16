@@ -20,7 +20,7 @@ export default function MapSight({
   const displayIslandName = `${islandData.get?.island_name_prefix ?? ''}${islandData.get?.island_name ?? ''}`;
 
   const mapSize = mapRect
-    ? `min(calc(var(--real-vw) - ${mapRect.x}px), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
+    ? `min(calc(var(--real-vw) - ${mapRect.x}px - 0.25rem), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
     : 'min(var(--real-vw), var(--real-vh-minus-footer))';
 
   useEffect(() => {
@@ -48,6 +48,7 @@ export default function MapSight({
       <HakoniwaMap
         ref={mapCallback}
         style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
+        className="max-w-full"
         isLoading={isLoading.get}
         islandName={displayIslandName}
         data={islandData.get?.island_info}
