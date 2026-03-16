@@ -450,9 +450,9 @@ export const earthquakeExecute = (islandUuid: string, turn: number) => {
 };
 
 /**
- * 食糧不足で破壊されるマップの判定
+ * 食料不足で破壊されるマップの判定
  * @param islandInfo 島情報
- * @returns 食糧不足で破壊されるマップかどうか
+ * @returns 食料不足で破壊されるマップかどうか
  */
 const isLackFoodsDamageMap = (islandInfo: islandInfo) => {
   switch (islandInfo.type) {
@@ -467,10 +467,10 @@ const isLackFoodsDamageMap = (islandInfo: islandInfo) => {
 };
 
 /**
- * 食糧不足イベントの実行
+ * 食料不足イベントの実行
  * @param islandUuid 島のUuid
  * @param turn ターン数
- * @returns 食糧不足のログ配列
+ * @returns 食料不足のログ配列
  */
 export const lackFoodsExecute = (islandUuid: string, turn: number) => {
   using fromIslandGetSet = islandDataGetSet(islandUuid);

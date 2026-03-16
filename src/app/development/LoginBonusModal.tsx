@@ -33,7 +33,7 @@ export const LoginBonusModal = ({
               ) : null}
               {loginBonus?.food ? (
                 <li>
-                  食糧 {loginBonus.food.toLocaleString()} {META_DATA.UNIT_FOOD}
+                  食料 {loginBonus.food.toLocaleString()} {META_DATA.UNIT_FOOD}
                 </li>
               ) : null}
             </ul>

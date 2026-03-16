@@ -468,7 +468,7 @@ export const logEarthquakeDamage = (
 };
 
 /**
- * 食糧不足のログ
+ * 食料不足のログ
  * @param island 島情報
  * @returns ログ
  */
@@ -477,7 +477,7 @@ export const logLackFoods = (island: Island & Pick<User, 'island_name'>): string
 };
 
 /**
- * 食糧不足による被害のログ
+ * 食料不足による被害のログ
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
@@ -1330,7 +1330,7 @@ export const logTurnResult = (
   popSign: string,
   diffPopulation: number
 ): string => {
-  return `[b](収支)[/b]人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食糧: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
+  return `[b](収支)[/b]人口: ${popSign}${diffPopulation}人、資金: ${moneySign}${diffMoney}${META_DATA.UNIT_MONEY}、食料: ${foodSign}${diffFood}${META_DATA.UNIT_FOOD}`;
 };
 
 /**

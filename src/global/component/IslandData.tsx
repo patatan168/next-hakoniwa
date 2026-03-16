@@ -44,8 +44,8 @@ export default memo(
         <div
           className={`${value} col-span-2 col-start-4 row-start-2`}
         >{`${money}${META_DATA.UNIT_MONEY}`}</div>
-        {/* 食糧 */}
-        <div className={`${title} col-span-2 col-start-6 row-start-1`}>食糧</div>
+        {/* 食料 */}
+        <div className={`${title} col-span-2 col-start-6 row-start-1`}>食料</div>
         <div
           className={`${value} col-span-2 col-start-6 row-start-2`}
         >{`${food}${META_DATA.UNIT_FOOD}`}</div>
