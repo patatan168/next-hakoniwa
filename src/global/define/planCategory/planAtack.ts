@@ -27,7 +27,7 @@ export const normaMissile: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`発射先の島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-    const log = executeMissile({
+    const result = executeMissile({
       turn,
       fromIsland,
       toIsland,
@@ -41,7 +41,14 @@ export const normaMissile: planType = {
     // 実行回数をリセット
     plan.times = 0;
 
-    return { nextPlan: this.immediate, log };
+    return {
+      nextPlan: this.immediate,
+      log: result.logs,
+      missileMonsterKills: result.monsterKills,
+      missileCityKills: result.cityKills,
+      missileDestroyedMaps: result.destroyedMaps,
+      missileKilledMonsters: result.killedMonsters,
+    };
   },
 };
 
@@ -70,7 +77,7 @@ export const ppMissile: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`発射先の島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-    const log = executeMissile({
+    const result = executeMissile({
       turn,
       fromIsland,
       toIsland,
@@ -83,7 +90,14 @@ export const ppMissile: planType = {
     });
     plan.times = 0;
 
-    return { nextPlan: this.immediate, log };
+    return {
+      nextPlan: this.immediate,
+      log: result.logs,
+      missileMonsterKills: result.monsterKills,
+      missileCityKills: result.cityKills,
+      missileDestroyedMaps: result.destroyedMaps,
+      missileKilledMonsters: result.killedMonsters,
+    };
   },
 };
 
@@ -113,7 +127,7 @@ export const stMissile: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`発射先の島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-    const log = executeMissile({
+    const result = executeMissile({
       turn,
       fromIsland,
       toIsland,
@@ -126,7 +140,14 @@ export const stMissile: planType = {
     });
     plan.times = 0;
 
-    return { nextPlan: this.immediate, log };
+    return {
+      nextPlan: this.immediate,
+      log: result.logs,
+      missileMonsterKills: result.monsterKills,
+      missileCityKills: result.cityKills,
+      missileDestroyedMaps: result.destroyedMaps,
+      missileKilledMonsters: result.killedMonsters,
+    };
   },
 };
 
@@ -156,7 +177,7 @@ export const ldMissile: planType = {
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`発射先の島情報が見つかりません。uuid=${uuid.toIsland}`);
 
-    const log = executeMissile({
+    const result = executeMissile({
       turn,
       fromIsland,
       toIsland,
@@ -169,6 +190,13 @@ export const ldMissile: planType = {
     });
     plan.times = 0;
 
-    return { nextPlan: this.immediate, log };
+    return {
+      nextPlan: this.immediate,
+      log: result.logs,
+      missileMonsterKills: result.monsterKills,
+      missileCityKills: result.cityKills,
+      missileDestroyedMaps: result.destroyedMaps,
+      missileKilledMonsters: result.killedMonsters,
+    };
   },
 };

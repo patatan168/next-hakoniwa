@@ -48,6 +48,7 @@ export type RefreshToken = Selectable<GeneratedDB['refresh_token']>;
 export type Passkey = Selectable<GeneratedDB['passkey']>;
 export type Prize = Selectable<GeneratedDB['prize']>;
 export type PlanStat = Selectable<GeneratedDB['plan_stats']>;
+export type MissileStat = Selectable<GeneratedDB['missile_stats']>;
 
 export type { islandInfo, islandInfoData } from './schema/islandTypes';
 

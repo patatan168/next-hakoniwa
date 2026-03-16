@@ -1,5 +1,6 @@
 import type { Island, Plan, TurnLog, TurnResourceHistory, TurnState } from '@/db/kysely';
 import BaseTabs from '@/global/component/TabContents';
+import { MissileStatData } from '@/global/store/api/auth/missileStats';
 import { PlanStatItem } from '@/global/store/api/auth/planStats';
 import dynamic from 'next/dynamic';
 import { Activity } from 'react';
@@ -68,6 +69,7 @@ function MenuPanels({
   setLazyFlag,
   turnResourceHistory,
   planStats,
+  missileStats,
   refreshDevelopData,
 }: {
   view: ViewMode;
@@ -80,6 +82,7 @@ function MenuPanels({
   setLazyFlag: Props['setLazyFlag'];
   turnResourceHistory?: Props['turnResourceHistory'];
   planStats?: Props['planStats'];
+  missileStats?: Props['missileStats'];
   refreshDevelopData: Props['refreshDevelopData'];
 }) {
   return (
@@ -103,7 +106,7 @@ function MenuPanels({
         </div>
       </Activity>
       <Activity mode={activityMode(view, 'stats')}>
-        <PlanStatsTable className="flex-1" data={planStats} />
+        <PlanStatsTable className="flex-1" data={planStats} missileStats={missileStats} />
       </Activity>
       <Activity mode={activityMode(view, 'settings')}>
         <IslandSettingsPanel
@@ -165,6 +168,8 @@ type Props = {
   turnResourceHistory?: Omit<TurnResourceHistory, 'uuid'>[];
   /** 計画成功統計 */
   planStats?: PlanStatItem[];
+  /** ミサイル戦績統計 */
+  missileStats?: MissileStatData;
   /** ログの遅延読み込みフラグを設定するコールバック */
   setLazyFlag: (flag: boolean) => void;
   /** ビューモードを変更するコールバック */
@@ -191,6 +196,7 @@ export const MenuContent = ({
   turnLog,
   turnResourceHistory,
   planStats,
+  missileStats,
   setLazyFlag,
   setView,
   refreshDevelopData,
@@ -216,6 +222,7 @@ export const MenuContent = ({
           setLazyFlag={setLazyFlag}
           turnResourceHistory={turnResourceHistory}
           planStats={planStats}
+          missileStats={missileStats}
           refreshDevelopData={refreshDevelopData}
         />
       </div>

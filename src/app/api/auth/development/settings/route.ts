@@ -11,6 +11,7 @@ import { developmentSettingsSchema } from '@/global/valid/server/developmentSett
 import { NextRequest, NextResponse } from 'next/server';
 
 const nowUnix = () => Math.floor(Date.now() / 1000);
+const nowUnixString = () => String(nowUnix());
 
 const errorResponse = (error: string, status: number) => NextResponse.json({ error }, { status });
 
@@ -24,7 +25,7 @@ async function getCurrentUser(uuid: string) {
 
 async function validateIslandNameChange(
   uuid: string,
-  currentUser: { island_name_changed_at: number },
+  currentUser: { island_name_changed_at: string },
   nextIslandName?: string
 ) {
   if (nextIslandName === undefined) return null;
@@ -43,10 +44,8 @@ async function validateIslandNameChange(
   }
 
   const now = nowUnix();
-  if (
-    currentUser.island_name_changed_at > 0 &&
-    now < currentUser.island_name_changed_at + cooldownSeconds
-  ) {
+  const islandNameChangedAt = Number(currentUser.island_name_changed_at);
+  if (islandNameChangedAt > 0 && now < islandNameChangedAt + cooldownSeconds) {
     return errorResponse(`島の名前は${cooldownDays}日間変更できません。`, 429);
   }
 
@@ -79,7 +78,7 @@ async function updateDevelopmentSettings(
     if (nextIslandName !== undefined) {
       await trx
         .updateTable('user')
-        .set({ island_name: nextIslandName, island_name_changed_at: nowUnix() })
+        .set({ island_name: nextIslandName, island_name_changed_at: nowUnixString() })
         .where('uuid', '=', uuid)
         .execute();
     }

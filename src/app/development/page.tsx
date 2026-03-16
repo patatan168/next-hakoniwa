@@ -20,6 +20,7 @@ export default function IslandList() {
     turnLog,
     turnResourceHistory,
     planStats,
+    missileStats,
     view,
     setView,
     setLazyFlag,
@@ -67,6 +68,7 @@ export default function IslandList() {
             turnLog={turnLog.get}
             turnResourceHistory={turnResourceHistory.get}
             planStats={planStats.get}
+            missileStats={missileStats.get}
             setLazyFlag={setLazyFlag}
             setView={setView}
             refreshDevelopData={refreshDevelopData}
@@ -114,6 +116,7 @@ export default function IslandList() {
                       turnLog={turnLog.get}
                       turnResourceHistory={turnResourceHistory.get}
                       planStats={planStats.get}
+                      missileStats={missileStats.get}
                       setLazyFlag={setLazyFlag}
                       setView={setView}
                       refreshDevelopData={refreshDevelopData}

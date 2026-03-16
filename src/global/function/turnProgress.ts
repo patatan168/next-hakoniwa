@@ -220,6 +220,9 @@ export const abandonIsland = async (
     .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]))
     .execute();
   await client.deleteFrom('access_token').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('missile_stats').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('missile_destroy_map_stats').where('uuid', '=', uuid).execute();
+  await client.deleteFrom('missile_kill_monster_stats').where('uuid', '=', uuid).execute();
   await client.deleteFrom('auth').where('uuid', '=', uuid).execute();
   await client.deleteFrom('last_login').where('uuid', '=', uuid).execute();
   await client.deleteFrom('refresh_token').where('uuid', '=', uuid).execute();
@@ -278,6 +281,77 @@ export const insertLogs = async (
     });
   } catch (e) {
     throw new Error(`ログの挿入に失敗しました。message: ${(e as Error).message}`);
+  }
+};
+
+/**
+ * ミサイル統計をDBに保存（upsert）
+ * @param db DB接続情報
+ * @param stats uuid -> {monsterKill, cityKill} のマップ
+ */
+export const saveMissileStats = async (
+  db: Kysely<Database> | Transaction<Database>,
+  stats: Map<
+    string,
+    {
+      monsterKill: number;
+      cityKill: number;
+      destroyedMaps: Record<string, number>;
+      killedMonsters: Record<string, number>;
+    }
+  >
+): Promise<void> => {
+  if (stats.size === 0) return;
+
+  for (const [uuid, { monsterKill, cityKill, destroyedMaps, killedMonsters }] of stats) {
+    if (
+      monsterKill === 0 &&
+      cityKill === 0 &&
+      Object.keys(destroyedMaps).length === 0 &&
+      Object.keys(killedMonsters).length === 0
+    ) {
+      continue;
+    }
+
+    if (isSqlite) {
+      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
+        VALUES (${uuid}, ${monsterKill}, ${cityKill})
+        ON CONFLICT(uuid) DO UPDATE SET
+          monster_kill = monster_kill + ${monsterKill},
+          city_kill = city_kill + ${cityKill}`.execute(db);
+    } else {
+      await sql`INSERT INTO missile_stats (uuid, monster_kill, city_kill)
+        VALUES (${uuid}, ${monsterKill}, ${cityKill})
+        ON DUPLICATE KEY UPDATE
+          monster_kill = monster_kill + ${monsterKill},
+          city_kill = city_kill + ${cityKill}`.execute(db);
+    }
+
+    for (const [mapType, count] of Object.entries(destroyedMaps)) {
+      if (count <= 0) continue;
+      if (isSqlite) {
+        await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, count)
+          VALUES (${uuid}, ${mapType}, ${count})
+          ON CONFLICT(uuid, map_type) DO UPDATE SET count = count + ${count}`.execute(db);
+      } else {
+        await sql`INSERT INTO missile_destroy_map_stats (uuid, map_type, \`count\`)
+          VALUES (${uuid}, ${mapType}, ${count})
+          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
+      }
+    }
+
+    for (const [monsterType, count] of Object.entries(killedMonsters)) {
+      if (count <= 0) continue;
+      if (isSqlite) {
+        await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, count)
+          VALUES (${uuid}, ${monsterType}, ${count})
+          ON CONFLICT(uuid, monster_type) DO UPDATE SET count = count + ${count}`.execute(db);
+      } else {
+        await sql`INSERT INTO missile_kill_monster_stats (uuid, monster_type, \`count\`)
+          VALUES (${uuid}, ${monsterType}, ${count})
+          ON DUPLICATE KEY UPDATE \`count\` = \`count\` + VALUES(\`count\`)`.execute(db);
+      }
+    }
   }
 };
 

@@ -125,12 +125,50 @@
 > `(uuid, plan)` の複合主キーにより、同一ユーザー・同一計画タイプのレコードが重複して作成されることを防ぎます。
 > ターン進行時に成功した計画のみをカウントし、upsert で累積加算します。
 
-### 9. その他
+### 9. `missile_stats` (ミサイル戦績サマリー)
+
+各ユーザーのミサイルによる総合戦績を累積管理します。
+
+| カラム名       | データ型      | 制約                       | 説明                            |
+| :------------- | :------------ | :------------------------- | :------------------------------ |
+| `uuid`         | `varchar(25)` | PRIMARY KEY, FK(user.uuid) | ユーザーID                      |
+| `monster_kill` | `integer`     | DEFAULT 0, NOT NULL        | ミサイルで討伐した怪獣総数      |
+| `city_kill`    | `integer`     | DEFAULT 0, NOT NULL        | ミサイルで破壊した都市/施設総数 |
+
+> [!NOTE]
+> `uuid` を主キーとし、ターン進行時に upsert で加算更新します。
+
+### 10. `missile_destroy_map_stats` (ミサイル地形破壊統計)
+
+ミサイルで破壊した地形タイプごとの件数をユーザー単位で累積管理します。
+
+| カラム名       | データ型       | 制約                          | 説明                                  |
+| :------------- | :------------- | :---------------------------- | :------------------------------------ |
+| **`uuid`**     | `varchar(25)`  | PRIMARY KEY[1], FK(user.uuid) | ユーザーID                            |
+| **`map_type`** | `varchar(511)` | PRIMARY KEY[2]                | 破壊対象の地形タイプ（例: `factory`） |
+| `count`        | `integer`      | DEFAULT 0, NOT NULL           | 累積破壊数                            |
+
+> [!NOTE]
+> `(uuid, map_type)` の複合主キーにより、同一ユーザー・同一地形タイプの重複レコード作成を防止します。
+
+### 11. `missile_kill_monster_stats` (ミサイル怪獣討伐統計)
+
+ミサイルで討伐した怪獣タイプごとの件数をユーザー単位で累積管理します。
+
+| カラム名           | データ型       | 制約                          | 説明                                |
+| :----------------- | :------------- | :---------------------------- | :---------------------------------- |
+| **`uuid`**         | `varchar(25)`  | PRIMARY KEY[1], FK(user.uuid) | ユーザーID                          |
+| **`monster_type`** | `varchar(511)` | PRIMARY KEY[2]                | 討伐した怪獣タイプ（例: `sanjira`） |
+| `count`            | `integer`      | DEFAULT 0, NOT NULL           | 累積討伐数                          |
+
+> [!NOTE]
+> `(uuid, monster_type)` の複合主キーにより、同一ユーザー・同一怪獣タイプの重複レコード作成を防止します。
+
+### 12. その他
 
 - **`role`**: 管理権限設定(`uuid`, `role`)
 - **`last_login`**: ログイン統計(`uuid`, `last_login_at`, `consecutive_login_days`, etc.)
 - **`event_rate`**: 各種災害発生確率の個人設定
-- **`turn_resource_history`**: 資源推移履歴(`uuid`, `turn`, `population`, `food`, `money`)
 - **認証系**: `access_token`, `refresh_token`, `passkey` (セッション維持およびWebAuthn用)
 - **`turn_state`**: システム全体の現在ターンと更新状態管理
 

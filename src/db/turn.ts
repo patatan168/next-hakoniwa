@@ -33,6 +33,7 @@ import {
   meteoriteExecute,
   monumentAttackExecute,
   popMonsterExecute,
+  saveMissileStats,
   savePlanStats,
   setAllIslandStats,
   tsunamiExecute,
@@ -48,6 +49,21 @@ import { Kysely, Transaction } from 'kysely';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
+
+type MissileBreakdown = Record<string, number>;
+
+type MissileTurnStat = {
+  monsterKill: number;
+  cityKill: number;
+  destroyedMaps: MissileBreakdown;
+  killedMonsters: MissileBreakdown;
+};
+
+const mergeBreakdowns = (target: MissileBreakdown, source: MissileBreakdown) => {
+  for (const [type, count] of Object.entries(source)) {
+    target[type] = (target[type] ?? 0) + count;
+  }
+};
 
 // -----------------------------------------------------------------------------
 // Achievement Awards
@@ -226,11 +242,21 @@ async function planPhase(
   fromUuid: string,
   plans: Plan[],
   logArray: TurnLog[]
-): Promise<Map<string, number>> {
+): Promise<{
+  successCounts: Map<string, number>;
+  monsterKills: number;
+  cityKills: number;
+  destroyedMaps: MissileBreakdown;
+  killedMonsters: MissileBreakdown;
+}> {
   const nextTurn = currentTurn + 1;
   const dropPlans: Plan[] = [];
   let financingFlag = plans.length === 0;
   const successCounts = new Map<string, number>();
+  let monsterKills = 0;
+  let cityKills = 0;
+  const destroyedMaps: MissileBreakdown = {};
+  const killedMonsters: MissileBreakdown = {};
 
   for (let i = 0; i < plans.length; i++) {
     const { to_uuid: toUuid, plan, plan_no } = plans[i];
@@ -249,6 +275,11 @@ async function planPhase(
     if (result.success !== false) {
       successCounts.set(plan, (successCounts.get(plan) ?? 0) + 1);
     }
+
+    monsterKills += result.missileMonsterKills ?? 0;
+    cityKills += result.missileCityKills ?? 0;
+    mergeBreakdowns(destroyedMaps, result.missileDestroyedMaps ?? {});
+    mergeBreakdowns(killedMonsters, result.missileKilledMonsters ?? {});
 
     logArray.push(...result.log);
     if (plans[i].times < 1) dropPlans.push(plans[i]);
@@ -279,7 +310,7 @@ async function planPhase(
     const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
     await insertDeletePlan(db, insertPlans, dropLength, fromUuid);
   }
-  return successCounts;
+  return { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters };
 }
 
 function processSingleCell(
@@ -405,7 +436,11 @@ async function processTurnForIslands(
   islandList: Island[],
   turnInfo: { turn: number },
   logArray: TurnLog[]
-): Promise<{ prevPopulations: Map<string, number>; planStats: Map<string, Map<string, number>> }> {
+): Promise<{
+  prevPopulations: Map<string, number>;
+  planStats: Map<string, Map<string, number>>;
+  missileStats: Map<string, MissileTurnStat>;
+}> {
   const allPlans = await fetchActivePlans(
     db,
     islandList.map((i) => i.uuid)
@@ -416,6 +451,8 @@ async function processTurnForIslands(
   const prevStats = new Map<string, { money: number; food: number; population: number }>();
   // 成功した計画の統計（uuid -> planType -> 実行数）
   const planStats = new Map<string, Map<string, number>>();
+  // ミサイル統計（uuid -> {monsterKill, cityKill}）
+  const missileStats = new Map<string, MissileTurnStat>();
 
   // フェーズ1: 実際のターン処理を全島に対して実行
   for (const index of randomIndices) {
@@ -430,9 +467,32 @@ async function processTurnForIslands(
     });
 
     incomeAndEatenPhase(uuid);
-    const successCounts = await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    const { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters } =
+      await planPhase(db, turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
     if (successCounts.size > 0) {
       planStats.set(uuid, successCounts);
+    }
+    if (
+      monsterKills > 0 ||
+      cityKills > 0 ||
+      Object.keys(destroyedMaps).length > 0 ||
+      Object.keys(killedMonsters).length > 0
+    ) {
+      const prev = missileStats.get(uuid) ?? {
+        monsterKill: 0,
+        cityKill: 0,
+        destroyedMaps: {},
+        killedMonsters: {},
+      };
+      const next: MissileTurnStat = {
+        monsterKill: prev.monsterKill + monsterKills,
+        cityKill: prev.cityKill + cityKills,
+        destroyedMaps: { ...prev.destroyedMaps },
+        killedMonsters: { ...prev.killedMonsters },
+      };
+      mergeBreakdowns(next.destroyedMaps, destroyedMaps);
+      mergeBreakdowns(next.killedMonsters, killedMonsters);
+      missileStats.set(uuid, next);
     }
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
@@ -483,7 +543,7 @@ async function processTurnForIslands(
   // ターン前の人口マップを返す（称号判定に使用）
   const prevPopulations = new Map<string, number>();
   prevStats.forEach((prev, uuid) => prevPopulations.set(uuid, prev.population));
-  return { prevPopulations, planStats };
+  return { prevPopulations, planStats, missileStats };
 }
 
 async function saveTurnResourceHistory(
@@ -561,7 +621,7 @@ async function turnProceed(recursiveCount = 0) {
     const logArray: TurnLog[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
-    const { prevPopulations, planStats } = await processTurnForIslands(
+    const { prevPopulations, planStats, missileStats } = await processTurnForIslands(
       db,
       islandList,
       turnInfo,
@@ -580,6 +640,7 @@ async function turnProceed(recursiveCount = 0) {
     await updateUserInhabited(db, finalData, logArray, turnInfo.turn);
     await saveTurnResourceHistory(db, finalData, turnInfo.turn + 1);
     await savePlanStats(db, planStats);
+    await saveMissileStats(db, missileStats);
     await updateTurn(db, turnInfo.turn + 1);
     await insertLogs(db, logArray);
   } catch (error) {

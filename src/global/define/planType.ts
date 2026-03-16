@@ -28,6 +28,14 @@ export type planResult = {
   log: Array<TurnLog>;
   /** 計画が正常に実行されたかどうか（falseの場合は地形不適合・資金不足による中止） */
   success?: boolean;
+  /** ミサイルで討伐した怪獣数 */
+  missileMonsterKills?: number;
+  /** ミサイルで破壊した都市・施設数 */
+  missileCityKills?: number;
+  /** ミサイルで破壊した地形タイプ別内訳 */
+  missileDestroyedMaps?: Record<string, number>;
+  /** ミサイルで討伐した怪獣タイプ別内訳 */
+  missileKilledMonsters?: Record<string, number>;
 };
 
 export type changeDataArgs = {

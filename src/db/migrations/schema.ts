@@ -72,6 +72,75 @@ async function rebuildTableWithData(
   console.log(`Rebuild completed: ${tableName}`);
 }
 
+async function createSpecialTableIfNeeded(
+  db: Kysely<Database>,
+  tableName: string
+): Promise<boolean> {
+  const existingTables = await db.introspection.getTables();
+  const existingTable = existingTables.find((t) => t.name === tableName);
+  if (existingTable) return false;
+
+  if (tableName === 'prize') {
+    await db.schema
+      .createTable('prize')
+      .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+      .addColumn('prize', 'varchar(63)', (col) => col.notNull())
+      .addPrimaryKeyConstraint('prize_pk', ['uuid', 'prize'])
+      .execute();
+    console.log(`Created table: ${tableName} with composite primary key`);
+    return true;
+  }
+
+  if (tableName === 'plan_stats') {
+    await db.schema
+      .createTable('plan_stats')
+      .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+      .addColumn('plan', 'varchar(511)', (col) => col.notNull())
+      .addColumn('count', 'integer', (col) => col.defaultTo(0).notNull())
+      .addPrimaryKeyConstraint('plan_stats_pk', ['uuid', 'plan'])
+      .execute();
+    console.log(`Created table: ${tableName} with composite primary key`);
+    return true;
+  }
+
+  if (tableName === 'missile_stats') {
+    await db.schema
+      .createTable('missile_stats')
+      .addColumn('uuid', 'varchar(25)', (col) => col.primaryKey().notNull().references('user.uuid'))
+      .addColumn('monster_kill', 'integer', (col) => col.defaultTo(0).notNull())
+      .addColumn('city_kill', 'integer', (col) => col.defaultTo(0).notNull())
+      .execute();
+    console.log(`Created table: ${tableName}`);
+    return true;
+  }
+
+  if (tableName === 'missile_destroy_map_stats') {
+    await db.schema
+      .createTable('missile_destroy_map_stats')
+      .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+      .addColumn('map_type', 'varchar(511)', (col) => col.notNull())
+      .addColumn('count', 'integer', (col) => col.defaultTo(0).notNull())
+      .addPrimaryKeyConstraint('missile_destroy_map_stats_pk', ['uuid', 'map_type'])
+      .execute();
+    console.log(`Created table: ${tableName} with composite primary key`);
+    return true;
+  }
+
+  if (tableName === 'missile_kill_monster_stats') {
+    await db.schema
+      .createTable('missile_kill_monster_stats')
+      .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
+      .addColumn('monster_type', 'varchar(511)', (col) => col.notNull())
+      .addColumn('count', 'integer', (col) => col.defaultTo(0).notNull())
+      .addPrimaryKeyConstraint('missile_kill_monster_stats_pk', ['uuid', 'monster_type'])
+      .execute();
+    console.log(`Created table: ${tableName} with composite primary key`);
+    return true;
+  }
+
+  return false;
+}
+
 export async function up(db: Kysely<Database>): Promise<void> {
   console.log('[DEBUG] Starting up() function...');
   const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
@@ -173,6 +242,24 @@ export async function up(db: Kysely<Database>): Promise<void> {
       plan: { type: 'varchar(511)', config: (col) => col.notNull() },
       count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
+    missile_stats: {
+      uuid: {
+        type: 'varchar(25)',
+        config: (col) => col.primaryKey().notNull().references('user.uuid'),
+      },
+      monster_kill: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      city_kill: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+    missile_destroy_map_stats: {
+      uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      map_type: { type: 'varchar(511)', config: (col) => col.notNull() },
+      count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
+    missile_kill_monster_stats: {
+      uuid: { type: 'varchar(25)', config: (col) => col.notNull().references('user.uuid') },
+      monster_type: { type: 'varchar(511)', config: (col) => col.notNull() },
+      count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+    },
     event_rate: {
       uuid: {
         type: 'varchar(25)',
@@ -253,36 +340,8 @@ export async function up(db: Kysely<Database>): Promise<void> {
   console.log('[DEBUG] Starting table sync loops...');
   for (const [tableName, columns] of Object.entries(desiredSchema)) {
     console.log(`[DEBUG] Processing table: ${tableName}`);
-    // 複合主キーを持つテーブルは個別に処理
-    if (tableName === 'prize') {
-      const existingTables = await db.introspection.getTables();
-      const existingTable = existingTables.find((t) => t.name === tableName);
-      if (!existingTable) {
-        await db.schema
-          .createTable('prize')
-          .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
-          .addColumn('prize', 'varchar(63)', (col) => col.notNull())
-          .addPrimaryKeyConstraint('prize_pk', ['uuid', 'prize'])
-          .execute();
-        console.log(`Created table: ${tableName} with composite primary key`);
-        continue;
-      }
-    }
-    if (tableName === 'plan_stats') {
-      const existingTables = await db.introspection.getTables();
-      const existingTable = existingTables.find((t) => t.name === tableName);
-      if (!existingTable) {
-        await db.schema
-          .createTable('plan_stats')
-          .addColumn('uuid', 'varchar(25)', (col) => col.notNull().references('user.uuid'))
-          .addColumn('plan', 'varchar(511)', (col) => col.notNull())
-          .addColumn('count', 'integer', (col) => col.defaultTo(0).notNull())
-          .addPrimaryKeyConstraint('plan_stats_pk', ['uuid', 'plan'])
-          .execute();
-        console.log(`Created table: ${tableName} with composite primary key`);
-        continue;
-      }
-    }
+    const isSpecialCreated = await createSpecialTableIfNeeded(db, tableName);
+    if (isSpecialCreated) continue;
     await rebuildTableWithData(db, tableName, columns, isSqlite);
   }
   console.log('[DEBUG] Finished table sync loops.');

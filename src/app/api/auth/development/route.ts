@@ -72,14 +72,14 @@ export async function GET(request: NextRequest) {
   const currentTitleName = currentTitleType
     ? (getAchievement(currentTitleType)?.name ?? currentTitleType)
     : '';
-  const nextIslandNameChangeAt =
-    islandData.island_name_changed_at + getIslandNameChangeCooldownSeconds();
+  const islandNameChangedAt = Number(islandData.island_name_changed_at);
+  const nextIslandNameChangeAt = islandNameChangedAt + getIslandNameChangeCooldownSeconds();
   const canChangeIslandName =
-    islandData.island_name_changed_at === 0 ||
-    Math.floor(Date.now() / 1000) >= nextIslandNameChangeAt;
+    islandNameChangedAt === 0 || Math.floor(Date.now() / 1000) >= nextIslandNameChangeAt;
 
   return NextResponse.json({
     ...islandData,
+    island_name_changed_at: islandNameChangedAt,
     current_title_type: currentTitleType,
     current_title_name: currentTitleName,
     available_titles: ownedTitles.map((t) => ({
