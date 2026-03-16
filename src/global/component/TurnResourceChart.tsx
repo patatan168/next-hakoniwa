@@ -13,8 +13,8 @@ type MetricConfig = {
 
 const METRICS: MetricConfig[] = [
   { key: 'population', label: '人口', stroke: '#1d4ed8' },
-  { key: 'food', label: '食料', stroke: '#16a34a' },
   { key: 'money', label: '資金', stroke: '#dc2626' },
+  { key: 'food', label: '食料', stroke: '#16a34a' },
 ];
 
 function formatNumber(value: number) {
