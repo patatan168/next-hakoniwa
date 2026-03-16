@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 export const CSRF_COOKIE_NAME = '__Host-csrf-token';
 
 /**
@@ -33,5 +34,7 @@ export const verifyCsrfToken = (cookieToken: string | undefined, headerToken: st
   const isValidFormat = /^[a-zA-Z0-9]{44}$/.test(headerToken);
   if (!isValidFormat) return false;
 
-  return cookieToken === headerToken;
+  const cookieBuffer = Buffer.from(cookieToken, 'utf-8');
+  const headerBuffer = Buffer.from(headerToken, 'utf-8');
+  return timingSafeEqual(cookieBuffer, headerBuffer);
 };

@@ -76,7 +76,7 @@ async function csrfCheck(
 
 function getCspHeader(nonce: string) {
   const baseHeader =
-    "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
+    "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; worker-src 'self'; manifest-src 'self';";
   const scriptStr =
     process.env.NODE_ENV === 'development'
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; "

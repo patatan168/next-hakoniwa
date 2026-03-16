@@ -9,7 +9,7 @@ services:
       MYSQL_PASSWORD: hakoniwa_password
       TZ: Asia/Tokyo
     ports:
-      - '13306:3306'
+      - '127.0.0.1:13306:3306'
     volumes:
       - db_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -30,7 +30,7 @@ services:
       DB_CONNECTION_STRING: ${DOCKER_DB_CONNECTION_STRING:-mysql://hakoniwa_user:hakoniwa_password@mysql:3306/hakoniwa}
       NEXT_PUBLIC_ORIGIN_URL: ${DOCKER_NEXT_PUBLIC_ORIGIN_URL:-http://localhost}
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     depends_on:
       mysql:
         condition: service_healthy
