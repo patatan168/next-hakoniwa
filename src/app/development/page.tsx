@@ -79,13 +79,17 @@ export default function IslandList() {
         {isMobile && (
           <>
             {/* Toggle Button */}
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="fixed right-4 bottom-10 z-[9999] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-            >
-              {showMenu ? <RxCross1 className="text-2xl" /> : <GrNotes className="text-2xl" />}
-            </button>
-
+            {!showMenu && (
+              <button
+                onClick={() => setShowMenu(true)}
+                className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] left-1/2 z-[9999] flex -translate-x-1/2 cursor-pointer items-center gap-2 rounded-full border border-white/35 bg-linear-to-r from-emerald-500 to-teal-500 px-7 py-2.5 text-[15px] font-bold tracking-wide text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:brightness-105 active:scale-95"
+              >
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
+                  <GrNotes className="text-sm" />
+                </span>
+                計画を開く
+              </button>
+            )}
             {/* Menu Overlay via Portal */}
             {showMenu &&
               createPortal(
@@ -97,16 +101,10 @@ export default function IslandList() {
                     className="development-menu-modal relative w-full max-w-5xl overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      onClick={() => setShowMenu(false)}
-                      className="absolute top-2 right-2 z-[102] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-red-100/50 text-gray-600 shadow-md hover:bg-red-200/50"
-                    >
-                      <RxCross1 className="text-xl" />
-                    </button>
                     <MenuContent
                       isMobile={true}
                       listCallback={listCallback}
-                      listHeight="100%"
+                      listHeight="calc(100% - 3.5rem)"
                       developData={developData.get}
                       view={view}
                       islandList={islandList.get}
@@ -121,6 +119,17 @@ export default function IslandList() {
                       setView={setView}
                       refreshDevelopData={refreshDevelopData}
                     />
+                  </div>
+                  <div className="pointer-events-none fixed right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] left-0 z-[120] flex justify-center">
+                    <button
+                      onClick={() => setShowMenu(false)}
+                      className="pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full border border-white/35 bg-linear-to-r from-rose-500 to-orange-500 px-7 py-2.5 text-[15px] font-bold tracking-wide text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:brightness-105 active:scale-95"
+                    >
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
+                        <RxCross1 className="text-sm" />
+                      </span>
+                      閉じる
+                    </button>
                   </div>
                 </div>,
                 document.getElementById('overlay-root') || document.body
