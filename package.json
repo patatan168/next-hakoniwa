@@ -26,7 +26,8 @@
     "db:migrate": "tsx ./src/db/migrate.ts && npm run db:codegen",
     "db:rollback": "tsx ./src/db/migrate.ts down",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "pentest": "./scripts/pentest.sh"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",

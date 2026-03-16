@@ -14,6 +14,7 @@ src/db/generated.d.ts
 
 # testing
 /coverage
+/pentest-results
 
 # next.js
 /.next/
