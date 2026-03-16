@@ -175,6 +175,17 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
     const waitTime = customOptions?.waitTime ?? 200;
     const dependsOn = customOptions?.dependsOn ?? [];
 
+    const shouldSkipFetch = (
+      state: FetchState<T, U>,
+      method: keyof ApiMethodType<T>,
+      refresh: boolean
+    ) => {
+      if (state.isLoading[method]) return true;
+      if (refresh) return false;
+      const isLastGetSucceed = method === 'get' && state.error.get === undefined;
+      return isLastGetSucceed && Date.now() - state.fetchedAt[method] < waitTime;
+    };
+
     this.store = createStore<FetchState<T, U>>((set, get) => ({
       data: createApiMethodDefaults(undefined),
       error: createApiMethodDefaults(undefined),
@@ -184,17 +195,11 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
       fetch: async (options, dataOptions) => {
         const method = (options.method?.toLowerCase() || 'get') as keyof ApiMethodType<T>;
         const state = get();
+        const { urlOrigin = '', query, refresh = false } = dataOptions || {};
 
-        // 既にローディング中の場合は何もしない
-        if (state.isLoading[method]) return;
+        if (shouldSkipFetch(state, method, refresh)) return;
 
         const now = Date.now();
-        const isWaitTime = now - state.fetchedAt[method] < waitTime;
-        const isLastGetSucceed = method === 'get' && state.error.get === undefined;
-        // NOTE: 前回の取得が成功しており、waitTime以内の場合は何もしない
-        if (isLastGetSucceed && isWaitTime) return;
-
-        const { urlOrigin = '', query, refresh = false } = dataOptions || {};
         const urlWithQuery = query ? `${urlOrigin}${url}?${query}` : `${urlOrigin}${url}`;
         // ローディング開始
         set((prev) => ({
@@ -221,27 +226,21 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
             await this.refreshFetch(urlWithQuery);
           }
         } catch (err) {
-          if (err instanceof ApiError) {
-            const rfc9457: Rfc9457 = {
-              type: url,
-              title: err.statusText,
-              status: err.status,
-              detail: err.message,
-              instance: query,
-            };
-            set((prev) => ({
-              error: { ...prev.error, [method]: rfc9457 },
-              isLoading: { ...prev.isLoading, [method]: false },
-            }));
-            loadingCounterStore.getState().decrement();
-          } else {
-            const internalError = getInternalError(err, url, query);
-            set((prev) => ({
-              error: { ...prev.error, [method]: internalError },
-              isLoading: { ...prev.isLoading, [method]: false },
-            }));
-            loadingCounterStore.getState().decrement();
-          }
+          const error =
+            err instanceof ApiError
+              ? {
+                  type: url,
+                  title: err.statusText,
+                  status: err.status,
+                  detail: err.message,
+                  instance: query,
+                }
+              : getInternalError(err, url, query);
+          set((prev) => ({
+            error: { ...prev.error, [method]: error },
+            isLoading: { ...prev.isLoading, [method]: false },
+          }));
+          loadingCounterStore.getState().decrement();
         }
       },
       fetchIfNeeded: async (options, dataOptions) => {
