@@ -112,7 +112,7 @@ export default memo(
                     <div className="grid grid-cols-6 gap-0.5">
                       <div className={`${titleCenter} col-span-2`}>人口</div>
                       <div className={`${titleCenter} col-span-2`}>資金 (推定)</div>
-                      <div className={`${titleCenter} col-span-2`}>食糧</div>
+                      <div className={`${titleCenter} col-span-2`}>食料</div>
                       <div className={`${value} col-span-2`}>
                         {population !== undefined ? `${population}人` : '-'}
                       </div>
@@ -147,7 +147,7 @@ export default memo(
                       </div>
                     </div>
                     <div className="row-span-2 grid grid-rows-[auto_1fr] gap-0.5">
-                      <div className={`${titleCenter} self-start`}>食糧</div>
+                      <div className={`${titleCenter} self-start`}>食料</div>
                       <div className={`${value} flex items-center justify-center`}>
                         {food !== undefined ? `${food}${META_DATA.UNIT_FOOD}` : '-'}
                       </div>
