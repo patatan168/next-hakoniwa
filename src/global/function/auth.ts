@@ -319,7 +319,7 @@ export const validAuthCookie = async (
   // トークンが無い場合の早期リターン
   if (!jwtToken) {
     if (isAccessToken) return await reCreateAccessToken(client);
-    throw 'No JWT Token';
+    return undefined;
   }
 
   const { tableName, algorithm, expiresHour } = tokenOptions(isAccessToken);

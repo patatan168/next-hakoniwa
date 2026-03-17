@@ -108,23 +108,27 @@ function crateNonceResponse(request: NextRequest) {
 }
 
 async function authCheck(request: NextRequest) {
-  const uuid = await validAuthCookie(db, true);
-
-  if (uuid) {
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-verified-uuid', uuid);
-    return NextResponse.next({ headers: requestHeaders });
-  } else {
-    return NextResponse.redirect(new URL(`/error/401`, request.url));
+  try {
+    const uuid = await validAuthCookie(db, true);
+    if (uuid) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-verified-uuid', uuid);
+      return NextResponse.next({ headers: requestHeaders });
+    }
+  } catch {
+    // 認証エラーは 401 リダイレクトで処理
   }
+  return NextResponse.redirect(new URL(`/error/401`, request.url));
 }
 
 async function sessionCheck(request: NextRequest) {
-  const uuid = await validAuthCookie(db, true);
-
-  if (uuid) {
-    return crateNonceResponse(request);
-  } else {
-    return NextResponse.redirect(new URL(`/error/401`, request.url));
+  try {
+    const uuid = await validAuthCookie(db, true);
+    if (uuid) {
+      return crateNonceResponse(request);
+    }
+  } catch {
+    // 認証エラーは 401 リダイレクトで処理
   }
+  return NextResponse.redirect(new URL(`/error/401`, request.url));
 }
