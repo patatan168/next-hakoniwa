@@ -20,7 +20,7 @@ const VIEW_LABEL: Record<ViewMode, string> = {
   log: '開発記録',
   history: '資源推移',
   stats: '統計',
-  settings: '島の設定',
+  settings: '設定',
 };
 
 const TAB_CONTENTS: Array<{ label: string; value: ViewMode }> = [
