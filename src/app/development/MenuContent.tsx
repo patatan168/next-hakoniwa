@@ -19,7 +19,7 @@ const VIEW_LABEL: Record<ViewMode, string> = {
   plan: '開発計画',
   log: '開発記録',
   history: '資源推移',
-  stats: '計画統計',
+  stats: '統計',
   settings: '島の設定',
 };
 
