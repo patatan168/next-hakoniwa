@@ -216,9 +216,14 @@ const PlanItem = memo(
                     >{`(${x},${y})`}</span>
                   )}
                   <span
-                    className={`ml-2 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+                    className={`ml-2 flex items-center gap-1.5 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
                   >
                     {name}
+                    {times > 1 && !edit && (
+                      <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-rose-600 px-2 py-0.5 font-mono text-xs font-bold text-white shadow-sm md:text-sm">
+                        ×{times}
+                      </span>
+                    )}
                   </span>
                 </div>
               </Tooltip>
@@ -233,10 +238,6 @@ const PlanItem = memo(
               body={renderEditForm(true)}
               className="!w-[96%] !max-w-md"
             />
-          )}
-
-          {times > 1 && !edit && (
-            <span className="font-mono text-xl text-shadow-xs/30">{`[${times}回]`}</span>
           )}
 
           <button
