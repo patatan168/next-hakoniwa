@@ -1,3 +1,7 @@
+/**
+ * @module planStats
+ * @description 計画統計取得用のFetchStore定義。
+ */
 import { FetchStore } from '@/global/function/fetch/fetch';
 import { turnStore } from '../public/turn';
 

@@ -1,6 +1,15 @@
+/**
+ * @module reactDebounce
+ * @description React Hook Form用のデバウンスバリデーションユーティリティ。
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyAsyncFunction = (signal: AbortSignal, ...args: any[]) => Promise<any>;
 
+/**
+ * 非同期関数をデバウンスする。AbortSignal対応。
+ * @param func - デバウンス対象の非同期関数
+ * @param wait - デバウンス待機時間(ms)
+ */
 export function reactDebounce<F extends AnyAsyncFunction>(
   func: F, // 直接 F を受けるようにする
   wait: number

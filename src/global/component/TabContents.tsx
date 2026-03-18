@@ -1,3 +1,7 @@
+/**
+ * @module TabContents
+ * @description タブ切り替えコンテンツコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import { CSSProperties, memo } from 'react';
 

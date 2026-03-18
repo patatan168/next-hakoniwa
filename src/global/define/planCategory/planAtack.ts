@@ -1,3 +1,7 @@
+/**
+ * @module planAtack
+ * @description 攻撃系計画の定義。
+ */
 import { executeMissile } from '@/global/function/missile';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { changeDataArgs, planType } from '../planType';

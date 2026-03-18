@@ -1,3 +1,7 @@
+/**
+ * @module passkey
+ * @description WebAuthn/Passkey認証の登録・検証処理。
+ */
 import 'server-only';
 
 import { Database, Passkey } from '@/db/kysely';

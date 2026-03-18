@@ -1,3 +1,7 @@
+/**
+ * @module MainRoot
+ * @description アプリのメインコンテナコンポーネント。ウィンドウサイズに応じた高さ調整を行う。
+ */
 'use client';
 
 import { useWindowSize } from '@/global/function/useWindowSize';

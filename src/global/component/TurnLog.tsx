@@ -1,3 +1,7 @@
+/**
+ * @module TurnLog
+ * @description ターンログを表示するコンポーネント。
+ */
 import { TurnLog } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { forwardRef, memo, Ref } from 'react';

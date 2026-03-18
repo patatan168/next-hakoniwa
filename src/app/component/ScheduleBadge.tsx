@@ -1,3 +1,7 @@
+/**
+ * @module ScheduleBadge
+ * @description 次回ターンのスケジュールを表示するバッジコンポーネント。
+ */
 'use client';
 
 import { useClientFetch } from '@/global/function/fetch/clientFetch';

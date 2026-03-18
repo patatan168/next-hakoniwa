@@ -1,3 +1,7 @@
+/**
+ * @module loadingCounterStore
+ * @description グローバルローディングカウンターZustandバニラストア。
+ */
 import { createStore } from 'zustand/vanilla';
 
 type LoadingCounterState = {

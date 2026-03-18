@@ -1,3 +1,7 @@
+/**
+ * @module metadata
+ * @description アプリケーション全体のメタデータ定数定義。
+ */
 // dotenv-flow を動的インポートして環境変数を設定
 if (
   typeof window === 'undefined' && // ブラウザではない

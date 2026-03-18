@@ -1,3 +1,7 @@
+/**
+ * @module sign-out
+ * @description サインアウトを処理するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { signOutDeleteJwtDbCookie } from '@/global/function/auth';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';

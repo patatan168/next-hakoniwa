@@ -1,3 +1,7 @@
+/**
+ * @module Button
+ * @description 汎用ボタンコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import Link from 'next/link';
 import { ButtonHTMLAttributes, memo, useMemo } from 'react';

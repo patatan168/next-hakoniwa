@@ -1,3 +1,7 @@
+/**
+ * @module islandTable
+ * @description 島テーブルのスキーマ定義。
+ */
 import { getPublicIslandInfo } from '@/global/function/island';
 import type { EventRate, Island, User } from '../kysely';
 import type { islandInfoData } from './islandTypes';

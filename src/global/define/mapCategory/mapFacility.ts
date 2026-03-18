@@ -1,3 +1,7 @@
+/**
+ * @module mapFacility
+ * @description 施設系マップセルの定義。
+ */
 import { getBaseLog } from '@/global/define/logType';
 import { changeMapData } from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';

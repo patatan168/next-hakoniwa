@@ -1,3 +1,7 @@
+/**
+ * @module profanity
+ * @description 不適切な文字列のフィルタリング処理。
+ */
 import profanityList from '@/global/define/profanity/profanity_ja.json';
 
 /**

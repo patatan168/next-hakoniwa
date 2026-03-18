@@ -1,3 +1,7 @@
+/**
+ * @module TurnResourceChart
+ * @description ターンごとの資源推移をチャート表示するコンポーネント。
+ */
 import { TurnResourceHistory } from '@/db/kysely';
 
 type Props = {

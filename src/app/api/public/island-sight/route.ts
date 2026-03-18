@@ -1,3 +1,7 @@
+/**
+ * @module public/island-sight
+ * @description 島の詳細情報を返す公開APIルート。
+ */
 import { db, Island, isSqlite, parseJsonIslandData, User } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';

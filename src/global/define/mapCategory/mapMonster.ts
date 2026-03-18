@@ -1,3 +1,7 @@
+/**
+ * @module mapMonster
+ * @description モンスター系マップセルの定義。
+ */
 import { mapType, monsterMove } from '../mapType';
 
 export const inora: mapType = {

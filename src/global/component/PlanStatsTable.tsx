@@ -1,3 +1,7 @@
+/**
+ * @module PlanStatsTable
+ * @description 計画統計・ミサイル統計をテーブル表示するコンポーネント。
+ */
 import { MissileStatData } from '@/global/store/api/auth/missileStats';
 import { PlanStatItem } from '@/global/store/api/auth/planStats';
 

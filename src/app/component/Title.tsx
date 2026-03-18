@@ -1,3 +1,7 @@
+/**
+ * @module Title
+ * @description トップページのタイトル表示コンポーネント。
+ */
 'use client';
 import META from '@/global/define/metadata';
 import ScheduleBadge from './ScheduleBadge';

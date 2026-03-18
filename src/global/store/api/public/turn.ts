@@ -1,3 +1,7 @@
+/**
+ * @module turn
+ * @description ターン情報取得用のFetchStore定義。
+ */
 import { TurnState } from '@/db/kysely';
 import { FetchStore } from '@/global/function/fetch/fetch';
 

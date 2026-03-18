@@ -1,3 +1,7 @@
+/**
+ * @module layout
+ * @description アプリ全体のルートレイアウト。
+ */
 // 複数のレイアウトをexportするため
 /* eslint-disable react-refresh/only-export-components */
 import Footer from '@/global/component/Footer';

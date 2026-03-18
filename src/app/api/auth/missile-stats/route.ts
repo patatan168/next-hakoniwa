@@ -1,3 +1,7 @@
+/**
+ * @module auth/missile-stats
+ * @description ミサイル統計情報を返すAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { getMapDefine } from '@/global/define/mapType';
 import { NextResponse } from 'next/server';

@@ -1,8 +1,13 @@
+/**
+ * @module logger
+ * @description アクセスログ・ターンログの記録ユーティリティ。
+ */
 import { NextRequest } from 'next/server';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { extractClientIp } from './ip';
 
+/** ログフォーマッターを生成する */
 const logFormat = (request?: NextRequest) =>
   format.printf(({ level, message, timestamp }) => {
     if (request !== undefined) {
@@ -14,6 +19,7 @@ const logFormat = (request?: NextRequest) =>
     }
   });
 
+/** Winstonロガーインスタンスを生成する */
 const logger = (dir: string, request?: NextRequest) => {
   return winston.createLogger({
     level: 'silly',

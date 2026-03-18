@@ -1,3 +1,7 @@
+/**
+ * @module server/developmentSettings
+ * @description サーバーサイドの開発設定バリデーションスキーマ。
+ */
 import 'server-only';
 
 import * as z from 'zod';

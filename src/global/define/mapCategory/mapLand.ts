@@ -1,3 +1,7 @@
+/**
+ * @module mapLand
+ * @description 地形系マップセルの定義。
+ */
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';
 import { mapType } from '../mapType';

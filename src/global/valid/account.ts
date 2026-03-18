@@ -1,3 +1,7 @@
+/**
+ * @module account
+ * @description アカウント情報のZodバリデーションスキーマ定義。
+ */
 import * as z from 'zod';
 import { fetcher } from '../function/fetch/fetch';
 import { reactDebounce } from '../function/reactDebounce';

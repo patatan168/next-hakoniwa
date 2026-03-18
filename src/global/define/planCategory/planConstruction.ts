@@ -1,3 +1,7 @@
+/**
+ * @module planConstruction
+ * @description 建設系計画の定義。
+ */
 import { getBaseLog } from '@/global/define/logType';
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { islandDataGetSet } from '@/global/store/turnProgress';

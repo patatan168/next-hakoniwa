@@ -1,3 +1,7 @@
+/**
+ * @module passkey/auth/start
+ * @description Passkey認証開始を処理するAPIルート。
+ */
 import { createAuthenticationOptions } from '@/global/function/passkey';
 import { NextResponse } from 'next/server';
 

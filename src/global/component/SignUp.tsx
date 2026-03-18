@@ -1,3 +1,7 @@
+/**
+ * @module SignUp
+ * @description サインアップフォームコンポーネント。新規アカウント登録を行う。
+ */
 'use client';
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';

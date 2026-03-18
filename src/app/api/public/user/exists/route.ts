@@ -1,3 +1,7 @@
+/**
+ * @module public/user/exists
+ * @description ユーザー名の存在確認を行う公開APIルート。
+ */
 import { db } from '@/db/kysely';
 import { sha256Gen } from '@/global/function/encrypt';
 import { NextRequest, NextResponse } from 'next/server';

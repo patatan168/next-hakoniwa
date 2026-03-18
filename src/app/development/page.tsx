@@ -1,3 +1,7 @@
+/**
+ * @module development/page
+ * @description 島開発画面ページ。
+ */
 'use client';
 import IslandData from '@/global/component/IslandData';
 import dynamic from 'next/dynamic';

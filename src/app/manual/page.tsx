@@ -1,3 +1,7 @@
+/**
+ * @module manual/page
+ * @description マニュアルページ。
+ */
 // Next.jsのmetadataと default コンポーネントの両エクスポートのため
 /* eslint-disable react-refresh/only-export-components */
 import Image from 'next/image';

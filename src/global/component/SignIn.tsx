@@ -1,3 +1,7 @@
+/**
+ * @module SignIn
+ * @description サインインフォームコンポーネント。Passkeyによる認証を行う。
+ */
 'use client';
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';

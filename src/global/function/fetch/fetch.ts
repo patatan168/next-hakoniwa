@@ -1,3 +1,7 @@
+/**
+ * @module fetch
+ * @description FetchStoreクラス。Zustandベースの非同期データ取得管理。
+ */
 import { isEqual } from 'es-toolkit';
 import { createStore, StoreApi } from 'zustand/vanilla';
 import { loadingCounterStore } from '../../store/loadingCounterStore';

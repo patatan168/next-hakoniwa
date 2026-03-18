@@ -1,3 +1,7 @@
+/**
+ * @module auth/passkey/list
+ * @description 登録済みPasskey一覧を返すAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { validAuthCookie } from '@/global/function/auth';
 import { getPasskeysByUuid } from '@/global/function/passkey';

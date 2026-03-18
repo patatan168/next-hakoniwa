@@ -1,3 +1,7 @@
+/**
+ * @module IslandData
+ * @description 島の詳細データ表示コンポーネント。
+ */
 import { Island } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { forwardRef, memo } from 'react';

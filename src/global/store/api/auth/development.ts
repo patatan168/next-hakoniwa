@@ -1,3 +1,7 @@
+/**
+ * @module development
+ * @description 開発画面データ取得用のFetchStore定義。
+ */
 import { islandInfoTurnProgress } from '@/db/kysely';
 import { FetchStore } from '@/global/function/fetch/fetch';
 import { LoginBonusResult } from '@/global/function/loginBonus';

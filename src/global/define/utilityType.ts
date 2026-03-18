@@ -1,3 +1,7 @@
+/**
+ * @module utilityType
+ * @description 共有ユーティリティ型定義。
+ */
 export type TailwindColor =
   | 'slate'
   | 'gray'

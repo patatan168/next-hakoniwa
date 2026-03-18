@@ -1,3 +1,7 @@
+/**
+ * @module ip
+ * @description クライアントIPアドレスの取得ユーティリティ。
+ */
 import { isIPv4, isIPv6 } from 'net';
 import { NextRequest } from 'next/server';
 

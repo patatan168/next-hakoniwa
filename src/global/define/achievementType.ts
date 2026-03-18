@@ -1,3 +1,7 @@
+/**
+ * @module achievementType
+ * @description 実績の種類と判定ロジックの定義。
+ */
 export type achievementType = {
   /** タイプ */
   readonly type: string;

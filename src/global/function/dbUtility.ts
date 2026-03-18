@@ -1,3 +1,7 @@
+/**
+ * @module dbUtility
+ * @description データベースユーティリティ関数。
+ */
 import sqlite from 'better-sqlite3';
 
 type TableInfo = {

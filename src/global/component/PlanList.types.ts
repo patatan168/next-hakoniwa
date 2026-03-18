@@ -1,3 +1,7 @@
+/**
+ * @module PlanList.types
+ * @description PlanList/PlanItemコンポーネント用の型定義。
+ */
 import { Plan } from '@/db/kysely';
 import { CSSProperties, Ref } from 'react';
 

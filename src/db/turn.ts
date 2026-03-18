@@ -1,3 +1,7 @@
+/**
+ * @module turn
+ * @description ターン処理のメインロジック。各島の計画実行・収入計算・イベント処理を行う。
+ */
 import type {
   Database,
   Island,
@@ -59,6 +63,7 @@ type MissileTurnStat = {
   killedMonsters: MissileBreakdown;
 };
 
+/** ミサイル内訳を統合する */
 const mergeBreakdowns = (target: MissileBreakdown, source: MissileBreakdown) => {
   for (const [type, count] of Object.entries(source)) {
     target[type] = (target[type] ?? 0) + count;
@@ -321,6 +326,9 @@ function planPhase(
   return { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters, deferredPlan };
 }
 
+/**
+ * 単一セルのターン処理。人口変動・モンスター移動・資源生産などを処理する。
+ */
 function processSingleCell(
   item: islandInfo,
   nextTurn: number,
@@ -413,6 +421,12 @@ function wideIslandEventPhase(currentTurn: number, fromUuid: string, logArray: T
 // Turn Controller
 // -----------------------------------------------------------------------------
 
+/**
+ * アクティブな計画を島ごとに取得する。
+ * @param db - DBインスタンス
+ * @param uuids - 対象島UUID配列
+ * @returns 島UUIDごとの計画配列
+ */
 async function fetchActivePlans(
   db: Kysely<Database> | Transaction<Database>,
   uuids: string[]
@@ -439,6 +453,9 @@ async function fetchActivePlans(
   return planMap;
 }
 
+/**
+ * ミサイル統計を累積する。
+ */
 function accumulateMissileStats(
   missileStats: Map<string, MissileTurnStat>,
   uuid: string,
@@ -472,6 +489,9 @@ function accumulateMissileStats(
   missileStats.set(uuid, next);
 }
 
+/**
+ * 全島のターン処理を実行する。収入・計画・イベント・統計を処理する。
+ */
 async function processTurnForIslands(
   db: Kysely<Database> | Transaction<Database>,
   islandList: Island[],
@@ -581,6 +601,9 @@ async function processTurnForIslands(
   return { prevPopulations, planStats, missileStats };
 }
 
+/**
+ * ターンごとの資源推移履歴を保存する。
+ */
 async function saveTurnResourceHistory(
   db: Kysely<Database> | Transaction<Database>,
   islands: Island[],
@@ -635,6 +658,10 @@ async function saveTurnResourceHistory(
   });
 }
 
+/**
+ * ターン処理のメインエントリポイント。全島のターンを進行し結果をDBに保存する。
+ * @param recursiveCount - 再帰実行回数
+ */
 async function turnProceed(recursiveCount = 0) {
   const turnInfo = await getTurnInfo(db);
   if (!turnInfo) return;

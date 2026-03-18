@@ -1,3 +1,7 @@
+/**
+ * @module auth/plan
+ * @description 計画データの取得・更新を行うAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { asyncRequestValid } from '@/global/function/api';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';

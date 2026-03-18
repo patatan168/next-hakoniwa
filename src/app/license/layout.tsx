@@ -1,3 +1,7 @@
+/**
+ * @module license/layout
+ * @description ライセンスページのレイアウト。
+ */
 import { LicenseMenu } from './LicenseMenu';
 
 export default async function Layout({

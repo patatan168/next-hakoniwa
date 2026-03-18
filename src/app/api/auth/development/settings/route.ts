@@ -1,3 +1,7 @@
+/**
+ * @module auth/development/settings
+ * @description 開発設定の更新を行うAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { asyncRequestValid } from '@/global/function/api';
 import { validAuthCookie } from '@/global/function/auth';

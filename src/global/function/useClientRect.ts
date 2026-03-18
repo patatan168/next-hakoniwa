@@ -1,3 +1,7 @@
+/**
+ * @module useClientRect
+ * @description DOM要素のサイズ監視カスタムフック。
+ */
 import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 
 /**

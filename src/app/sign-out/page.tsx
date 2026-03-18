@@ -1,3 +1,7 @@
+/**
+ * @module sign-out/page
+ * @description サインアウトページ。
+ */
 'use client';
 import Button from '@/global/component/Button';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';

@@ -1,3 +1,7 @@
+/**
+ * @module useDragReorder
+ * @description ドラッグ並び替え用カスタムフック。
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // -----------------------------------------------------------------------------

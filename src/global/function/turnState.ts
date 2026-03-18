@@ -1,3 +1,7 @@
+/**
+ * @module turnState
+ * @description ターン処理中の状態管理フラグ。
+ */
 import { db } from '@/db/kysely';
 import { NextResponse } from 'next/server';
 

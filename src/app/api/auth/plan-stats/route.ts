@@ -1,3 +1,7 @@
+/**
+ * @module auth/plan-stats
+ * @description 計画統計情報を返すAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { getPlanDefine } from '@/global/define/planType';
 import { NextResponse } from 'next/server';

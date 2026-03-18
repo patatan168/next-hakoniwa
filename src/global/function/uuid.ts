@@ -1,3 +1,7 @@
+/**
+ * @module uuid
+ * @description UUID生成ユーティリティ。
+ */
 import { uuidv7obj } from 'uuidv7';
 
 /**

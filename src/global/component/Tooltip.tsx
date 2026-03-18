@@ -1,3 +1,7 @@
+/**
+ * @module Tooltip
+ * @description ホバー時にツールチップを表示するコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import { memo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';

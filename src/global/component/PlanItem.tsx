@@ -1,3 +1,7 @@
+/**
+ * @module PlanItem
+ * @description 計画リストの1行分を表示・編集するコンポーネント。
+ */
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual, omit } from 'es-toolkit';
 import { forwardRef, memo, useEffect } from 'react';

@@ -1,3 +1,7 @@
+/**
+ * @module codegen
+ * @description DB型定義の自動生成エントリポイント。
+ */
 import dotenvFlow from 'dotenv-flow';
 import { spawnSync } from 'node:child_process';
 

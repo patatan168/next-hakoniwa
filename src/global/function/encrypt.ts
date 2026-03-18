@@ -1,3 +1,7 @@
+/**
+ * @module encrypt
+ * @description 暗号化・ハッシュ・鍵生成ユーティリティ。
+ */
 import crypto, { generateKeyPairSync } from 'crypto';
 import { uuidv7obj } from 'uuidv7';
 import { secureRandom } from './utility';

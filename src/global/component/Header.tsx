@@ -1,3 +1,7 @@
+/**
+ * @module Header
+ * @description ヘッダーコンポーネント。
+ */
 'use client';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';

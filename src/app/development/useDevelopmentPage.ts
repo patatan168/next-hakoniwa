@@ -1,3 +1,7 @@
+/**
+ * @module useDevelopmentPage
+ * @description 開発画面のデータ取得・状態管理フック。
+ */
 import { Plan } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';

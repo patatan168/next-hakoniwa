@@ -1,3 +1,7 @@
+/**
+ * @module useWindowSize
+ * @description ウィンドウサイズ監視カスタムフック。
+ */
 'use client';
 
 import { useSyncExternalStore } from 'react';
@@ -15,18 +19,22 @@ const listeners = new Set<() => void>();
 
 let cleanup: (() => void) | null = null;
 
+/** クライアント環境かどうかを判定する */
 const isClientSafe = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
+/** モバイルのアドレスバー高さオフセットを取得する */
 const getAddressBarHeightOffset = (): number => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   return isMobile ? Math.max(0, (window.outerHeight || 0) - (window.innerHeight || 0)) || 0 : 0;
 };
 
+/** ウィンドウの基本サイズを取得する */
 const getBaseDimensions = () => ({
   width: window.innerWidth || document.documentElement.clientWidth,
   height: window.innerHeight || document.documentElement.clientHeight,
 });
 
+/** 入力可能な要素かどうかを判定する */
 const isEditableElement = (element: Element | null): element is HTMLElement => {
   if (!(element instanceof HTMLElement)) return false;
 
@@ -39,6 +47,7 @@ const isEditableElement = (element: Element | null): element is HTMLElement => {
   );
 };
 
+/** ビューポートを考慮した正確なウィンドウサイズを計算する */
 const calculateExactDimensions = () => {
   const { width: baseWidth, height: baseHeight } = getBaseDimensions();
   const addressBarHeight = getAddressBarHeightOffset();
@@ -55,8 +64,10 @@ const calculateExactDimensions = () => {
   };
 };
 
+/** 値を小数第3位で丸める */
 const roundValue = (value: number) => Math.round(value * 1000) / 1000;
 
+/** 入力中にウィンドウ高さを保持すべきかを判定する */
 const shouldPreserveHeightWhileTyping = (nextWidth: number, nextHeight: number) => {
   if (snapshot.height === 0) return false;
   if (Math.round(nextWidth) !== Math.round(snapshot.width)) return false;
@@ -70,6 +81,7 @@ const shouldPreserveHeightWhileTyping = (nextWidth: number, nextHeight: number) 
   return viewport.height < baseHeight;
 };
 
+/** ウィンドウサイズのスナップショットを更新する */
 const updateSnapshot = () => {
   if (!isClientSafe()) return;
 
@@ -101,6 +113,7 @@ const updateSnapshot = () => {
 
 // スロットリング・デバウンスを行わず、イベントに即座に反応させる
 
+/** useSyncExternalStore用のsubscribe関数 */
 const subscribe = (callback: () => void) => {
   listeners.add(callback);
   if (listeners.size === 1) {
@@ -136,10 +149,12 @@ const subscribe = (callback: () => void) => {
   };
 };
 
+/** 現在のスナップショットを返す */
 const getSnapshot = (): WindowSize => {
   return snapshot;
 };
 
+/** サーバーサイドで使用する初期スナップショットを返す */
 const getServerSnapshot = (): WindowSize => initSnapshot;
 
 /**

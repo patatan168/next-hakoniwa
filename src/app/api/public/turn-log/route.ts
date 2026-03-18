@@ -1,3 +1,7 @@
+/**
+ * @module public/turn-log
+ * @description 公開ターンログを返すAPIルート。
+ */
 import { db, isSqlite } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';

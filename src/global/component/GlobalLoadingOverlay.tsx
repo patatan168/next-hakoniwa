@@ -1,3 +1,7 @@
+/**
+ * @module GlobalLoadingOverlay
+ * @description グローバルローディングオーバーレイコンポーネント。
+ */
 'use client';
 
 import { loadingCounterStore } from '@/global/store/loadingCounterStore';

@@ -1,3 +1,7 @@
+/**
+ * @module islandList
+ * @description 公開島一覧取得用のFetchStore定義。
+ */
 import { FetchStore } from '@/global/function/fetch/fetch';
 import { turnStore } from './turn';
 

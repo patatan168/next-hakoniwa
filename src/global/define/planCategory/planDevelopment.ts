@@ -1,3 +1,7 @@
+/**
+ * @module planDevelopment
+ * @description 開発系計画の定義。
+ */
 import { getBaseLog } from '@/global/define/logType';
 import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';

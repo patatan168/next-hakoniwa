@@ -1,3 +1,7 @@
+/**
+ * @module IslandSettingsPanel
+ * @description 島の設定パネルコンポーネント。
+ */
 'use client';
 
 import Button from '@/global/component/Button';

@@ -1,3 +1,7 @@
+/**
+ * @module kysely
+ * @description Kyselyデータベースインスタンスとスキーマ型定義。
+ */
 import sqlite from 'better-sqlite3';
 import {
   ColumnType,

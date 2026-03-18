@@ -1,3 +1,7 @@
+/**
+ * @module IslandList
+ * @description 島一覧の仮想スクロールリストコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import Link from 'next/link';
 import { CSSProperties, forwardRef, memo, Ref } from 'react';

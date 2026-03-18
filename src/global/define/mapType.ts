@@ -1,3 +1,7 @@
+/**
+ * @module mapType
+ * @description マップセルの種類定義と検索ヘルパー。
+ */
 import { EventRate, islandInfoTurnProgress, TurnLog } from '@/db/kysely';
 import { getBaseLog } from '../define/logType';
 import {

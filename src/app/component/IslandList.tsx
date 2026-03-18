@@ -1,3 +1,7 @@
+/**
+ * @module IslandList
+ * @description トップページの島一覧・ターンログタブコンポーネント。
+ */
 'use client';
 import IslandListData from '@/global/component/IslandList';
 import TabContents, { TabType } from '@/global/component/TabContents';

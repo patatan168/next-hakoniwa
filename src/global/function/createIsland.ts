@@ -1,3 +1,7 @@
+/**
+ * @module createIsland
+ * @description 新規島の作成処理。
+ */
 import 'server-only';
 
 import { Database, islandInfoData, isSqlite } from '@/db/kysely';

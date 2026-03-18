@@ -1,3 +1,7 @@
+/**
+ * @module auth/turn-resource-history
+ * @description ターン資源履歴を返すAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { NextResponse } from 'next/server';
 

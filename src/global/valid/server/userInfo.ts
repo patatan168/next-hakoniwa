@@ -1,3 +1,7 @@
+/**
+ * @module server/userInfo
+ * @description サーバーサイドのユーザー情報バリデーションスキーマ。
+ */
 import 'server-only';
 
 import { db } from '@/db/kysely';

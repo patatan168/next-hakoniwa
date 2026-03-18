@@ -1,3 +1,7 @@
+/**
+ * @module mapMilitary
+ * @description 軍事系マップセルの定義。
+ */
 import { getBaseLog } from '@/global/define/logType';
 import { mapArrayConverter, wideDamage } from '@/global/function/island';
 import { logSelfCrash } from '../logType';

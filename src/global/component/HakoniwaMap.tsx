@@ -1,3 +1,7 @@
+/**
+ * @module HakoniwaMap
+ * @description 箱庭マップ描画コンポーネント。Canvas上にマップを描画する。
+ */
 import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
 import { default as META } from '@/global/define/metadata';
 import { getPlanDefine, getPlanSelect, validLandType } from '@/global/define/planType';

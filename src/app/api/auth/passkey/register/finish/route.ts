@@ -1,3 +1,7 @@
+/**
+ * @module auth/passkey/register/finish
+ * @description Passkey登録完了を処理するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { validAuthCookie } from '@/global/function/auth';
 import { accessLogger } from '@/global/function/logger';

@@ -1,3 +1,7 @@
+/**
+ * @module usePlanDataStore
+ * @description 計画データの選択状態を管理するZustandストア。
+ */
 import { Plan } from '@/db/kysely';
 import { create } from 'zustand';
 

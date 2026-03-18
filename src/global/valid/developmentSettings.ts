@@ -1,3 +1,7 @@
+/**
+ * @module developmentSettings
+ * @description 開発設定のZodバリデーションスキーマ定義。
+ */
 import * as z from 'zod';
 import { fetcher } from '../function/fetch/fetch';
 import { reactDebounce } from '../function/reactDebounce';

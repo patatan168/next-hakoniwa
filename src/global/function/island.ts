@@ -1,3 +1,7 @@
+/**
+ * @module island
+ * @description マップデータの変換・操作・集計ユーティリティ。
+ */
 import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
 import { isEqual } from 'es-toolkit';
 import { differenceWith } from 'es-toolkit/array';
@@ -87,6 +91,7 @@ export const accumulateCellStats = (item: islandInfo, mapDef: mapType, stats: Is
   }
 };
 
+/** 座標がマップ外（外海）かどうかを判定する */
 export const isOpenSea = (x: number, y: number) => {
   const bellowMap = x < 0 || y < 0;
   const aboveMap = x >= META_DATA.MAP_SIZE || y >= META_DATA.MAP_SIZE;

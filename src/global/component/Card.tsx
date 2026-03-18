@@ -1,3 +1,7 @@
+/**
+ * @module Card
+ * @description 汎用カードコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import { memo, ReactNode, Ref } from 'react';
 

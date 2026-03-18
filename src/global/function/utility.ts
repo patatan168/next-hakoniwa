@@ -1,4 +1,8 @@
 /**
+ * @module utility
+ * @description 汎用ユーティリティ関数群。
+ */
+/**
  * セキュア乱数
  * @note Math.random()相当の処理だが低速
  * @returns 0 <= x < 1の乱数

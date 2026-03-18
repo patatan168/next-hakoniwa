@@ -1,3 +1,7 @@
+/**
+ * @module schema
+ * @description データベーススキーマのマイグレーション定義。
+ */
 import META_DATA from '@/global/define/metadata';
 import { ColumnDataType, ColumnDefinitionBuilder, Kysely, sql, SqliteAdapter } from 'kysely';
 import { Database } from '../kysely';
@@ -9,6 +13,13 @@ export type ColumnDefinition = {
 
 export type TableDefinition = Record<string, ColumnDefinition>;
 
+/**
+ * テーブルを再作成し、既存データを移行する。
+ * @param db - Kyselyインスタンス
+ * @param tableName - 対象テーブル名
+ * @param columns - 期待するカラム定義
+ * @param isSqlite - SQLiteかどうか
+ */
 async function rebuildTableWithData(
   db: Kysely<Database>,
   tableName: string,
@@ -72,6 +83,12 @@ async function rebuildTableWithData(
   console.log(`Rebuild completed: ${tableName}`);
 }
 
+/**
+ * 特殊テーブルが存在しない場合に作成する。
+ * @param db - Kyselyインスタンス
+ * @param tableName - 対象テーブル名
+ * @returns テーブルを作成した場合はtrue
+ */
 async function createSpecialTableIfNeeded(
   db: Kysely<Database>,
   tableName: string
@@ -141,6 +158,10 @@ async function createSpecialTableIfNeeded(
   return false;
 }
 
+/**
+ * マイグレーションを適用する。
+ * @param db - Kyselyインスタンス
+ */
 export async function up(db: Kysely<Database>): Promise<void> {
   console.log('[DEBUG] Starting up() function...');
   const isSqlite = db.getExecutor().adapter instanceof SqliteAdapter;
@@ -393,6 +414,10 @@ export async function up(db: Kysely<Database>): Promise<void> {
   }
 }
 
+/**
+ * マイグレーションをロールバックする。
+ * @param _db - Kyselyインスタンス（未使用）
+ */
 export async function down(_db: Kysely<unknown>): Promise<void> {
   // down は migrate.ts で直接全テーブル削除しているため、ここでは不要です
 }

@@ -1,3 +1,7 @@
+/**
+ * @module turnProgress
+ * @description ターン進行状況を保持するZustandバニラストア。
+ */
 import { islandInfoTurnProgress } from '@/db/kysely';
 import { createStore } from 'zustand/vanilla';
 

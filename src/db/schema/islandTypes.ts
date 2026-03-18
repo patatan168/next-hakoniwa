@@ -1,3 +1,7 @@
+/**
+ * @module islandTypes
+ * @description 島データの型定義。
+ */
 export type islandInfo = {
   type: string;
   landValue: number;

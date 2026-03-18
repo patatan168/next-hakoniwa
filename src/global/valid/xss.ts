@@ -1,3 +1,7 @@
+/**
+ * @module xss
+ * @description XSS対策用のZodバリデーションヘルパー。
+ */
 import * as z from 'zod';
 
 /**

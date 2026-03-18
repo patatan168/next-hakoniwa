@@ -1,3 +1,7 @@
+/**
+ * @module error/page
+ * @description 汎用エラーページ。
+ */
 import Link from 'next/link';
 
 export default function ErrorPage() {

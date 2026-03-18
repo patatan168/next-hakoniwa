@@ -1,3 +1,7 @@
+/**
+ * @module MapSight
+ * @description 島の地図表示・詳細情報コンポーネント。
+ */
 'use client';
 import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';

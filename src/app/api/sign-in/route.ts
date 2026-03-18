@@ -1,3 +1,7 @@
+/**
+ * @module sign-in
+ * @description サインイン認証を処理するAPIルート。
+ */
 import { Database, db } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
 import { asyncRequestValid } from '@/global/function/api';

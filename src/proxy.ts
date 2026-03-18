@@ -1,3 +1,7 @@
+/**
+ * @module proxy
+ * @description Next.jsミドルウェア。CSP・認証・CSRF・セッションチェックを行うプロキシ処理。
+ */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { db } from './db/kysely';
@@ -8,6 +12,11 @@ const authPaths = ['/api/auth/'];
 const sessionPaths = ['/development', '/account'];
 const excludeNoncePaths = ['/api'];
 
+/**
+ * リクエストのプロキシ処理。CSRF・認証・セッション・CSPの各チェックを実行する。
+ * @param request - 受信リクエスト
+ * @returns レスポンス
+ */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const csrfResult = await csrfCheck(request);
@@ -74,6 +83,11 @@ async function csrfCheck(
   return { token, shouldSetCookie };
 }
 
+/**
+ * CSPヘッダー文字列を生成する。
+ * @param nonce - スクリプト用nonce値
+ * @returns CSPヘッダー文字列
+ */
 function getCspHeader(nonce: string) {
   const baseHeader =
     "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; worker-src 'self'; manifest-src 'self';";
@@ -84,6 +98,11 @@ function getCspHeader(nonce: string) {
   return `${baseHeader} ${scriptStr}`;
 }
 
+/**
+ * nonce付きCSPヘッダーを設定したレスポンスを生成する。
+ * @param request - 受信リクエスト
+ * @returns nonce付きレスポンス
+ */
 function crateNonceResponse(request: NextRequest) {
   // nonceを生成（base64）
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
@@ -107,6 +126,11 @@ function crateNonceResponse(request: NextRequest) {
   return response;
 }
 
+/**
+ * 認証チェック。JWTトークンの有効性を検証し、UUIDをヘッダーにセットする。
+ * @param request - 受信リクエスト
+ * @returns 認証済みレスポンスまたは401リダイレクト
+ */
 async function authCheck(request: NextRequest) {
   try {
     const uuid = await validAuthCookie(db, true);
@@ -121,6 +145,11 @@ async function authCheck(request: NextRequest) {
   return NextResponse.redirect(new URL(`/error/401`, request.url));
 }
 
+/**
+ * セッションチェック。認証済みならnonce付きレスポンスを返す。
+ * @param request - 受信リクエスト
+ * @returns nonce付きレスポンスまたは401リダイレクト
+ */
 async function sessionCheck(request: NextRequest) {
   try {
     const uuid = await validAuthCookie(db, true);

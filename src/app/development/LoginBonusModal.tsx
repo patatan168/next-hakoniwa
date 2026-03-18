@@ -1,3 +1,7 @@
+/**
+ * @module LoginBonusModal
+ * @description ログインボーナスモーダルコンポーネント。
+ */
 import Modal from '@/global/component/Modal';
 import META_DATA from '@/global/define/metadata';
 import { LoginBonusResult } from '@/global/function/loginBonus';

@@ -1,3 +1,7 @@
+/**
+ * @module public/turn
+ * @description ターン情報を返す公開APIルート。
+ */
 import { db, TurnState } from '@/db/kysely';
 import { Cron } from 'croner';
 import { NextResponse } from 'next/server';

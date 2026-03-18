@@ -1,3 +1,7 @@
+/**
+ * @module auth/account/update
+ * @description アカウント情報を更新するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Gen, argon2Verify } from '@/global/function/argon2';

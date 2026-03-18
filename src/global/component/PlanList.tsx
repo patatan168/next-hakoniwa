@@ -1,3 +1,7 @@
+/**
+ * @module PlanList
+ * @description 計画リスト全体の表示・編集・送信を管理するコンポーネント。
+ */
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
 import { memo, useCallback, useEffect, useMemo } from 'react';

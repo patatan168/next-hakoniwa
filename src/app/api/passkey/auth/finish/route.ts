@@ -1,3 +1,7 @@
+/**
+ * @module passkey/auth/finish
+ * @description Passkey認証完了を処理するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { createJwtToken } from '@/global/function/auth';
 import { accessLogger } from '@/global/function/logger';

@@ -1,3 +1,7 @@
+/**
+ * @module TransFormHTML
+ * @description HTML文字列をReactコンポーネントに変換してレンダリングするコンポーネント。
+ */
 import parse, { DOMNode, domToReact, Element, HTMLReactParserOptions } from 'html-react-parser';
 import Image from 'next/image';
 import Link from 'next/link';

@@ -1,3 +1,7 @@
+/**
+ * @module MenuContent
+ * @description 開発画面のメニューコンテンツコンポーネント。
+ */
 import type { Island, Plan, TurnLog, TurnResourceHistory, TurnState } from '@/db/kysely';
 import BaseTabs from '@/global/component/TabContents';
 import { MissileStatData } from '@/global/store/api/auth/missileStats';

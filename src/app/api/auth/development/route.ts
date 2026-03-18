@@ -1,3 +1,7 @@
+/**
+ * @module auth/development
+ * @description 開発画面のデータを取得するAPIルート。
+ */
 import { db, Island, isSqlite, parseJsonIslandData, User } from '@/db/kysely';
 import { getAchievement } from '@/global/define/achievementType';
 import { getIslandNameChangeCooldownSeconds } from '@/global/function/islandNameChangeCooldown';

@@ -1,3 +1,7 @@
+/**
+ * @module AccountMenu
+ * @description アカウントメニューコンポーネント。サインイン・サインアップ・アカウント管理を提供する。
+ */
 'use client';
 
 import Link from 'next/link';

@@ -1,3 +1,7 @@
+/**
+ * @module csrf
+ * @description CSRFトークンの生成・検証ユーティリティ。
+ */
 import { timingSafeEqual } from 'node:crypto';
 export const CSRF_COOKIE_NAME = '__Host-csrf-token';
 

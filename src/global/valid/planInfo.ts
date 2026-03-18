@@ -1,3 +1,7 @@
+/**
+ * @module planInfo
+ * @description 計画情報のZodバリデーションスキーマ定義。
+ */
 import * as z from 'zod';
 import META_DATA from '../define/metadata';
 

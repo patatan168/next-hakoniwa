@@ -1,3 +1,7 @@
+/**
+ * @module mapFake
+ * @description 偽装系マップセルの定義。
+ */
 import { mapType } from '../mapType';
 
 export const dummy: mapType = {

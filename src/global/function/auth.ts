@@ -1,3 +1,7 @@
+/**
+ * @module auth
+ * @description JWTトークンの発行・検証・ローテーションとCookie管理を提供する認証モジュール。
+ */
 import 'server-only';
 
 import { Database, isSqlite } from '@/db/kysely';

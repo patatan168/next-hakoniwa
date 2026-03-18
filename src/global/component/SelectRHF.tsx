@@ -1,3 +1,7 @@
+/**
+ * @module SelectRHF
+ * @description React Hook Form対応のセレクトボックスコンポーネント。
+ */
 import { isEqual, omit, pick } from 'es-toolkit';
 import dynamic from 'next/dynamic';
 import {

@@ -1,4 +1,8 @@
 /**
+ * @module cookie
+ * @description Cookie操作のユーティリティ関数。
+ */
+/**
  * クライアントサイドでCookieを取得する
  * @param name Cookie名
  * @returns Cookieの値

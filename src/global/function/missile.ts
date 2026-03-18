@@ -1,3 +1,7 @@
+/**
+ * @module missile
+ * @description ミサイル発射・着弾処理のユーティリティ。
+ */
 import { TurnLog, islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import {
   getBaseLog,
@@ -42,10 +46,12 @@ type IslandWithUser = islandInfoTurnProgress;
 
 type MissileBreakdown = Record<string, number>;
 
+/** ミサイル内訳にカウントを加算する */
 const addBreakdown = (target: MissileBreakdown, type: string, count: number = 1) => {
   target[type] = (target[type] ?? 0) + count;
 };
 
+/** ミサイル内訳を統合する */
 const mergeBreakdowns = (target: MissileBreakdown, source: MissileBreakdown) => {
   for (const [type, count] of Object.entries(source)) {
     addBreakdown(target, type, count);

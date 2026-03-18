@@ -1,3 +1,7 @@
+/**
+ * @module TextFieldRHF
+ * @description React Hook Form対応のテキストフィールドコンポーネント。
+ */
 import { isEqual, omit } from 'es-toolkit';
 import dynamic from 'next/dynamic';
 import { CSSProperties, InputHTMLAttributes, memo, useId, useMemo, useState } from 'react';

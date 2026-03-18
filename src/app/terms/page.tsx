@@ -1,3 +1,7 @@
+/**
+ * @module terms/page
+ * @description 利用規約ページ。
+ */
 // Next.jsのmetadataと default コンポーネントの両エクスポートのため
 /* eslint-disable react-refresh/only-export-components */
 import fs from 'fs';

@@ -1,3 +1,7 @@
+/**
+ * @module api
+ * @description APIリクエストのバリデーションとエラーハンドリングユーティリティ。
+ */
 import 'server-only';
 
 import { NextRequest, NextResponse } from 'next/server';

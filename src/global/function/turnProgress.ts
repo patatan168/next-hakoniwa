@@ -1,3 +1,7 @@
+/**
+ * @module turnProgress
+ * @description ターン進行状況のSSE配信処理。
+ */
 import {
   Database,
   Island,
@@ -207,6 +211,11 @@ export const updateIslands = async (
   });
 };
 
+/**
+ * 島を放棄する。ユーザー・島・賞品データを削除する。
+ * @param client - DBクライアント
+ * @param uuid - 対象島UUID
+ */
 export const abandonIsland = async (
   client: Kysely<Database> | Transaction<Database>,
   uuid: string

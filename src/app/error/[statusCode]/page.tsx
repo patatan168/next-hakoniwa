@@ -1,3 +1,7 @@
+/**
+ * @module error/[statusCode]/page
+ * @description ステータスコード別エラーページ。
+ */
 import Link from 'next/link';
 
 export default async function ErrorPage({

@@ -1,3 +1,7 @@
+/**
+ * @module public/island-list
+ * @description 島一覧を返す公開APIルート。
+ */
 import { db } from '@/db/kysely';
 import { getAchievement } from '@/global/define/achievementType';
 import { sql } from 'kysely';

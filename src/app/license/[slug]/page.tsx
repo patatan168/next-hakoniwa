@@ -1,3 +1,7 @@
+/**
+ * @module license/[slug]/page
+ * @description 個別ライセンス表示ページ。
+ */
 import fs from 'fs';
 import { MDXRemote } from 'next-mdx-remote-client/rsc';
 import { notFound } from 'next/navigation';

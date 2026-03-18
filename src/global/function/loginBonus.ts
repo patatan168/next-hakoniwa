@@ -1,3 +1,7 @@
+/**
+ * @module loginBonus
+ * @description ログインボーナスの判定・付与処理。
+ */
 import { db, Island } from '@/db/kysely';
 import { sql } from 'kysely';
 

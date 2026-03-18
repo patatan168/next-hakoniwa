@@ -1,3 +1,7 @@
+/**
+ * @module Footer
+ * @description フッターコンポーネント。
+ */
 'use client';
 import Link from 'next/link';
 

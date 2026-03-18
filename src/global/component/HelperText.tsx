@@ -1,3 +1,7 @@
+/**
+ * @module HelperText
+ * @description フォームフィールド用ヘルパーテキストコンポーネント。
+ */
 import { isEqual } from 'es-toolkit';
 import { CSSProperties, memo } from 'react';
 import { FieldError } from 'react-hook-form';

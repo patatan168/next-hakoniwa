@@ -1,3 +1,7 @@
+/**
+ * @module migrate
+ * @description データベースマイグレーション実行モジュール。
+ */
 import { db } from './kysely';
 import { up } from './migrations/schema';
 

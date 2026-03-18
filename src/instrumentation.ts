@@ -1,5 +1,12 @@
+/**
+ * @module instrumentation
+ * @description Next.jsの計測初期化処理。サーバー起動時にDB接続・マイグレーションを実行する。
+ */
 let isIntervalSetup = false;
 
+/**
+ * Next.jsサーバー起動時の初期化処理。DBマイグレーションとターンスケジューラを設定する。
+ */
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs' && !isIntervalSetup) {
     isIntervalSetup = true;

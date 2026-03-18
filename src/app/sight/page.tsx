@@ -1,3 +1,7 @@
+/**
+ * @module sight/page
+ * @description 島閲覧ページ。
+ */
 import { redirect } from 'next/navigation';
 import MapSight from './MapSight';
 

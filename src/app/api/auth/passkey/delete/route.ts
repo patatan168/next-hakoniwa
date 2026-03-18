@@ -1,3 +1,7 @@
+/**
+ * @module auth/passkey/delete
+ * @description Passkeyを削除するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import { validAuthCookie } from '@/global/function/auth';
 import { accessLogger } from '@/global/function/logger';

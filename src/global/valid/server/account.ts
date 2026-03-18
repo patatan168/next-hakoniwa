@@ -1,3 +1,7 @@
+/**
+ * @module server/account
+ * @description サーバーサイドのアカウントバリデーションスキーマ。
+ */
 import 'server-only';
 
 import { db } from '@/db/kysely';

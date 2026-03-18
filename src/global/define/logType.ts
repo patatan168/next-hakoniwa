@@ -1,3 +1,7 @@
+/**
+ * @module logType
+ * @description ターンログの種類と生成ヘルパー定義。
+ */
 import { Island, islandInfo, User } from '@/db/kysely';
 import { mapArrayConverter } from '../function/island';
 import { createUuid25 } from '../function/uuid';

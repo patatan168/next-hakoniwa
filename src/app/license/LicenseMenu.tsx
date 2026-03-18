@@ -1,3 +1,7 @@
+/**
+ * @module LicenseMenu
+ * @description ライセンスメニューナビゲーションコンポーネント。
+ */
 'use client';
 import Link from 'next/link';
 

@@ -1,3 +1,7 @@
+/**
+ * @module auth/account/delete
+ * @description アカウントを削除するAPIルート。
+ */
 import { db, Island, isSqlite, User } from '@/db/kysely';
 import { logIslandDelete } from '@/global/define/logType';
 import { asyncRequestValid } from '@/global/function/api';

@@ -1,3 +1,7 @@
+/**
+ * @module mapOther
+ * @description その他のマップセルの定義。
+ */
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { randomIntInRange, valueOrSafeLimit } from '@/global/function/utility';
 import { fireDisaster, mapType } from '../mapType';

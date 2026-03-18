@@ -1,3 +1,7 @@
+/**
+ * @module account/page
+ * @description アカウント管理ページ。
+ */
 'use client';
 import Button from '@/global/component/Button';
 import Modal from '@/global/component/Modal';

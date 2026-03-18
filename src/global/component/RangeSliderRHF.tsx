@@ -1,3 +1,7 @@
+/**
+ * @module RangeSliderRHF
+ * @description React Hook Form対応のレンジスライダーコンポーネント。
+ */
 import { isEqual, omit } from 'es-toolkit';
 import dynamic from 'next/dynamic';
 import {

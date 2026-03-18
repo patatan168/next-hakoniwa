@@ -1,3 +1,7 @@
+/**
+ * @module auth/passkey/register/start
+ * @description Passkey登録開始を処理するAPIルート。
+ */
 import { db } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
 import { validAuthCookie } from '@/global/function/auth';
