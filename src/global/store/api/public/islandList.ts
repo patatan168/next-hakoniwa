@@ -1,4 +1,5 @@
 import { FetchStore } from '@/global/function/fetch/fetch';
+import { turnStore } from './turn';
 
 type PublicIslandListItem = {
   uuid: string;
@@ -16,6 +17,8 @@ type PublicIslandListItem = {
   mining: number;
 };
 
-const store = new FetchStore<Array<PublicIslandListItem>>('/api/public/island-list');
+const store = new FetchStore<Array<PublicIslandListItem>>('/api/public/island-list', {
+  dependsOn: [turnStore],
+});
 
 export const islandListStore = store.store;
