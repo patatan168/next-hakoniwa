@@ -178,16 +178,35 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
     const refreshGet = customOptions?.refreshGet ?? false;
     const waitTime = customOptions?.waitTime ?? 200;
     const dependsOn = customOptions?.dependsOn ?? [];
+    let pendingGetRefresh = false;
 
     const shouldSkipFetch = (
       state: FetchState<T, U>,
       method: keyof ApiMethodType<T>,
       refresh: boolean
     ) => {
-      if (state.isLoading[method]) return true;
       if (refresh) return false;
       const isLastGetSucceed = method === 'get' && state.error.get === undefined;
       return isLastGetSucceed && Date.now() - state.fetchedAt[method] < waitTime;
+    };
+
+    const reservePendingGetRefresh = (
+      state: FetchState<T, U>,
+      method: keyof ApiMethodType<T>,
+      refresh: boolean
+    ) => {
+      if (!state.isLoading[method]) return false;
+      // GETの強制更新が同時到着した場合は、完了後に1回だけ再取得する
+      if (method === 'get' && refresh) pendingGetRefresh = true;
+      return true;
+    };
+
+    const flushPendingGetRefresh = (method: keyof ApiMethodType<T>) => {
+      if (method !== 'get' || !pendingGetRefresh) return;
+      pendingGetRefresh = false;
+      queueMicrotask(() => {
+        this.store.getState().fetch({ method: 'GET' }, { refresh: true });
+      });
     };
 
     this.store = createStore<FetchState<T, U>>((set, get) => ({
@@ -201,7 +220,12 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
         const state = get();
         const { urlOrigin = '', query, refresh = false } = dataOptions || {};
 
-        if (shouldSkipFetch(state, method, refresh)) return;
+        if (
+          reservePendingGetRefresh(state, method, refresh) ||
+          shouldSkipFetch(state, method, refresh)
+        ) {
+          return;
+        }
 
         const now = Date.now();
         const urlWithQuery = query ? `${urlOrigin}${url}?${query}` : `${urlOrigin}${url}`;
@@ -245,6 +269,8 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
             isLoading: { ...prev.isLoading, [method]: false },
           }));
           loadingCounterStore.getState().decrement();
+        } finally {
+          flushPendingGetRefresh(method);
         }
       },
       fetchIfNeeded: async (options, dataOptions) => {
