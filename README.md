@@ -93,9 +93,9 @@ docker compose up -d
 
 | ライブラリ                | バージョン |
 | ------------------------- | ---------- |
-| Node.js                   | 22.22.0    |
+| Node.js                   | 24.14.0    |
 | React                     | 19.2.4     |
-| Next.js                   | 16.1.6     |
+| Next.js                   | 16.2.0     |
 | Tailwind CSS              | 4.x        |
 | sass                      | 1.x        |
 | React Icons               | 5.x        |
