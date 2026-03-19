@@ -250,8 +250,16 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
             error: { ...prev.error, [method]: undefined },
           }));
           // GET以外のメソッドの場合、必要に応じてGETを再取得
+          // fetch経路を統一して、isLoading中refreshの保留処理を共通化する
           if (refreshGet && method !== 'get') {
-            await this.refreshFetch(urlWithQuery);
+            await get().fetch(
+              { method: 'GET' },
+              {
+                urlOrigin,
+                query,
+                refresh: true,
+              }
+            );
           }
         } catch (err) {
           const error =
@@ -319,51 +327,6 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
           }
         });
       });
-    }
-  }
-
-  private async refreshFetch(url: string) {
-    const set = this.store.setState;
-    const now = Date.now();
-    try {
-      set((prev) => ({
-        isLoading: { ...prev.isLoading, get: true },
-        error: { ...prev.error, get: undefined },
-        fetchedAt: { ...prev.fetchedAt, get: now },
-      }));
-      loadingCounterStore.getState().increment();
-
-      const refreshed = await fetcher<T>(url, { method: 'GET' });
-      set((prev) => ({
-        data: { ...prev.data, get: refreshed },
-        isLoading: { ...prev.isLoading, get: false },
-      }));
-      loadingCounterStore.getState().decrement();
-      // エラーをクリア
-      set((prev) => ({
-        error: { ...prev.error, get: undefined },
-      }));
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const rfc9457: Rfc9457 = {
-          type: url,
-          title: err.statusText,
-          status: err.status,
-          detail: err.message,
-        };
-        set((prev) => ({
-          error: { ...prev.error, get: rfc9457 },
-          isLoading: { ...prev.isLoading, get: false },
-        }));
-        loadingCounterStore.getState().decrement();
-      } else {
-        const internalError = getInternalError(err, url);
-        set((prev) => ({
-          error: { ...prev.error, get: internalError },
-          isLoading: { ...prev.isLoading, get: false },
-        }));
-        loadingCounterStore.getState().decrement();
-      }
     }
   }
 }
