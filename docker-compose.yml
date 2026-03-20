@@ -37,7 +37,7 @@ services:
     command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
 
   web:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: hakoniwa-web
     ports:
       - '80:80'
