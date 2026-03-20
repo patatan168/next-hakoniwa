@@ -904,20 +904,21 @@ export const monumentAttackExecute = (islandUuid: string, turn: number) => {
   const island = islandDataStore.getState().islandGet(islandUuid);
   if (!island) throw new Error(`島情報が見つかりません。uuid=${islandUuid}`);
 
+  if (island.fallMonument <= 0) return;
+
+  const allLogs: TurnLog[] = [];
   for (let i = 0; i < island.fallMonument; i++) {
     const baseLog = getBaseLog(turn, island);
     const monumentX = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const monumentY = randomIntInRange(0, META_DATA.MAP_SIZE - 1);
     const fallMonumentLog = logFallMonument(island, monumentX, monumentY);
-    const monumentAttackLogs: TurnLog[] = [
-      { ...baseLog, log: fallMonumentLog, secret_log: fallMonumentLog },
-    ];
+    allLogs.push({ ...baseLog, log: fallMonumentLog, secret_log: fallMonumentLog });
     // モノリス落下
     const wideDamageLogs = wideDamage(islandUuid, monumentX, monumentY, turn);
-    monumentAttackLogs.push(...wideDamageLogs);
-
-    return monumentAttackLogs;
+    allLogs.push(...wideDamageLogs);
   }
+
+  return allLogs;
 };
 
 /**

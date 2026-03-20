@@ -5,7 +5,13 @@
 import { getBaseLog } from '@/global/define/logType';
 import { changeMapData, mapArrayConverter } from '@/global/function/island';
 import { islandDataGetSet } from '@/global/store/turnProgress';
-import { logAnyTimesDev, logCommonDev, logForest, logSetSelfCrash } from '../logType';
+import {
+  logAnyTimesDev,
+  logCommonDev,
+  logForest,
+  logMonumentLaunch,
+  logSetSelfCrash,
+} from '../logType';
 import { getMapDefine } from '../mapType';
 import { changeDataArgs, hasSufficientCosts, planType, validCostAndLandType } from '../planType';
 
@@ -761,5 +767,78 @@ export const submarineMissileDev: planType = {
     plan.times--;
 
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: secretLog, log: log }] };
+  },
+};
+
+export const monumentDev: planType = {
+  planNo: 14,
+  type: 'monument_dev',
+  coordinate: true,
+  category: '建設',
+  name: '記念碑建造',
+  description:
+    '平地にモノリスを建造します。すでにモノリスがある場所に対して実行すると、対象の島へモノリスを発射します。発射されたモノリスは巨大隕石と同等の被害を与えます。',
+  otherIsland: true,
+  immediate: false,
+  mapType: ['plains', 'wasteland', 'ruins', 'monument'],
+  cost: 9999,
+  costType: 'money',
+  minTimes: 1,
+  maxTimes: 1,
+  maxTimesPerTurn: 1,
+  predictLandType: (t) => {
+    if (t === 'plains' || t === 'wasteland' || t === 'ruins') return 'monument';
+    if (t === 'monument') return 'wasteland';
+    return t;
+  },
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using fromIslandGetSet = islandDataGetSet(uuid.fromIsland);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.fromIsland}`);
+
+    // 資金不足の場合は中止
+    const validResult = validCostAndLandType(fromIsland, this, plan.x, plan.y, turn);
+    if (validResult.nextPlan) {
+      plan.times = 0;
+      return validResult;
+    }
+
+    const mapInfo = fromIsland.island_info[mapArrayConverter(plan.x, plan.y)];
+    const baseLog = getBaseLog(turn, fromIsland);
+
+    if (mapInfo.type === 'monument') {
+      // 既に記念碑がある場合: 発射モード
+      using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+      const toIsland = toIslandGetSet.islandData;
+      if (!toIsland) {
+        // 対象の島が存在しない場合は中止
+        plan.times = 0;
+        return { nextPlan: true, log: [] };
+      }
+
+      // 記念碑を荒地に変更
+      const { defVal } = getMapDefine('wasteland');
+      changeMapData(fromIsland, plan.x, plan.y, 'wasteland', { type: 'ins', value: defVal });
+      // 対象の島にモノリス落下を予約
+      toIsland.fallMonument++;
+      // 費用の支払い
+      fromIsland.money -= this.cost;
+      // ログ出力
+      const log = logMonumentLaunch(fromIsland, toIsland, plan.x, plan.y);
+      plan.times = 0;
+
+      return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+    } else {
+      // 新規建造
+      const { defVal } = getMapDefine('monument');
+      changeMapData(fromIsland, plan.x, plan.y, 'monument', { type: 'ins', value: defVal });
+      // 費用の支払い
+      fromIsland.money -= this.cost;
+      // ログ出力
+      const log = logCommonDev(fromIsland, this, plan.x, plan.y);
+      plan.times = 0;
+
+      return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+    }
   },
 };

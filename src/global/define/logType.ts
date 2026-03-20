@@ -1374,3 +1374,20 @@ export const logDisaster = (
 ): string => {
   return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（今ターン死亡：${deaths}人）`;
 };
+
+/**
+ * 記念碑発射ログ
+ * @param fromIsland 発射元の島情報
+ * @param toIsland 発射先の島情報
+ * @param x X座標
+ * @param y Y座標
+ * @returns ログ文字列
+ */
+export const logMonumentLaunch = (
+  fromIsland: Island & Pick<User, 'island_name'>,
+  toIsland: Island & Pick<User, 'island_name'>,
+  x: number,
+  y: number
+): string => {
+  return `${islandName(fromIsland)}${coordinate(x, y)}のモノリスが発射され、${islandName(toIsland)}に向かっていきました。`;
+};
