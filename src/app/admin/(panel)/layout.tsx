@@ -5,7 +5,7 @@
 import { db } from '@/db/kysely';
 import { validModeratorSession } from '@/global/function/moderatorAuth';
 import { redirect } from 'next/navigation';
-import SignOutButton from './sign-out-button';
+import SignOutButton from './signOutButton';
 
 export default async function AdminPanelLayout({
   children,

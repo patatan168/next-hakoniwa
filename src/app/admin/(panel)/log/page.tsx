@@ -5,7 +5,7 @@
 import { db } from '@/db/kysely';
 import { validModeratorSession } from '@/global/function/moderatorAuth';
 import { redirect } from 'next/navigation';
-import AdminLogPageClient from './log-page-client';
+import AdminLogPageClient from './logPageClient';
 
 export default async function AdminLogPage() {
   const adminUuid = await validModeratorSession(db);
