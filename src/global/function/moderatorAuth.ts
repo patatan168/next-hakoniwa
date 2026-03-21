@@ -189,7 +189,6 @@ export async function validModeratorSession(
         .where('uuid', '=', verified.uuid)
         .execute();
     }
-    await deleteModeratorSessionCookie();
     return undefined;
   }
 
