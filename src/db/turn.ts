@@ -58,7 +58,7 @@ import {
 } from '@/global/function/turnProgress';
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
-import { Kysely, Transaction } from 'kysely';
+import { Kysely, Transaction, sql } from 'kysely';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
@@ -141,31 +141,28 @@ async function awardIslandAchievements(
 
   const uuids = aliveIslands.map((island) => island.uuid);
 
-  // 対象UUIDの既存称号を一括取得して重複付与を防ぐ
-  const existingPrizes = await db
-    .selectFrom('prize')
-    .select(['uuid', 'prize'])
-    .where('uuid', 'in', uuids)
-    .execute();
-  const prizeSet = new Set(existingPrizes.map((p) => `${p.uuid}:${p.prize}`));
+  const [existingPrizeRows, monsterKillRows, monumentRows] = await Promise.all([
+    db.selectFrom('prize').select(['uuid', 'prize']).where('uuid', 'in', uuids).execute(),
+    db
+      .selectFrom('missile_stats')
+      .select(['uuid', 'monster_kill'])
+      .where('uuid', 'in', uuids)
+      .execute(),
+    db
+      .selectFrom('plan_stats')
+      .select(['uuid', 'count'])
+      .where('uuid', 'in', uuids)
+      .where('plan', '=', 'monument_dev')
+      .execute(),
+  ]);
 
+  const prizeSet = new Set(existingPrizeRows.map((p) => `${p.uuid}:${p.prize}`));
   const newPrizes: Array<{ uuid: string; prize: string }> = [];
 
   // 累計怪獣討伐数（missile_stats.monster_kill）を島ごとに取得
-  const monsterKillRows = await db
-    .selectFrom('missile_stats')
-    .select(['uuid', 'monster_kill'])
-    .where('uuid', 'in', uuids)
-    .execute();
   const monsterKillMap = new Map(monsterKillRows.map((row) => [row.uuid, row.monster_kill]));
 
   // 累計記念碑建設数（plan_stats の monument_dev）を島ごとに取得
-  const monumentRows = await db
-    .selectFrom('plan_stats')
-    .select(['uuid', 'count'])
-    .where('uuid', 'in', uuids)
-    .where('plan', '=', 'monument_dev')
-    .execute();
   const monumentMap = new Map(monumentRows.map((row) => [row.uuid, row.count]));
 
   for (const island of aliveIslands) {
@@ -336,7 +333,7 @@ function planPhase(
   deferredPlan: DeferredPlanWrite | null;
 } {
   const nextTurn = currentTurn + 1;
-  const dropPlans: Plan[] = [];
+  const dropPlans = new Set<Plan>();
   let financingFlag = plans.length === 0;
   const successCounts = new Map<string, number>();
   let monsterKills = 0;
@@ -368,7 +365,7 @@ function planPhase(
     mergeBreakdowns(killedMonsters, result.missileKilledMonsters ?? {});
 
     logArray.push(...result.log);
-    if (plans[i].times < 1) dropPlans.push(plans[i]);
+    if (plans[i].times < 1) dropPlans.add(plans[i]);
     if (!result.nextPlan) break;
 
     financingFlag = i + 1 === plans.length;
@@ -393,8 +390,8 @@ function planPhase(
 
   let deferredPlan: DeferredPlanWrite | null = null;
   if (plans.length > 0) {
-    const insertPlans = plans.filter((plan) => !dropPlans.includes(plan));
-    const dropLength = financingFlag ? dropPlans.length + 1 : dropPlans.length;
+    const insertPlans = plans.filter((plan) => !dropPlans.has(plan));
+    const dropLength = financingFlag ? dropPlans.size + 1 : dropPlans.size;
     deferredPlan = { uuid: fromUuid, plans: insertPlans, deleteLength: dropLength };
   }
 
@@ -708,26 +705,27 @@ async function saveTurnResourceHistory(
     )
     .execute();
 
-  // 古い履歴の一括クリーンアップ（1トランザクションで実行）
+  // 古い履歴の一括クリーンアップ。
+  // uuidごとの100件目のturnをウィンドウ関数で一度に求めてから削除する。
+  const uuidParams = uuids.map((uuid) => sql`${uuid}`);
+  const cutoffRows = await sql<{ uuid: string; cutoff_turn: number }>`
+    SELECT ranked.uuid, ranked.turn AS cutoff_turn
+    FROM (
+      SELECT uuid, turn, ROW_NUMBER() OVER (PARTITION BY uuid ORDER BY turn DESC) AS rn
+      FROM turn_resource_history
+      WHERE uuid IN (${sql.join(uuidParams)})
+    ) AS ranked
+    WHERE ranked.rn = 100
+  `.execute(db);
+
+  if (cutoffRows.rows.length === 0) return;
+
   await db.transaction().execute(async (trx) => {
-    for (const uuid of uuids) {
-      // MySQL では IN 句サブクエリ内の LIMIT が制限されるため、
-      // 100件目の turn を閾値にして古い履歴を削除する
-      const cutoff = await trx
-        .selectFrom('turn_resource_history')
-        .select('turn')
-        .where('uuid', '=', uuid)
-        .orderBy('turn', 'desc')
-        .limit(1)
-        .offset(99)
-        .executeTakeFirst();
-
-      if (!cutoff) continue;
-
+    for (const row of cutoffRows.rows) {
       await trx
         .deleteFrom('turn_resource_history')
-        .where('uuid', '=', uuid)
-        .where('turn', '<', cutoff.turn)
+        .where('uuid', '=', row.uuid)
+        .where('turn', '<', row.cutoff_turn)
         .execute();
     }
   });
