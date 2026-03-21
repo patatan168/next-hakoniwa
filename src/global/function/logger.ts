@@ -3,6 +3,7 @@
  * @description アクセスログ・ターンログの記録ユーティリティ。
  */
 import { NextRequest } from 'next/server';
+import { mkdirSync } from 'node:fs';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { extractClientIp } from './ip';
@@ -21,6 +22,9 @@ const logFormat = (request?: NextRequest) =>
 
 /** Winstonロガーインスタンスを生成する */
 const logger = (dir: string, request?: NextRequest) => {
+  const logDirectory = `log/${dir}`;
+  mkdirSync(logDirectory, { recursive: true });
+
   return winston.createLogger({
     level: 'silly',
     format: winston.format.combine(
@@ -32,7 +36,7 @@ const logger = (dir: string, request?: NextRequest) => {
     transports: [
       new winston.transports.Console(),
       new DailyRotateFile({
-        filename: `log/${dir}/%DATE%.log`,
+        filename: `${logDirectory}/%DATE%.log`,
         datePattern: 'YYYY-MM-DD',
         maxSize: '20m',
         maxFiles: '90d',
