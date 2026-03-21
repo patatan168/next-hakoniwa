@@ -10,7 +10,7 @@ import { fetcher } from '@/global/function/fetch/fetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { adminCredentialChangeForm, adminCredentialChangeSchema } from '@/global/valid/admin';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 type LogEntry = {
@@ -45,10 +45,12 @@ export default function AdminLogPageClient({
   const [message, setMessage] = useState<string>('');
 
   const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [collapsedDirectories, setCollapsedDirectories] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [logContent, setLogContent] = useState<string>('');
   const [logTruncated, setLogTruncated] = useState(false);
   const [panelRect, panelRef] = useClientRect<HTMLElement>();
+  const initializedCollapseRef = useRef(false);
 
   const changeForm = useForm<adminCredentialChangeForm>({
     defaultValues: {
@@ -79,6 +81,28 @@ export default function AdminLogPageClient({
     }
   }, [mustChangeCredentials, loadLogs]);
 
+  useEffect(() => {
+    const currentDirectories = new Set(
+      entries.filter((entry) => entry.type === 'directory').map((entry) => entry.path)
+    );
+
+    if (!initializedCollapseRef.current) {
+      initializedCollapseRef.current = true;
+      setCollapsedDirectories(new Set(currentDirectories));
+      return;
+    }
+
+    setCollapsedDirectories((prev) => {
+      const next = new Set<string>();
+      for (const directory of prev) {
+        if (currentDirectories.has(directory)) {
+          next.add(directory);
+        }
+      }
+      return next;
+    });
+  }, [entries]);
+
   const onChangeInitialCredentials = changeForm.handleSubmit(async (values) => {
     setBusy(true);
     setMessage('');
@@ -100,6 +124,20 @@ export default function AdminLogPageClient({
   });
 
   const fileEntries = useMemo(() => entries.filter((v) => v.type === 'file'), [entries]);
+  const visibleEntries = useMemo(() => {
+    const isHiddenByCollapsedDirectory = (entryPath: string): boolean => {
+      const segments = entryPath.split('/');
+      for (let i = 1; i < segments.length; i += 1) {
+        const parentPath = segments.slice(0, i).join('/');
+        if (collapsedDirectories.has(parentPath)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    return entries.filter((entry) => !isHiddenByCollapsedDirectory(entry.path));
+  }, [collapsedDirectories, entries]);
   const panelHeight = panelRect
     ? `max(20rem, calc(var(--real-vh-minus-footer) - ${panelRect.y}px - 2rem))`
     : 'calc(var(--real-vh-minus-footer) - 10.5rem)';
@@ -193,17 +231,42 @@ export default function AdminLogPageClient({
             <div className="max-h-full min-h-0 flex-1 overflow-auto rounded border bg-gray-50 p-2">
               {entries.length === 0 && <p className="text-sm text-gray-500">ログがありません。</p>}
               <ul className="space-y-1">
-                {entries.map((entry) => {
+                {visibleEntries.map((entry) => {
                   const depth = entry.path.split('/').length - 1;
                   const pad = depth * 12;
                   if (entry.type === 'directory') {
+                    const folderName = entry.path.split('/').at(-1) ?? entry.path;
+                    const isCollapsed = collapsedDirectories.has(entry.path);
                     return (
-                      <li
-                        key={`d-${entry.path}`}
-                        className="text-xs font-semibold text-gray-500"
-                        style={{ paddingLeft: pad }}
-                      >
-                        {entry.path}
+                      <li key={`d-${entry.path}`} className="min-w-0" style={{ paddingLeft: pad }}>
+                        <button
+                          type="button"
+                          className="w-full min-w-0 cursor-pointer rounded px-2 py-1 text-left text-xs font-semibold text-gray-600 hover:bg-gray-100"
+                          onClick={() => {
+                            setCollapsedDirectories((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(entry.path)) {
+                                next.delete(entry.path);
+                              } else {
+                                next.add(entry.path);
+                              }
+                              return next;
+                            });
+                          }}
+                          disabled={busy}
+                          aria-label={`${folderName} を ${isCollapsed ? '展開' : '折りたたみ'}`}
+                        >
+                          <span className="mr-1 inline-block w-4">{isCollapsed ? '>' : 'v'}</span>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            className="mr-1 inline-block h-3.5 w-3.5 text-amber-600"
+                            fill="currentColor"
+                          >
+                            <path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h4.1a2 2 0 0 1 1.4.58l.95.92h6.55A2.5 2.5 0 0 1 21 8v9.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11Z" />
+                          </svg>
+                          <span className="break-all">{folderName}</span>
+                        </button>
                       </li>
                     );
                   }

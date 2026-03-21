@@ -16,6 +16,10 @@ type LogEntry = {
 const LOG_ROOT = path.resolve(process.cwd(), 'log');
 const MAX_LOG_PREVIEW_CHARS = 200000;
 
+function isLogFilePath(relativePath: string): boolean {
+  return path.extname(relativePath).toLowerCase() === '.log';
+}
+
 function normalizeToSafePath(relativePath: string): string | null {
   const normalized = relativePath.replace(/\\/g, '/');
   const absolute = path.resolve(LOG_ROOT, normalized);
@@ -38,18 +42,22 @@ async function listLogEntries(currentAbs: string, currentRel = ''): Promise<LogE
   for (const entry of sorted) {
     const relPath = currentRel ? `${currentRel}/${entry.name}` : entry.name;
     const absPath = path.join(currentAbs, entry.name);
-    const stat = await fs.stat(absPath);
 
     if (entry.isDirectory()) {
+      const children = await listLogEntries(absPath, relPath);
+      if (children.length === 0) {
+        continue;
+      }
+      const stat = await fs.stat(absPath);
       result.push({
         path: relPath,
         type: 'directory',
         size: 0,
         updatedAt: stat.mtime.toISOString(),
       });
-      const children = await listLogEntries(absPath, relPath);
       result.push(...children);
-    } else if (entry.isFile()) {
+    } else if (entry.isFile() && isLogFilePath(relPath)) {
+      const stat = await fs.stat(absPath);
       result.push({
         path: relPath,
         type: 'file',
@@ -85,6 +93,10 @@ export async function GET(request: NextRequest) {
   const safeAbsPath = normalizeToSafePath(filePath);
   if (!safeAbsPath) {
     return NextResponse.json({ error: '不正なパスです。' }, { status: 400 });
+  }
+
+  if (!isLogFilePath(filePath)) {
+    return NextResponse.json({ error: '.log ファイルのみ表示できます。' }, { status: 400 });
   }
 
   const targetStat = await fs.stat(safeAbsPath).catch(() => null);
