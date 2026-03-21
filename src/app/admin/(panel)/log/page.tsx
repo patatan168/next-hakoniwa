@@ -15,7 +15,7 @@ export default async function AdminLogPage() {
 
   const admin = await db
     .selectFrom('moderator_auth')
-    .select(['must_change_credentials'])
+    .select(['must_change_credentials', 'role', 'user_name'])
     .where('uuid', '=', adminUuid)
     .executeTakeFirst();
 
@@ -23,5 +23,11 @@ export default async function AdminLogPage() {
     redirect('/error/401');
   }
 
-  return <AdminLogPageClient initialMustChangeCredentials={admin.must_change_credentials === 1} />;
+  return (
+    <AdminLogPageClient
+      initialMustChangeCredentials={admin.must_change_credentials === 1}
+      initialRole={admin.role}
+      initialUserName={admin.user_name}
+    />
+  );
 }

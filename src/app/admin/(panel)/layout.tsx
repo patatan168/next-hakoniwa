@@ -5,6 +5,7 @@
 import { db } from '@/db/kysely';
 import { resolveModeratorRoleName } from '@/global/define/moderatorRole';
 import { validModeratorSession } from '@/global/function/moderatorAuth';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import SignOutButton from './signOutButton';
 
@@ -39,7 +40,21 @@ export default async function AdminPanelLayout({
             ユーザー名: {admin.user_name} / 権限: {roleName}
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/log"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            ログ管理
+          </Link>
+          <Link
+            href="/admin/moderators/new"
+            className="rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          >
+            モデレーターの新規登録
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
       {children}
     </main>

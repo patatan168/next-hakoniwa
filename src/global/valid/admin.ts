@@ -43,5 +43,23 @@ export const adminCredentialChangeSchema = z
     }
   });
 
+export const adminModeratorCreateSchema = z
+  .object({
+    id: baseUserInfoSchema.shape.id,
+    password: baseUserInfoSchema.shape.password,
+    passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
+    userName: baseUserInfoSchema.shape.userName,
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.passwordConfirm) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['passwordConfirm'],
+        message: 'パスワードが一致していません。',
+      });
+    }
+  });
+
 export type adminSignInForm = z.input<typeof adminSignInSchema>;
 export type adminCredentialChangeForm = z.input<typeof adminCredentialChangeSchema>;
+export type adminModeratorCreateForm = z.input<typeof adminModeratorCreateSchema>;

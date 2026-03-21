@@ -6,6 +6,7 @@
 
 import Button from '@/global/component/Button';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
+import { hasFullModeratorPermission } from '@/global/define/moderatorRole';
 import { fetcher } from '@/global/function/fetch/fetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { adminCredentialChangeForm, adminCredentialChangeSchema } from '@/global/valid/admin';
@@ -29,6 +30,8 @@ type LogsResponse = {
 
 type AdminLogPageClientProps = {
   initialMustChangeCredentials: boolean;
+  initialRole: number;
+  initialUserName: string;
 };
 
 const JSON_HEADER = {
@@ -39,7 +42,10 @@ const MAX_LOG_PREVIEW_CHARS = 200000;
 
 export default function AdminLogPageClient({
   initialMustChangeCredentials,
+  initialRole,
+  initialUserName,
 }: Readonly<AdminLogPageClientProps>) {
+  const canChangeUserName = hasFullModeratorPermission(initialRole);
   const [mustChangeCredentials, setMustChangeCredentials] = useState(initialMustChangeCredentials);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -59,7 +65,7 @@ export default function AdminLogPageClient({
       newId: '',
       newPassword: '',
       newPasswordConfirm: '',
-      newUserName: '',
+      newUserName: initialUserName,
     },
     resolver: zodResolver(adminCredentialChangeSchema),
   });
@@ -107,10 +113,17 @@ export default function AdminLogPageClient({
     setBusy(true);
     setMessage('');
     try {
+      const payload = canChangeUserName
+        ? values
+        : {
+            ...values,
+            newUserName: initialUserName,
+          };
+
       await fetcher('/api/admin/change-initial-credentials', {
         method: 'PUT',
         headers: JSON_HEADER,
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
       changeForm.reset();
       setMustChangeCredentials(false);
@@ -153,7 +166,9 @@ export default function AdminLogPageClient({
         <section className="mb-6 rounded-lg border-2 border-red-300 bg-red-50 p-4">
           <h2 className="mb-2 text-lg font-semibold text-red-800">初回設定が必要です</h2>
           <p className="mb-4 text-sm text-red-700">
-            初期IDと初期パスワードは使用できません。ID・パスワード・管理者ユーザー名を変更してください。
+            {canChangeUserName
+              ? '初期IDと初期パスワードは使用できません。ID・パスワード・管理者ユーザー名を変更してください。'
+              : '初期IDと初期パスワードは使用できません。ID・パスワードを変更してください。'}
           </p>
           <form onSubmit={onChangeInitialCredentials} className="space-y-3">
             <TextFieldRHF
@@ -206,15 +221,21 @@ export default function AdminLogPageClient({
               placeholder="新しいパスワード(確認)"
               isBottomSpace={true}
             />
-            <TextFieldRHF
-              required
-              name="newUserName"
-              autoComplete="off"
-              control={changeForm.control}
-              id="admin-new-user-name"
-              placeholder="管理者ユーザー名"
-              isBottomSpace={false}
-            />
+            {canChangeUserName ? (
+              <TextFieldRHF
+                required
+                name="newUserName"
+                autoComplete="off"
+                control={changeForm.control}
+                id="admin-new-user-name"
+                placeholder="管理者ユーザー名"
+                isBottomSpace={false}
+              />
+            ) : (
+              <p className="rounded border border-red-200 bg-white px-3 py-2 text-sm text-red-700">
+                moderator は初回ログイン時にユーザー名を変更できません。
+              </p>
+            )}
             <Button type="submit" disabled={busy}>
               資格情報を更新
             </Button>

@@ -3,6 +3,7 @@
  * @description 管理者の初回資格情報変更API。
  */
 import { db } from '@/db/kysely';
+import { hasFullModeratorPermission } from '@/global/define/moderatorRole';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Gen, argon2Verify } from '@/global/function/argon2';
 import { sha256Gen } from '@/global/function/encrypt';
@@ -28,7 +29,7 @@ export async function PUT(request: NextRequest) {
   const hashCurrentId = await sha256Gen(currentId);
   const auth = await db
     .selectFrom('moderator_auth')
-    .select(['uuid', 'password'])
+    .select(['uuid', 'password', 'role', 'user_name'])
     .where('uuid', '=', uuid)
     .where('id', '=', hashCurrentId)
     .executeTakeFirst();
@@ -47,6 +48,15 @@ export async function PUT(request: NextRequest) {
       { status: 401 }
     );
   }
+
+  if (!hasFullModeratorPermission(auth.role) && newUserName !== auth.user_name) {
+    return NextResponse.json(
+      { error: 'moderator は初回ログイン時にユーザー名を変更できません。' },
+      { status: 403 }
+    );
+  }
+
+  const nextUserName = hasFullModeratorPermission(auth.role) ? newUserName : auth.user_name;
 
   const newHashId = await sha256Gen(newId);
   const duplicatedId = await db
@@ -67,7 +77,7 @@ export async function PUT(request: NextRequest) {
     .set({
       id: newHashId,
       password: newHashPassword,
-      user_name: newUserName,
+      user_name: nextUserName,
       must_change_credentials: 0,
       login_fail_count: 0,
       locked_until: null,

@@ -5,6 +5,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { db } from './db/kysely';
+import { hasFullModeratorPermission } from './global/define/moderatorRole';
 import { validAuthCookie } from './global/function/auth';
 import { CSRF_COOKIE_NAME, generateCsrfToken, verifyCsrfToken } from './global/function/csrf';
 import {
@@ -15,9 +16,35 @@ import {
 const authPaths = ['/api/auth/'];
 const adminApiPaths = ['/api/admin/'];
 const adminApiExcludePaths = ['/api/admin/sign-in', '/api/admin/sign-out'];
+const adminOnlyAdminApiPaths = ['/api/admin/moderators'];
 const sessionPaths = ['/development', '/account'];
 const moderatorSessionPaths = ['/admin/'];
+const adminOnlyModeratorSessionPaths = ['/admin/moderators/new'];
 const excludeNoncePaths = ['/api'];
+
+function matchesProtectedPath(pathname: string, protectedPaths: readonly string[]) {
+  return protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
+async function hasAdminPermission(uuid: string): Promise<boolean> {
+  const moderator = await db
+    .selectFrom('moderator_auth')
+    .select(['role'])
+    .where('uuid', '=', uuid)
+    .executeTakeFirst();
+
+  return !!moderator && hasFullModeratorPermission(moderator.role);
+}
+
+async function getModeratorRole(uuid: string): Promise<number | undefined> {
+  const moderator = await db
+    .selectFrom('moderator_auth')
+    .select(['role'])
+    .where('uuid', '=', uuid)
+    .executeTakeFirst();
+
+  return moderator?.role;
+}
 
 /**
  * リクエストのプロキシ処理。CSRF・認証・セッション・CSPの各チェックを実行する。
@@ -201,8 +228,21 @@ async function adminApiAuthCheck(request: NextRequest) {
     return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
   }
 
+  const verifiedRole = await getModeratorRole(verified.uuid);
+  if (verifiedRole === undefined) {
+    return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
+  }
+
+  if (matchesProtectedPath(pathname, adminOnlyAdminApiPaths)) {
+    const isAdmin = hasFullModeratorPermission(verifiedRole);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'この操作は管理者権限が必要です。' }, { status: 403 });
+    }
+  }
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-verified-admin-uuid', verified.uuid);
+  requestHeaders.set('x-verified-admin-role', String(verifiedRole));
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -216,6 +256,7 @@ async function adminApiAuthCheck(request: NextRequest) {
  * @returns nonce付きレスポンスまたは /admin リダイレクト
  */
 async function moderatorSessionCheck(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const token = request.cookies.get(MODERATOR_SESSION_COOKIE_NAME)?.value;
   if (!token) {
     return NextResponse.redirect(new URL(`/error/401`, request.url));
@@ -231,6 +272,13 @@ async function moderatorSessionCheck(request: NextRequest) {
         .execute();
     }
     return NextResponse.redirect(new URL(`/error/401`, request.url));
+  }
+
+  if (matchesProtectedPath(pathname, adminOnlyModeratorSessionPaths)) {
+    const isAdmin = await hasAdminPermission(verified.uuid);
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL(`/error/403`, request.url));
+    }
   }
 
   return crateNonceResponse(request);
