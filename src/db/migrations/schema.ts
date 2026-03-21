@@ -3,6 +3,7 @@
  * @description データベーススキーマのマイグレーション定義。
  */
 import META_DATA from '@/global/define/metadata';
+import { MODERATOR_ROLE } from '@/global/define/moderatorRole';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 import { ColumnDataType, ColumnDefinitionBuilder, Kysely, sql, SqliteAdapter } from 'kysely';
@@ -245,7 +246,6 @@ async function seedInitialModerator(db: Kysely<Database>): Promise<void> {
   const initialId = process.env.MODERATOR_INITIAL_ID;
   const initialPassword = process.env.MODERATOR_INITIAL_PASSWORD;
   const initialUserName = process.env.MODERATOR_INITIAL_USER_NAME ?? 'Administrator';
-  const initialRole = Number(process.env.MODERATOR_INITIAL_ROLE ?? 0);
 
   if (!initialId || !initialPassword) {
     console.warn(
@@ -265,7 +265,7 @@ async function seedInitialModerator(db: Kysely<Database>): Promise<void> {
       id: hashId,
       password: hashPassword,
       user_name: initialUserName,
-      role: initialRole,
+      role: MODERATOR_ROLE.admin,
       must_change_credentials: 1,
     })
     .execute();

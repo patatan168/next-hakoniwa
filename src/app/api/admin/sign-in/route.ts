@@ -4,6 +4,7 @@
  */
 import { Database, db } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
+import { resolveModeratorRoleName } from '@/global/define/moderatorRole';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Verify } from '@/global/function/argon2';
 import { sha256Gen } from '@/global/function/encrypt';
@@ -97,12 +98,15 @@ export async function POST(request: NextRequest) {
   await updateLoginFailCount(db, auth.uuid, 0, null);
   await createModeratorSession(db, auth.uuid);
 
-  accessLogger(request).info(`Admin Sign In uuid=${auth.uuid} role=${auth.role}`);
+  const roleName = resolveModeratorRoleName(auth.role);
+
+  accessLogger(request).info(`Admin Sign In uuid=${auth.uuid} role=${roleName}`);
 
   return NextResponse.json({
     result: true,
     mustChangeCredentials: auth.must_change_credentials === 1,
     userName: auth.user_name,
     role: auth.role,
+    roleName,
   });
 }
