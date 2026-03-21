@@ -155,6 +155,14 @@ export const getPlanDefine = (type: string): planType => {
 };
 
 /**
+ * 他島閲覧時に許可されるコマンド（攻撃 or 援助）かどうか
+ */
+export const isAttackOrAidPlan = (type: string): boolean => {
+  const plan = getPlanDefine(type);
+  return plan.category === '攻撃' || type === 'foodAid' || type === 'financialAid';
+};
+
+/**
  * コストが十分かどうか
  * @param island 島情報
  * @param plan 計画情報

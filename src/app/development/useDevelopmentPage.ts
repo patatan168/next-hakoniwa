@@ -4,6 +4,7 @@
  */
 import { Plan } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
+import { uuid25Regex } from '@/global/define/regex';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
@@ -14,6 +15,7 @@ import { planStatsStore } from '@/global/store/api/auth/planStats';
 import { turnLogAuthStore } from '@/global/store/api/auth/turnLog';
 import { turnResourceHistoryStore } from '@/global/store/api/auth/turnResourceHistory';
 import { islandListStore } from '@/global/store/api/public/islandList';
+import { islandSightStore } from '@/global/store/api/public/islandSight';
 import { turnStore } from '@/global/store/api/public/turn';
 import { usePlanDataStore } from '@/global/store/usePlanDataStore';
 import { isEqual, sortBy, uniqBy } from 'es-toolkit';
@@ -58,6 +60,11 @@ export const useDevelopmentPage = () => {
     fetchIfNeeded: fetchDev,
     isLoading,
   } = useClientFetch(developmentStore);
+  const {
+    data: sightData,
+    fetch: fetchSightData,
+    isLoading: isSightLoading,
+  } = useClientFetch(islandSightStore);
   const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
   const {
     data: fetchPlanData,
@@ -77,6 +84,7 @@ export const useDevelopmentPage = () => {
     useClientFetch(missileStatsStore);
 
   const [view, setView] = useState<'plan' | 'log' | 'history' | 'stats' | 'settings'>('plan');
+  const [selectedIslandUuid, setSelectedIslandUuid] = useState('');
   const [lazyFlag, setLazyFlag] = useState(false);
   const { width } = useWindowSize();
   const [showMenu, setShowMenu] = useState(false);
@@ -87,6 +95,14 @@ export const useDevelopmentPage = () => {
 
   const [isLoginBonusClosed, setIsLoginBonusClosed] = useState(false);
   const showLoginBonus = !!developData.get?.loginBonus && !isLoginBonusClosed;
+  const ownIslandUuid = developData.get?.uuid;
+  const currentSelectedIslandUuid = selectedIslandUuid || ownIslandUuid || '';
+  const isOtherIslandView =
+    currentSelectedIslandUuid !== '' &&
+    ownIslandUuid !== undefined &&
+    currentSelectedIslandUuid !== ownIslandUuid;
+  const displayedIslandData = isOtherIslandView ? sightData.get : developData.get;
+  const displayedLoading = isOtherIslandView ? isSightLoading.get : isLoading.get;
 
   const setShowLoginBonus = (show: boolean) => {
     if (!show) {
@@ -107,7 +123,19 @@ export const useDevelopmentPage = () => {
     fetchTurn({ method: 'GET' });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
-  }, []);
+  }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
+
+  useEffect(() => {
+    if (!currentSelectedIslandUuid || !ownIslandUuid) return;
+    if (currentSelectedIslandUuid === ownIslandUuid) {
+      fetchDevelop({ method: 'GET' });
+      return;
+    }
+    if (!uuid25Regex.test(currentSelectedIslandUuid)) {
+      return;
+    }
+    fetchSightData({ method: 'GET' }, { query: `uuid=${currentSelectedIslandUuid}` });
+  }, [currentSelectedIslandUuid, ownIslandUuid, fetchDevelop, fetchSightData]);
 
   useEffect(() => {
     const uuid = developData.get?.uuid;
@@ -145,7 +173,16 @@ export const useDevelopmentPage = () => {
       fetchPlanStatsIfNeeded({ method: 'GET' });
       fetchMissileStatsIfNeeded({ method: 'GET' });
     }
-  }, [view, lazyFlag]);
+  }, [
+    view,
+    lazyFlag,
+    turnLog.get,
+    fetchTurnLogIfNeeded,
+    fetchTurnLog,
+    fetchTurnResourceHistoryIfNeeded,
+    fetchPlanStatsIfNeeded,
+    fetchMissileStatsIfNeeded,
+  ]);
 
   const refreshDevelopData = () => {
     fetchDevelop({ method: 'GET' });
@@ -154,6 +191,11 @@ export const useDevelopmentPage = () => {
 
   return {
     developData,
+    displayedIslandData,
+    displayedLoading,
+    selectedIslandUuid: currentSelectedIslandUuid,
+    setSelectedIslandUuid,
+    isOtherIslandView,
     turnData,
     fetchPlanData,
     isPlanLoading,

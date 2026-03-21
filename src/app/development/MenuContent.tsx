@@ -144,14 +144,14 @@ type Props = {
   developData?: Island & {
     island_name: string;
     island_name_prefix: string;
-    user_name: string;
-    island_name_changed_at: number;
+    user_name?: string;
+    island_name_changed_at?: number;
     rank: number;
-    current_title_type: string;
-    current_title_name: string;
-    available_titles: Array<{ type: string; name: string }>;
-    can_change_island_name: boolean;
-    next_island_name_change_at: number;
+    current_title_type?: string;
+    current_title_name?: string;
+    available_titles?: Array<{ type: string; name: string }>;
+    can_change_island_name?: boolean;
+    next_island_name_change_at?: number;
   };
   /** 現在のビューモード（'plan' | 'log' | 'history' | 'settings'） */
   view: ViewMode;

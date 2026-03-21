@@ -4,7 +4,12 @@
  */
 import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
 import { default as META } from '@/global/define/metadata';
-import { getPlanDefine, getPlanSelect, validLandType } from '@/global/define/planType';
+import {
+  getPlanDefine,
+  getPlanSelect,
+  isAttackOrAidPlan,
+  validLandType,
+} from '@/global/define/planType';
 import { isEqual } from 'es-toolkit';
 import Image from 'next/image';
 import { CSSProperties, forwardRef, Fragment, memo, useEffect, useMemo, useState } from 'react';
@@ -112,6 +117,8 @@ type HakoniwaMapProps = {
   data?: islandInfoData;
   isDevelop?: boolean;
   uuid?: string;
+  targetUuid?: string;
+  restrictToAttackOrAid?: boolean;
 };
 
 /* Mapのピクセルサイズ */
@@ -122,7 +129,9 @@ type MapClickModalProps = {
   y: number;
   mapWidth: number;
   mapHeight: number;
-  uuid: string;
+  fromUuid: string;
+  targetUuid?: string;
+  restrictToAttackOrAid?: boolean;
   data: islandInfoData;
   open: boolean;
   openToggle: (open: boolean) => void;
@@ -261,13 +270,19 @@ const MapClickModal = ({
   y,
   mapWidth,
   mapHeight,
-  uuid,
+  fromUuid,
+  targetUuid,
+  restrictToAttackOrAid = false,
   data,
   open,
   openToggle,
 }: MapClickModalProps) => {
-  const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃'>('優先');
+  const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃' | '支援'>(
+    restrictToAttackOrAid ? '攻撃' : '優先'
+  );
   const [isContinuous, setIsContinuous] = useState(true);
+  const effectiveCategory =
+    restrictToAttackOrAid && category !== '攻撃' && category !== '支援' ? '攻撃' : category;
 
   const { control, setValue, getValues } = useForm<{
     plan: string;
@@ -325,12 +340,24 @@ const MapClickModal = ({
 
     return allPlans.filter((option) => {
       const planDefine = getPlanDefine(option.value);
-      if (category === '優先') {
+      if (restrictToAttackOrAid) {
+        if (!isAttackOrAidPlan(option.value)) {
+          return false;
+        }
+        if (effectiveCategory === '攻撃') {
+          return planDefine.category === '攻撃';
+        }
+        if (effectiveCategory === '支援') {
+          return option.value === 'foodAid' || option.value === 'financialAid';
+        }
+        return false;
+      }
+      if (effectiveCategory === '優先') {
         return validLandType(dummyIsland, planDefine, x, y);
       }
-      return planDefine.category === category;
+      return planDefine.category === effectiveCategory;
     });
-  }, [x, y, data, category, predictedType]);
+  }, [x, y, data, effectiveCategory, predictedType, restrictToAttackOrAid]);
 
   // planOptionsが変わったときに、現在のplanが選択肢になければリセット
   useEffect(() => {
@@ -367,8 +394,8 @@ const MapClickModal = ({
       id: -1, // 一時的なID
       plan_no: -1, // 一時的なNo
       edit: false,
-      from_uuid: uuid,
-      to_uuid: uuid,
+      from_uuid: fromUuid,
+      to_uuid: targetUuid ?? fromUuid,
       times: Number(times),
       x: x,
       y: y,
@@ -395,7 +422,9 @@ const MapClickModal = ({
     }
   };
 
-  const categories = ['優先', '開発', '建設', '運営', '攻撃'] as const;
+  const categories = restrictToAttackOrAid
+    ? (['攻撃', '支援'] as const)
+    : (['優先', '開発', '建設', '運営', '攻撃'] as const);
 
   const body = (
     <div className="flex flex-col gap-4">
@@ -406,7 +435,7 @@ const MapClickModal = ({
             <button
               key={cat}
               className={`flex-1 cursor-pointer p-2 text-center text-sm font-medium ${
-                category === cat
+                effectiveCategory === cat
                   ? 'border-b-2 border-green-500 text-green-600 dark:text-green-500'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
               }`}
@@ -507,7 +536,17 @@ const MapClickModal = ({
 
 export default memo(
   forwardRef<HTMLDivElement, HakoniwaMapProps>(function HakoniwaMap(
-    { style, className, isLoading, islandName, data, isDevelop = false, uuid }: HakoniwaMapProps,
+    {
+      style,
+      className,
+      isLoading,
+      islandName,
+      data,
+      isDevelop = false,
+      uuid,
+      targetUuid,
+      restrictToAttackOrAid = false,
+    }: HakoniwaMapProps,
     ref
   ) {
     /* 座標表示用のデータを用意する[0,..,X] */
@@ -542,7 +581,9 @@ export default memo(
               mapHeight={mapHeight}
               x={selectedPoint.x}
               y={selectedPoint.y}
-              uuid={uuid}
+              fromUuid={uuid}
+              targetUuid={targetUuid}
+              restrictToAttackOrAid={restrictToAttackOrAid}
               data={data}
               open={modalOpen}
               openToggle={setModalOpen}
