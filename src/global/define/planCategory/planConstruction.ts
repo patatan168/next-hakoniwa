@@ -771,7 +771,7 @@ export const submarineMissileDev: planType = {
 };
 
 export const monumentDev: planType = {
-  planNo: 14,
+  planNo: 998,
   type: 'monument_dev',
   coordinate: true,
   category: '建設',

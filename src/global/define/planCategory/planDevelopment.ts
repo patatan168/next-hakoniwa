@@ -295,8 +295,97 @@ export const immediateLandfill: planType = {
   },
 };
 
-export const drilling: planType = {
+export const logging: planType = {
   planNo: 104,
+  type: 'logging',
+  coordinate: true,
+  category: '開発',
+  name: '伐採',
+  description:
+    '指定した森を伐採して平地にします。伐採した木材の価値に応じて一時的な「資金」を獲得できます。',
+  otherIsland: false,
+  immediate: false,
+  mapType: ['forest'],
+  cost: 0,
+  costType: 'money',
+  minTimes: 1,
+  maxTimes: 1,
+  maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+    // 地形や費用が不適切なら中止
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
+
+    // 伐採の収入を得る
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
+    toIsland.money += mapInfo.landValue * META_DATA.FOREST_VALUE;
+    // マップの変更
+    changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
+    // ログ出力
+    const baseLog = getBaseLog(turn, toIsland);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    // 計画回数のデクリメント
+    plan.times--;
+
+    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+  },
+};
+export const immediateLogging: planType = {
+  planNo: 105,
+  type: 'immediate_logging',
+  coordinate: true,
+  category: '開発',
+  name: '高速伐採',
+  description:
+    '即座に森を伐採し資金を獲得します。手早く平地を確保できますが、作業に費用がかかります。',
+  otherIsland: false,
+  immediate: true,
+  mapType: ['forest'],
+  cost: 100,
+  costType: 'money',
+  minTimes: 1,
+  maxTimes: 1,
+  maxTimesPerTurn: 1,
+  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+    // 地形や費用が不適切なら中止
+    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
+
+    // 費用の支払い
+    toIsland.money -= this.cost;
+    // 伐採の収入を得る
+    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
+    toIsland.money += mapInfo.landValue * META_DATA.FOREST_VALUE;
+    // マップの変更
+    changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
+    // ログ出力
+    const baseLog = getBaseLog(turn, toIsland);
+    const log = logCommonDev(toIsland, this, plan.x, plan.y);
+    // 計画回数の初期化
+    plan.times = 0;
+
+    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+  },
+};
+
+export const drilling: planType = {
+  planNo: 106,
   type: 'drilling',
   coordinate: true,
   category: '開発',
@@ -404,7 +493,7 @@ export const drilling: planType = {
   },
 };
 export const immediateDrilling: planType = {
-  planNo: 105,
+  planNo: 107,
   type: 'immediate_drilling',
   coordinate: true,
   category: '開発',
@@ -507,94 +596,5 @@ export const immediateDrilling: planType = {
     plan.times = 0;
 
     return { nextPlan: this.immediate, log: result };
-  },
-};
-
-export const logging: planType = {
-  planNo: 106,
-  type: 'logging',
-  coordinate: true,
-  category: '開発',
-  name: '伐採',
-  description:
-    '指定した森を伐採して平地にします。伐採した木材の価値に応じて一時的な「資金」を獲得できます。',
-  otherIsland: false,
-  immediate: false,
-  mapType: ['forest'],
-  cost: 0,
-  costType: 'money',
-  minTimes: 1,
-  maxTimes: 1,
-  maxTimesPerTurn: 1,
-  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
-  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
-    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
-    const toIsland = toIslandGetSet.islandData;
-    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
-    // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
-    if (validConstAndLand.nextPlan) {
-      plan.times = 0;
-      return validConstAndLand;
-    }
-
-    // 伐採の収入を得る
-    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
-    toIsland.money += mapInfo.landValue * META_DATA.FOREST_VALUE;
-    // マップの変更
-    changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
-    // ログ出力
-    const baseLog = getBaseLog(turn, toIsland);
-    const log = logCommonDev(toIsland, this, plan.x, plan.y);
-    // 計画回数のデクリメント
-    plan.times--;
-
-    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
-  },
-};
-export const immediateLogging: planType = {
-  planNo: 107,
-  type: 'immediate_logging',
-  coordinate: true,
-  category: '開発',
-  name: '高速伐採',
-  description:
-    '即座に森を伐採し資金を獲得します。手早く平地を確保できますが、作業に費用がかかります。',
-  otherIsland: false,
-  immediate: true,
-  mapType: ['forest'],
-  cost: 100,
-  costType: 'money',
-  minTimes: 1,
-  maxTimes: 1,
-  maxTimesPerTurn: 1,
-  predictLandType: (t) => (t === 'forest' ? 'plains' : t),
-  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
-    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
-    const toIsland = toIslandGetSet.islandData;
-    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
-
-    // 地形や費用が不適切なら中止
-    const validConstAndLand = validCostAndLandType(toIsland, this, plan.x, plan.y, turn);
-    if (validConstAndLand.nextPlan) {
-      plan.times = 0;
-      return validConstAndLand;
-    }
-
-    // 費用の支払い
-    toIsland.money -= this.cost;
-    // 伐採の収入を得る
-    const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
-    toIsland.money += mapInfo.landValue * META_DATA.FOREST_VALUE;
-    // マップの変更
-    changeMapData(toIsland, plan.x, plan.y, 'plains', { type: 'ins', value: 0 });
-    // ログ出力
-    const baseLog = getBaseLog(turn, toIsland);
-    const log = logCommonDev(toIsland, this, plan.x, plan.y);
-    // 計画回数の初期化
-    plan.times = 0;
-
-    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
 };
