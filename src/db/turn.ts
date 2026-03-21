@@ -14,9 +14,18 @@ import { db } from '@/db/kysely';
 import {
   disasterAchievements,
   getAchievement,
+  monsterKillAchievements,
+  monumentAchievements,
   prosperityAchievements,
 } from '@/global/define/achievementType';
-import { logDisaster, logProsperity, logTurnCup, logTurnResult } from '@/global/define/logType';
+import {
+  logDisaster,
+  logMonsterKillAward,
+  logMonumentAward,
+  logProsperity,
+  logTurnCup,
+  logTurnResult,
+} from '@/global/define/logType';
 import { getMapDefine, mapType } from '@/global/define/mapType';
 import META_DATA from '@/global/define/metadata';
 import { financing } from '@/global/define/planCategory/planManege';
@@ -63,6 +72,13 @@ type MissileTurnStat = {
   killedMonsters: MissileBreakdown;
 };
 
+type ThresholdAchievement = {
+  type: string;
+  threshold: number;
+};
+
+type AwardLogBuilder = (prizeName: string) => string;
+
 /** ミサイル内訳を統合する */
 const mergeBreakdowns = (target: MissileBreakdown, source: MissileBreakdown) => {
   for (const [type, count] of Object.entries(source)) {
@@ -74,8 +90,39 @@ const mergeBreakdowns = (target: MissileBreakdown, source: MissileBreakdown) => 
 // Achievement Awards
 // -----------------------------------------------------------------------------
 
+const awardByThreshold = (
+  island: islandInfoTurnProgress,
+  metric: number,
+  achievements: ThresholdAchievement[],
+  prizeSet: Set<string>,
+  newPrizes: Array<{ uuid: string; prize: string }>,
+  nextTurn: number,
+  logArray: TurnLog[],
+  createLog: AwardLogBuilder
+) => {
+  for (const { type, threshold } of achievements) {
+    if (metric < threshold) continue;
+
+    const key = `${island.uuid}:${type}`;
+    if (prizeSet.has(key)) continue;
+
+    prizeSet.add(key);
+    newPrizes.push({ uuid: island.uuid, prize: type });
+    const prizeName = getAchievement(type)?.name ?? type;
+    const logMessage = createLog(prizeName);
+    logArray.push({
+      log_uuid: createUuid25(),
+      from_uuid: island.uuid,
+      to_uuid: island.uuid,
+      turn: nextTurn,
+      log: logMessage,
+      secret_log: logMessage,
+    });
+  }
+};
+
 /**
- * 繁栄賞・災難賞の付与
+ * 繁栄賞・災難賞・怪獣討伐賞・記念碑賞の付与
  * @param db DB接続情報
  * @param finalData 最終島情報一覧
  * @param prevPopulations ターン前の人口マップ (uuid -> population)
@@ -104,46 +151,74 @@ async function awardIslandAchievements(
 
   const newPrizes: Array<{ uuid: string; prize: string }> = [];
 
+  // 累計怪獣討伐数（missile_stats.monster_kill）を島ごとに取得
+  const monsterKillRows = await db
+    .selectFrom('missile_stats')
+    .select(['uuid', 'monster_kill'])
+    .where('uuid', 'in', uuids)
+    .execute();
+  const monsterKillMap = new Map(monsterKillRows.map((row) => [row.uuid, row.monster_kill]));
+
+  // 累計記念碑建設数（plan_stats の monument_dev）を島ごとに取得
+  const monumentRows = await db
+    .selectFrom('plan_stats')
+    .select(['uuid', 'count'])
+    .where('uuid', 'in', uuids)
+    .where('plan', '=', 'monument_dev')
+    .execute();
+  const monumentMap = new Map(monumentRows.map((row) => [row.uuid, row.count]));
+
   for (const island of aliveIslands) {
-    // 繁栄賞チェック
-    for (const { type, threshold } of prosperityAchievements) {
-      const key = `${island.uuid}:${type}`;
-      if (island.population >= threshold && !prizeSet.has(key)) {
-        prizeSet.add(key);
-        newPrizes.push({ uuid: island.uuid, prize: type });
-        const prizeName = getAchievement(type)?.name ?? type;
-        const logMessage = logProsperity(island, prizeName);
-        logArray.push({
-          log_uuid: createUuid25(),
-          from_uuid: island.uuid,
-          to_uuid: island.uuid,
-          turn: nextTurn,
-          log: logMessage,
-          secret_log: logMessage,
-        });
-      }
-    }
+    awardByThreshold(
+      island,
+      island.population,
+      prosperityAchievements,
+      prizeSet,
+      newPrizes,
+      nextTurn,
+      logArray,
+      (prizeName) => logProsperity(island, prizeName)
+    );
 
     // 災難賞チェック（今ターンの死亡者数 = ターン前人口 - 現在人口）
     const prevPop = prevPopulations.get(island.uuid) ?? island.population;
     const deaths = Math.max(0, prevPop - island.population);
-    for (const { type, threshold } of disasterAchievements) {
-      const key = `${island.uuid}:${type}`;
-      if (deaths >= threshold && !prizeSet.has(key)) {
-        prizeSet.add(key);
-        newPrizes.push({ uuid: island.uuid, prize: type });
-        const prizeName = getAchievement(type)?.name ?? type;
-        const logMessage = logDisaster(island, prizeName, deaths);
-        logArray.push({
-          log_uuid: createUuid25(),
-          from_uuid: island.uuid,
-          to_uuid: island.uuid,
-          turn: nextTurn,
-          log: logMessage,
-          secret_log: logMessage,
-        });
-      }
-    }
+    awardByThreshold(
+      island,
+      deaths,
+      disasterAchievements,
+      prizeSet,
+      newPrizes,
+      nextTurn,
+      logArray,
+      (prizeName) => logDisaster(island, prizeName, deaths)
+    );
+
+    // 怪獣討伐賞チェック（累計怪獣討伐数）
+    const monsterKills = monsterKillMap.get(island.uuid) ?? 0;
+    awardByThreshold(
+      island,
+      monsterKills,
+      monsterKillAchievements,
+      prizeSet,
+      newPrizes,
+      nextTurn,
+      logArray,
+      (prizeName) => logMonsterKillAward(island, prizeName, monsterKills)
+    );
+
+    // 記念碑賞チェック（累計記念碑建設数）
+    const monumentCount = monumentMap.get(island.uuid) ?? 0;
+    awardByThreshold(
+      island,
+      monumentCount,
+      monumentAchievements,
+      prizeSet,
+      newPrizes,
+      nextTurn,
+      logArray,
+      (prizeName) => logMonumentAward(island, prizeName, monumentCount)
+    );
   }
 
   if (newPrizes.length > 0) {

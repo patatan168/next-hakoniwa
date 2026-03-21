@@ -1376,6 +1376,36 @@ export const logDisaster = (
 };
 
 /**
+ * 怪獣討伐賞受賞ログ
+ * @param island 受賞した島情報
+ * @param prizeName 称号名
+ * @param monsterKills 累計怪獣討伐数
+ * @returns ログ文字列
+ */
+export const logMonsterKillAward = (
+  island: Island & Pick<User, 'island_name'>,
+  prizeName: string,
+  monsterKills: number
+): string => {
+  return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（累計怪獣討伐：${monsterKills}体）`;
+};
+
+/**
+ * 記念碑賞受賞ログ
+ * @param island 受賞した島情報
+ * @param prizeName 称号名
+ * @param monumentCount 累計記念碑建設数
+ * @returns ログ文字列
+ */
+export const logMonumentAward = (
+  island: Island & Pick<User, 'island_name'>,
+  prizeName: string,
+  monumentCount: number
+): string => {
+  return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（累計記念碑建設：${monumentCount}基）`;
+};
+
+/**
  * 記念碑発射ログ
  * @param fromIsland 発射元の島情報
  * @param toIsland 発射先の島情報

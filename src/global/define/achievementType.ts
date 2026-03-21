@@ -92,24 +92,28 @@ export const achievements: achievementType[] = [
     name: '怪獣討伐賞',
     description: '島に上陸した怪獣を見事討伐した証。',
     condition: '怪獣を累計1体討伐',
+    threshold: 1,
   },
   {
     type: 'monster_kill_2',
     name: '超怪獣討伐賞',
     description: '多数の怪獣を討伐し、島の防衛に貢献した証。',
     condition: '怪獣を累計5体討伐',
+    threshold: 5,
   },
   {
     type: 'monster_kill_3',
     name: '究極怪獣討伐賞',
     description: '数え切れないほどの怪獣を屠った伝説の防衛島。',
     condition: '怪獣を累計10体討伐',
+    threshold: 10,
   },
   {
     type: 'monster_kill_4',
     name: '怪獣討伐王賞',
     description: '怪獣討伐において他の追随を許さない王者の証。',
     condition: '怪獣を累計20体討伐',
+    threshold: 20,
   },
   // 記念碑賞
   {
@@ -117,18 +121,21 @@ export const achievements: achievementType[] = [
     name: '記念碑賞',
     description: '島に記念碑が数多く建立された証。',
     condition: '記念碑を10基建設',
+    threshold: 10,
   },
   {
     type: 'monument_2',
     name: '超記念碑賞',
     description: '島に記念碑が所狭しと建立され、称えられた証。',
     condition: '記念碑を30基建設',
+    threshold: 30,
   },
   {
     type: 'monument_3',
     name: '究極記念碑賞',
     description: '島が記念碑で埋め尽くされ、後世に名を残す名島となった証。',
     condition: '記念碑を50基建設',
+    threshold: 50,
   },
 ];
 
@@ -170,4 +177,16 @@ export const prosperityAchievements = achievements.filter(
 export const disasterAchievements = achievements.filter(
   (a): a is achievementTypeWithThreshold =>
     a.type.startsWith('disaster_') && a.threshold !== undefined
+);
+
+/** 怪獣討伐賞一覧（閾値付き） */
+export const monsterKillAchievements = achievements.filter(
+  (a): a is achievementTypeWithThreshold =>
+    a.type.startsWith('monster_kill_') && a.threshold !== undefined
+);
+
+/** 記念碑賞一覧（閾値付き） */
+export const monumentAchievements = achievements.filter(
+  (a): a is achievementTypeWithThreshold =>
+    a.type.startsWith('monument_') && a.threshold !== undefined
 );
