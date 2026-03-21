@@ -14,7 +14,9 @@ import { isEqual } from 'es-toolkit';
 import Image from 'next/image';
 import { CSSProperties, forwardRef, Fragment, memo, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { HiOutlineQuestionMarkCircle } from 'react-icons/hi2';
 import { getMapDefine, getMapImpPath, getMapInfoText, getMapName } from '../define/mapType';
+import { useWindowSize } from '../function/useWindowSize';
 import { usePlanDataStore } from '../store/usePlanDataStore';
 import Button from './Button';
 import Modal from './Modal';
@@ -277,6 +279,9 @@ const MapClickModal = ({
   open,
   openToggle,
 }: MapClickModalProps) => {
+  const [showPlanHelp, setShowPlanHelp] = useState(false);
+  const { width } = useWindowSize();
+  const isMobile = width > 0 && width < 768;
   const [category, setCategory] = useState<'優先' | '開発' | '建設' | '運営' | '攻撃' | '支援'>(
     restrictToAttackOrAid ? '攻撃' : '優先'
   );
@@ -387,6 +392,13 @@ const MapClickModal = ({
     setValue('times', 1);
   }, [plan, setValue]);
 
+  const handleMainModalOpenToggle = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setShowPlanHelp(false);
+    }
+    openToggle(nextOpen);
+  };
+
   const handleInsertPlan = () => {
     if (!planOptions.length || plan === '') return;
 
@@ -445,19 +457,36 @@ const MapClickModal = ({
             </button>
           ))}
         </div>
-        <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-          計画を選択
-        </label>
-        <Tooltip
-          position="bottom"
-          tooltipComp={
-            <p className="max-w-sm min-w-64 text-left text-sm whitespace-pre-wrap md:text-base">
-              {planDescription}
-            </p>
-          }
-        >
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">
+            計画を選択
+          </label>
+          {isMobile && (
+            <button
+              type="button"
+              aria-label="計画の説明を表示"
+              onClick={() => setShowPlanHelp(true)}
+              disabled={!planDescription}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-emerald-600 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent dark:text-emerald-400"
+            >
+              <HiOutlineQuestionMarkCircle className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        {isMobile ? (
           <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
-        </Tooltip>
+        ) : (
+          <Tooltip
+            position="bottom"
+            tooltipComp={
+              <p className="max-w-sm min-w-64 text-left text-sm whitespace-pre-wrap md:text-base">
+                {planDescription}
+              </p>
+            }
+          >
+            <SelectRHF name="plan" className="w-full" control={control} options={planOptions} />
+          </Tooltip>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <label className="text-sm whitespace-nowrap" htmlFor={`times`}>
@@ -521,16 +550,31 @@ const MapClickModal = ({
   const mapInfoText = targetCell ? getMapInfoText(x, y, targetCell.type, targetCell.landValue) : '';
 
   return (
-    <Modal
-      open={open}
-      openToggle={openToggle}
-      header={`${mapInfoText}`}
-      body={body}
-      footer={footer}
-      portal={false}
-      bottomOnMobile={true}
-      className="!max-h-[96%] !w-[96%] !max-w-md"
-    />
+    <>
+      <Modal
+        open={open}
+        openToggle={handleMainModalOpenToggle}
+        header={`${mapInfoText}`}
+        body={body}
+        footer={footer}
+        portal={false}
+        bottomOnMobile={true}
+        className="!max-h-[96%] !w-[96%] !max-w-md"
+      />
+      <Modal
+        open={open && showPlanHelp}
+        openToggle={setShowPlanHelp}
+        header="計画の説明"
+        body={
+          <p className="min-h-[4rem] text-left text-sm leading-relaxed whitespace-pre-wrap text-gray-700 md:text-base dark:text-gray-200">
+            {planDescription || '計画を選択すると説明が表示されます。'}
+          </p>
+        }
+        portal={false}
+        bottomOnMobile={true}
+        className="!max-h-[70%] !w-[92%] !max-w-sm"
+      />
+    </>
   );
 };
 
