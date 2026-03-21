@@ -86,7 +86,7 @@ export default function AdminLogPageClient({
       entries.filter((entry) => entry.type === 'directory').map((entry) => entry.path)
     );
 
-    if (!initializedCollapseRef.current) {
+    if (!initializedCollapseRef.current && currentDirectories.size > 0) {
       initializedCollapseRef.current = true;
       setCollapsedDirectories(new Set(currentDirectories));
       return;
