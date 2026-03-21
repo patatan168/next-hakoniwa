@@ -168,6 +168,16 @@
 | `LOGIN_LOCK_MINUTE`          | `10`       | ログイン失敗上限超過後のロック時間（分）      |
 | `MAX_SESSIONS`               | `3`        | 1ユーザーが同時に保持できるセッション数の上限 |
 
+## 管理者認証設定（サーバーサイドのみ）
+
+| 変数名                           | 例              | 説明                                                                 |
+| -------------------------------- | --------------- | -------------------------------------------------------------------- |
+| `MODERATOR_INITIAL_ID`           | `admin0001`     | 初期管理者ID。初回マイグレーション時に `moderator_auth` へ投入される |
+| `MODERATOR_INITIAL_PASSWORD`     | `AdminPass1234` | 初期管理者パスワード（平文入力、DBにはハッシュで保存）               |
+| `MODERATOR_INITIAL_USER_NAME`    | `Administrator` | 初期管理者ユーザー名                                                 |
+| `MODERATOR_INITIAL_ROLE`         | `0`             | 初期管理者ロール値                                                   |
+| `MODERATOR_SESSION_EXPIRES_HOUR` | `12`            | 管理者セッションの有効期限（時間）                                   |
+
 ## その他 (サーバダードのみ)
 
 | 変数名                             | 例   | 説明                                     |

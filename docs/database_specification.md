@@ -166,7 +166,8 @@
 
 ### 12. その他
 
-- **`role`**: 管理権限設定(`uuid`, `role`)
+- **`moderator_auth`**: 管理者認証(`uuid`, `id`, `password`, `user_name`, `role`, `must_change_credentials`, `login_fail_count`, `locked_until`)
+- **`moderator_session`**: 管理者セッション(`session_id`, `uuid`, `public_key`, `expires`)
 - **`last_login`**: ログイン統計(`uuid`, `last_login_at`, `consecutive_login_days`, etc.)
 - **`event_rate`**: 各種災害発生確率の個人設定
 - **認証系**: `access_token`, `refresh_token`, `passkey` (セッション維持およびWebAuthn用)

@@ -3,6 +3,8 @@
  * @description データベーススキーマのマイグレーション定義。
  */
 import META_DATA from '@/global/define/metadata';
+import argon2 from 'argon2';
+import crypto from 'crypto';
 import { ColumnDataType, ColumnDefinitionBuilder, Kysely, sql, SqliteAdapter } from 'kysely';
 import { Database } from '../kysely';
 
@@ -12,6 +14,10 @@ export type ColumnDefinition = {
 };
 
 export type TableDefinition = Record<string, ColumnDefinition>;
+
+function sha256(text: string): string {
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
 
 /**
  * テーブルを再作成し、既存データを移行する。
@@ -158,6 +164,115 @@ async function createSpecialTableIfNeeded(
   return false;
 }
 
+async function syncDesiredSchema(
+  db: Kysely<Database>,
+  desiredSchema: Record<string, TableDefinition>,
+  isSqlite: boolean
+): Promise<void> {
+  console.log('[DEBUG] Starting table sync loops...');
+  for (const [tableName, columns] of Object.entries(desiredSchema)) {
+    console.log(`[DEBUG] Processing table: ${tableName}`);
+    const isSpecialCreated = await createSpecialTableIfNeeded(db, tableName);
+    if (isSpecialCreated) continue;
+    await rebuildTableWithData(db, tableName, columns, isSqlite);
+  }
+  console.log('[DEBUG] Finished table sync loops.');
+}
+
+async function dropLegacyRoleTableIfExists(db: Kysely<Database>): Promise<void> {
+  const tables = await db.introspection.getTables();
+  if (tables.some((t) => t.name === 'role')) {
+    await db.schema.dropTable('role').execute();
+    console.log('Dropped legacy table: role');
+  }
+}
+
+async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Promise<void> {
+  console.log('[DEBUG] Creating indexes...');
+  const runSafe = async (query: import('kysely').RawBuilder<unknown>) => {
+    try {
+      await query.execute(db);
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (err.code !== 'ER_DUP_KEYNAME') console.warn(err.message ?? 'Unknown error');
+    }
+  };
+
+  if (isSqlite) {
+    await sql`CREATE INDEX IF NOT EXISTS user_inhabited_index ON user(inhabited)`.execute(db);
+    await sql`CREATE INDEX IF NOT EXISTS island_population_index ON island(population)`.execute(db);
+    await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(
+      db
+    );
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`.execute(
+      db
+    );
+    await sql`CREATE INDEX IF NOT EXISTS turn_resource_history_uuid_index ON turn_resource_history(uuid)`.execute(
+      db
+    );
+    await sql`CREATE INDEX IF NOT EXISTS plan_from_uuid_index ON plan(from_uuid)`.execute(db);
+    return;
+  }
+
+  await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
+  await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
+  await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
+  await runSafe(
+    sql`CREATE UNIQUE INDEX turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`
+  );
+  await runSafe(sql`CREATE INDEX turn_resource_history_uuid_index ON turn_resource_history(uuid)`);
+  await runSafe(sql`CREATE INDEX plan_from_uuid_index ON plan(from_uuid)`);
+  await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
+}
+
+async function ensureTurnStateSeeded(db: Kysely<Database>): Promise<void> {
+  const countRes = await sql<{ cnt: number }>`SELECT COUNT(*) as cnt FROM turn_state`.execute(db);
+  const count = Number(countRes.rows[0]?.cnt ?? 0);
+  if (count !== 0) return;
+
+  await sql`INSERT INTO turn_state (turn, turn_processing, last_updated_at) VALUES (0, 0, 0)`.execute(
+    db
+  );
+}
+
+async function seedInitialModerator(db: Kysely<Database>): Promise<void> {
+  const moderatorCount = await sql<{
+    cnt: number;
+  }>`SELECT COUNT(*) as cnt FROM moderator_auth`.execute(db);
+  const moderatorAuthCount = Number(moderatorCount.rows[0]?.cnt ?? 0);
+  if (moderatorAuthCount !== 0) return;
+
+  const initialId = process.env.MODERATOR_INITIAL_ID;
+  const initialPassword = process.env.MODERATOR_INITIAL_PASSWORD;
+  const initialUserName = process.env.MODERATOR_INITIAL_USER_NAME ?? 'Administrator';
+  const initialRole = Number(process.env.MODERATOR_INITIAL_ROLE ?? 0);
+
+  if (!initialId || !initialPassword) {
+    console.warn(
+      'MODERATOR_INITIAL_ID or MODERATOR_INITIAL_PASSWORD is not set. Skipped initial moderator seeding.'
+    );
+    return;
+  }
+
+  const hashId = sha256(initialId);
+  const hashPassword = await argon2.hash(initialPassword);
+  const initialUuid = '0000000000000000000000000';
+
+  await db
+    .insertInto('moderator_auth')
+    .values({
+      uuid: initialUuid,
+      id: hashId,
+      password: hashPassword,
+      user_name: initialUserName,
+      role: initialRole,
+      must_change_credentials: 1,
+    })
+    .execute();
+
+  console.log('Seeded initial moderator account.');
+}
+
 /**
  * マイグレーションを適用する。
  * @param db - Kyselyインスタンス
@@ -195,12 +310,26 @@ export async function up(db: Kysely<Database>): Promise<void> {
       locked_until: { type: 'datetime' },
       fp_hash: { type: 'varchar(255)', config: (col) => col.defaultTo('').notNull() },
     },
-    role: {
+    moderator_auth: {
+      uuid: { type: 'varchar(25)', config: (col) => col.primaryKey().unique().notNull() },
+      id: { type: 'varchar(64)', config: (col) => col.unique().notNull() },
+      password: { type: 'varchar(511)', config: (col) => col.notNull() },
+      user_name: { type: 'varchar(64)', config: (col) => col.notNull() },
+      role: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      must_change_credentials: { type: 'integer', config: (col) => col.defaultTo(1).notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
+      login_fail_count: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      locked_until: { type: 'datetime' },
+    },
+    moderator_session: {
+      session_id: { type: 'varchar(128)', config: (col) => col.primaryKey().notNull() },
       uuid: {
         type: 'varchar(25)',
-        config: (col) => col.primaryKey().unique().notNull().references('user.uuid'),
+        config: (col) => col.notNull().references('moderator_auth.uuid'),
       },
-      role: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
+      public_key: { type: 'varchar(255)', config: (col) => col.unique().notNull() },
+      created_at: { type: 'bigint', config: (col) => col.defaultTo(nowSql).notNull() },
+      expires: { type: 'datetime', config: (col) => col.notNull() },
     },
     last_login: {
       uuid: {
@@ -357,61 +486,11 @@ export async function up(db: Kysely<Database>): Promise<void> {
     },
   };
 
-  // ========== 自動同期ロジック (テーブル再構築方式) ==========
-  console.log('[DEBUG] Starting table sync loops...');
-  for (const [tableName, columns] of Object.entries(desiredSchema)) {
-    console.log(`[DEBUG] Processing table: ${tableName}`);
-    const isSpecialCreated = await createSpecialTableIfNeeded(db, tableName);
-    if (isSpecialCreated) continue;
-    await rebuildTableWithData(db, tableName, columns, isSqlite);
-  }
-  console.log('[DEBUG] Finished table sync loops.');
-
-  // ========== インデックスと初期値 ==========
-  console.log('[DEBUG] Creating indexes...');
-  const runSafe = async (query: import('kysely').RawBuilder<unknown>) => {
-    try {
-      await query.execute(db);
-    } catch (e: unknown) {
-      const err = e as { code?: string; message?: string };
-      if (err.code !== 'ER_DUP_KEYNAME') console.warn(err.message ?? 'Unknown error');
-    }
-  };
-
-  if (isSqlite) {
-    await sql`CREATE INDEX IF NOT EXISTS user_inhabited_index ON user(inhabited)`.execute(db);
-    await sql`CREATE INDEX IF NOT EXISTS island_population_index ON island(population)`.execute(db);
-    await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(
-      db
-    );
-    await sql`CREATE UNIQUE INDEX IF NOT EXISTS turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`.execute(
-      db
-    );
-    await sql`CREATE INDEX IF NOT EXISTS turn_resource_history_uuid_index ON turn_resource_history(uuid)`.execute(
-      db
-    );
-    await sql`CREATE INDEX IF NOT EXISTS plan_from_uuid_index ON plan(from_uuid)`.execute(db);
-  } else {
-    await runSafe(sql`CREATE INDEX user_inhabited_index ON user(inhabited)`);
-    await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
-    await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
-    await runSafe(
-      sql`CREATE UNIQUE INDEX turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`
-    );
-    await runSafe(
-      sql`CREATE INDEX turn_resource_history_uuid_index ON turn_resource_history(uuid)`
-    );
-    await runSafe(sql`CREATE INDEX plan_from_uuid_index ON plan(from_uuid)`);
-    await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
-  }
-
-  const countRes = await sql<{ cnt: number }>`SELECT COUNT(*) as cnt FROM turn_state`.execute(db);
-  const count = Number(countRes.rows[0]?.cnt ?? 0);
-  if (count === 0) {
-    await sql`INSERT INTO turn_state (turn, turn_processing, last_updated_at) VALUES (0, 0, 0)`.execute(
-      db
-    );
-  }
+  await syncDesiredSchema(db, desiredSchema, isSqlite);
+  await dropLegacyRoleTableIfExists(db);
+  await createSchemaIndexes(db, isSqlite);
+  await ensureTurnStateSeeded(db);
+  await seedInitialModerator(db);
 }
 
 /**

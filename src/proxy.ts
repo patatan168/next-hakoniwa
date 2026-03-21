@@ -7,9 +7,16 @@ import { NextResponse } from 'next/server';
 import { db } from './db/kysely';
 import { validAuthCookie } from './global/function/auth';
 import { CSRF_COOKIE_NAME, generateCsrfToken, verifyCsrfToken } from './global/function/csrf';
+import {
+  MODERATOR_SESSION_COOKIE_NAME,
+  validateModeratorSessionToken,
+} from './global/function/moderatorAuth';
 
 const authPaths = ['/api/auth/'];
+const adminApiPaths = ['/api/admin/'];
+const adminApiExcludePaths = ['/api/admin/sign-in', '/api/admin/sign-out'];
 const sessionPaths = ['/development', '/account'];
+const moderatorSessionPaths = ['/admin/'];
 const excludeNoncePaths = ['/api'];
 
 /**
@@ -25,8 +32,12 @@ export async function proxy(request: NextRequest) {
   let response: NextResponse;
   if (authPaths.some((prefix) => pathname.startsWith(prefix))) {
     response = await authCheck(request);
+  } else if (adminApiPaths.some((prefix) => pathname.startsWith(prefix))) {
+    response = await adminApiAuthCheck(request);
   } else if (sessionPaths.some((prefix) => pathname.startsWith(prefix))) {
     response = await sessionCheck(request);
+  } else if (moderatorSessionPaths.some((prefix) => pathname.startsWith(prefix))) {
+    response = await moderatorSessionCheck(request);
   } else if (excludeNoncePaths.some((prefix) => pathname.startsWith(prefix))) {
     response = NextResponse.next({});
   } else {
@@ -160,4 +171,67 @@ async function sessionCheck(request: NextRequest) {
     // 認証エラーは 401 リダイレクトで処理
   }
   return NextResponse.redirect(new URL(`/error/401`, request.url));
+}
+
+/**
+ * 管理者API認証チェック。/api/admin/*（/api/admin/sign-inおよび/api/admin/sign-outは除外）を管理者セッションで保護する。
+ * @param request - 受信リクエスト
+ * @returns 認証済みレスポンスまたは401レスポンス
+ */
+async function adminApiAuthCheck(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (adminApiExcludePaths.some((prefix) => pathname.startsWith(prefix))) {
+    return NextResponse.next({});
+  }
+
+  const token = request.cookies.get(MODERATOR_SESSION_COOKIE_NAME)?.value;
+  if (!token) {
+    return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
+  }
+
+  const verified = await validateModeratorSessionToken(db, token);
+  if (!verified.valid || !verified.uuid || !verified.sessionId) {
+    if (verified.shouldDeleteSession && verified.uuid && verified.sessionId) {
+      await db
+        .deleteFrom('moderator_session')
+        .where('session_id', '=', verified.sessionId)
+        .where('uuid', '=', verified.uuid)
+        .execute();
+    }
+    return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
+  }
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-verified-admin-uuid', verified.uuid);
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+}
+
+/**
+ * 管理者セッションチェック。/admin/*（/adminは除外）へのアクセスを管理者セッションで保護する。
+ * @param request - 受信リクエスト
+ * @returns nonce付きレスポンスまたは /admin リダイレクト
+ */
+async function moderatorSessionCheck(request: NextRequest) {
+  const token = request.cookies.get(MODERATOR_SESSION_COOKIE_NAME)?.value;
+  if (!token) {
+    return NextResponse.redirect(new URL(`/error/401`, request.url));
+  }
+
+  const verified = await validateModeratorSessionToken(db, token);
+  if (!verified.valid || !verified.uuid || !verified.sessionId) {
+    if (verified.shouldDeleteSession && verified.uuid && verified.sessionId) {
+      await db
+        .deleteFrom('moderator_session')
+        .where('session_id', '=', verified.sessionId)
+        .where('uuid', '=', verified.uuid)
+        .execute();
+    }
+    return NextResponse.redirect(new URL(`/error/401`, request.url));
+  }
+
+  return crateNonceResponse(request);
 }

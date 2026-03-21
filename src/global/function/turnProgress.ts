@@ -237,7 +237,6 @@ export const abandonIsland = async (
   await client.deleteFrom('auth').where('uuid', '=', uuid).execute();
   await client.deleteFrom('last_login').where('uuid', '=', uuid).execute();
   await client.deleteFrom('refresh_token').where('uuid', '=', uuid).execute();
-  await client.deleteFrom('role').where('uuid', '=', uuid).execute();
 };
 
 /**
@@ -267,7 +266,6 @@ const abandonIslands = async (
   await client.deleteFrom('auth').where('uuid', 'in', uuids).execute();
   await client.deleteFrom('last_login').where('uuid', 'in', uuids).execute();
   await client.deleteFrom('refresh_token').where('uuid', 'in', uuids).execute();
-  await client.deleteFrom('role').where('uuid', 'in', uuids).execute();
 };
 
 /**
