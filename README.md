@@ -21,7 +21,7 @@ npm install
 ### 2. 環境変数の設定
 
 `.env` ファイルを参考に、必要な環境変数を設定します。
-詳細については [環境変数一覧](./docs/environment-variables.md) を参照してください。
+詳細については [環境変数一覧](./docs/environment_variables.md) を参照してください。
 
 ### 3. データベースの初期化
 
@@ -71,7 +71,7 @@ npm run storybook
 
 Passkey（WebAuthn）を用いた認証や、自己署名証明書によるHTTPS通信などのテストを行うには、本番相当のコンテナ環境を使用します。
 
-詳細な手順やOriginURLの設定については、[Docker検証環境手順](./docs/docker-verification.md) を参照してください。
+詳細な手順やOriginURLの設定については、[Docker検証環境手順](./docs/docker_verification.md) を参照してください。
 
 ```bash
 docker compose build app
@@ -83,11 +83,12 @@ docker compose up -d
 | ドキュメント                                                 | 説明                                            |
 | ------------------------------------------------------------ | ----------------------------------------------- |
 | [認証仕様](./docs/auth_specification.md)                     | JWT・パスキー・アカウントロックアウトの仕様     |
-| [データベースマイグレーション](./docs/database-migration.md) | マイグレーションの仕組みと操作手順              |
+| [データベースマイグレーション](./docs/database_migration.md) | マイグレーションの仕組みと操作手順              |
 | [データベース仕様](./docs/database_specification.md)         | データベースのテーブル定義とリレーションシップ  |
-| [環境変数一覧](./docs/environment-variables.md)              | 全環境変数の説明とデフォルト値                  |
+| [環境変数一覧](./docs/environment_variables.md)              | 全環境変数の説明とデフォルト値                  |
+| [ターン処理仕様](./docs/turn_process_specification.md)       | ターン処理の実行順序とシーケンス図              |
 | [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                    |
-| [Docker検証環境手順](./docs/docker-verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |
+| [Docker検証環境手順](./docs/docker_verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |
 
 ## 依存ライブラリ
 
