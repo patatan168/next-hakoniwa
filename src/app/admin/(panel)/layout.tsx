@@ -42,6 +42,12 @@ export default async function AdminPanelLayout({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
+            href="/admin/users"
+            className="rounded-lg border border-sky-700 bg-sky-700 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-800"
+          >
+            ユーザー管理
+          </Link>
+          <Link
             href="/admin/log"
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >

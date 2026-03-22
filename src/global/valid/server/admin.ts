@@ -5,7 +5,15 @@
 import 'server-only';
 
 import * as z from 'zod';
+import META_DATA from '../../define/metadata';
 import { baseUserInfoSchema } from '../userInfo';
+
+const adminMoneyMax = Number.isFinite(META_DATA.MAX_MONEY)
+  ? META_DATA.MAX_MONEY
+  : Number.MAX_SAFE_INTEGER;
+const adminFoodMax = Number.isFinite(META_DATA.MAX_FOOD)
+  ? META_DATA.MAX_FOOD
+  : Number.MAX_SAFE_INTEGER;
 
 export const adminSignInSchema = baseUserInfoSchema.pick({
   id: true,
@@ -61,3 +69,29 @@ export const adminModeratorCreateSchema = z
       });
     }
   });
+
+export const adminUserLockSchema = z.object({
+  locked: z.boolean(),
+});
+
+export const adminUserIslandUpdateSchema = z.object({
+  islandName: baseUserInfoSchema.shape.islandName,
+  money: z.coerce
+    .number()
+    .int({ error: '資金は整数で入力してください。' })
+    .min(0, { error: '資金は0以上で入力してください。' })
+    .max(adminMoneyMax, { error: `資金は${adminMoneyMax}以下で入力してください。` }),
+  food: z.coerce
+    .number()
+    .int({ error: '食料は整数で入力してください。' })
+    .min(0, { error: '食料は0以上で入力してください。' })
+    .max(adminFoodMax, { error: `食料は${adminFoodMax}以下で入力してください。` }),
+});
+
+export const adminUserDeleteSchema = z.object({
+  confirmIslandName: z.coerce
+    .string()
+    .trim()
+    .min(1, { error: '確認用の島名を入力してください。' })
+    .max(16, { error: '16文字以内で入力してください。' }),
+});

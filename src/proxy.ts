@@ -22,6 +22,29 @@ const moderatorSessionPaths = ['/admin/'];
 const adminOnlyModeratorSessionPaths = ['/admin/moderators/new'];
 const excludeNoncePaths = ['/api'];
 
+const adminOnlyUserApiPathRegExp = [
+  /^\/api\/admin\/users\/[^/]+\/?$/,
+  /^\/api\/admin\/users\/[^/]+\/island\/?$/,
+];
+
+const adminOnlyModeratorPathRegExp = [/^\/admin\/users\/[^/]+\/?$/];
+
+function isAdminOnlyAdminApiPath(pathname: string) {
+  if (matchesProtectedPath(pathname, adminOnlyAdminApiPaths)) {
+    return true;
+  }
+
+  return adminOnlyUserApiPathRegExp.some((regExp) => regExp.test(pathname));
+}
+
+function isAdminOnlyModeratorPath(pathname: string) {
+  if (matchesProtectedPath(pathname, adminOnlyModeratorSessionPaths)) {
+    return true;
+  }
+
+  return adminOnlyModeratorPathRegExp.some((regExp) => regExp.test(pathname));
+}
+
 function matchesProtectedPath(pathname: string, protectedPaths: readonly string[]) {
   return protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
@@ -233,7 +256,7 @@ async function adminApiAuthCheck(request: NextRequest) {
     return NextResponse.json({ error: '認証に失敗しました。' }, { status: 401 });
   }
 
-  if (matchesProtectedPath(pathname, adminOnlyAdminApiPaths)) {
+  if (isAdminOnlyAdminApiPath(pathname)) {
     const isAdmin = hasFullModeratorPermission(verifiedRole);
     if (!isAdmin) {
       return NextResponse.json({ error: 'この操作は管理者権限が必要です。' }, { status: 403 });
@@ -274,7 +297,7 @@ async function moderatorSessionCheck(request: NextRequest) {
     return NextResponse.redirect(new URL(`/error/401`, request.url));
   }
 
-  if (matchesProtectedPath(pathname, adminOnlyModeratorSessionPaths)) {
+  if (isAdminOnlyModeratorPath(pathname)) {
     const isAdmin = await hasAdminPermission(verified.uuid);
     if (!isAdmin) {
       return NextResponse.redirect(new URL(`/error/403`, request.url));

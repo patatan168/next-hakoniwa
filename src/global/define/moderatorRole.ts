@@ -25,3 +25,7 @@ export function resolveModeratorRoleName(role: number): string {
 export function hasFullModeratorPermission(role: number): boolean {
   return role === MODERATOR_ROLE.admin;
 }
+
+export function hasModeratorPermission(role: number): boolean {
+  return role === MODERATOR_ROLE.admin || role === MODERATOR_ROLE.moderator;
+}

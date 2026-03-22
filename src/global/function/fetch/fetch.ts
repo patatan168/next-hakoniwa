@@ -363,9 +363,23 @@ export const fetcher = async <T = any>(
     options.headers = { ...options.headers, 'x-csrf-token': csrfToken };
   }
   const responseData = async (res: Response) => {
-    const data = (await res.json()) as T;
+    const rawText = await res.text();
+    let data = {} as T;
+
+    if (rawText.trim().length > 0) {
+      try {
+        data = JSON.parse(rawText) as T;
+      } catch {
+        if (!res.ok) {
+          throw new ApiError(rawText, res.status, res.statusText);
+        }
+        throw new ApiError('APIレスポンスのJSON解析に失敗しました。', res.status, res.statusText);
+      }
+    }
+
     if (!res.ok) {
-      const errorMessage = (data as { error?: string }).error ?? '';
+      const errorMessage =
+        (data as { error?: string }).error?.trim() || `${res.status} ${res.statusText}`.trim();
       const error = new ApiError(errorMessage, res.status, res.statusText);
       throw error;
     }

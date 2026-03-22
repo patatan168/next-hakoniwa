@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   hasFullModeratorPermission,
+  hasModeratorPermission,
   MODERATOR_ROLE,
   resolveModeratorRoleName,
 } from '../moderatorRole';
@@ -21,5 +22,11 @@ describe('moderatorRole', () => {
   test('admin のみ全権限判定を true にする', () => {
     expect(hasFullModeratorPermission(MODERATOR_ROLE.admin)).toBe(true);
     expect(hasFullModeratorPermission(MODERATOR_ROLE.moderator)).toBe(false);
+  });
+
+  test('admin と moderator の両方を管理者判定で true にする', () => {
+    expect(hasModeratorPermission(MODERATOR_ROLE.admin)).toBe(true);
+    expect(hasModeratorPermission(MODERATOR_ROLE.moderator)).toBe(true);
+    expect(hasModeratorPermission(99)).toBe(false);
   });
 });
