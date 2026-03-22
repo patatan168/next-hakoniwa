@@ -42,7 +42,8 @@ export const people: mapType = {
         }
       };
 
-      const capacityLimit = valueOrSafeLimit(this.level?.[2], 'max'); // 都市の上限
+      const cityLimit = valueOrSafeLimit(this.level?.[2], 'max');
+      const capacityLimit = island.propaganda === 100 ? this.maxVal : cityLimit;
       const addValue = capacityLimit > mapInfo.landValue ? randomIntInRange(1, growthValue()) : 0;
       const tmpValue = mapInfo.landValue + addValue;
 
