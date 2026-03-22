@@ -3,7 +3,10 @@
  * @description 管理者ページ共通レイアウト（/admin は除く）。
  */
 import { db } from '@/db/kysely';
-import { resolveModeratorRoleName } from '@/global/define/moderatorRole';
+import {
+  hasFullModeratorPermission,
+  resolveModeratorRoleName,
+} from '@/global/define/moderatorRole';
 import { validModeratorSession } from '@/global/function/moderatorAuth';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -30,6 +33,7 @@ export default async function AdminPanelLayout({
   }
 
   const roleName = resolveModeratorRoleName(admin.role);
+  const isAdmin = hasFullModeratorPermission(admin.role);
 
   return (
     <main className="p-4 sm:p-6">
@@ -53,12 +57,14 @@ export default async function AdminPanelLayout({
           >
             ログ管理
           </Link>
-          <Link
-            href="/admin/moderators/new"
-            className="rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            モデレーターの新規登録
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/moderators/new"
+              className="rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              モデレーターの新規登録
+            </Link>
+          )}
           <SignOutButton />
         </div>
       </div>
