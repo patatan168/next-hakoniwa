@@ -381,16 +381,21 @@ const MapClickModal = ({
   }, [mapWidth, mapHeight]);
 
   // 選択中の計画の情報を取得
-  const { maxTimes, planDescription } = useMemo(() => {
-    if (!planOptions.length || plan === '') return { maxTimes: 1, planDescription: '' };
+  const { minTimes, maxTimes, planDescription } = useMemo(() => {
+    if (!planOptions.length || plan === '')
+      return { minTimes: 1, maxTimes: 1, planDescription: '' };
     const planDefine = getPlanDefine(plan);
-    return { maxTimes: planDefine.maxTimes, planDescription: planDefine.description };
+    return {
+      minTimes: planDefine.minTimes,
+      maxTimes: planDefine.maxTimes,
+      planDescription: planDefine.description,
+    };
   }, [plan, planOptions]);
 
   useEffect(() => {
-    // planが変更された場合はtimesを1に戻す
-    setValue('times', 1);
-  }, [plan, setValue]);
+    // planが変更された場合は、その計画で許可される最小値へ戻す
+    setValue('times', minTimes);
+  }, [plan, minTimes, setValue]);
 
   const handleMainModalOpenToggle = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -497,7 +502,7 @@ const MapClickModal = ({
           className="flex-1"
           disabled={maxTimes === 1}
           control={control}
-          min={1}
+          min={minTimes}
           max={maxTimes}
           isBottomSpace={false}
         />

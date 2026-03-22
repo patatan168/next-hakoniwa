@@ -38,7 +38,7 @@ const PlanItem = memo(
       itemRef
     ) => {
       const { id, x, y, plan, times, edit } = item;
-      const { name, description, immediate, otherIsland, maxTimes } = getPlanDefine(plan);
+      const { name, description, immediate, otherIsland, minTimes, maxTimes } = getPlanDefine(plan);
       const { width } = useWindowSize();
       const isMobile = width < 768; // md breakpoint
 
@@ -159,7 +159,7 @@ const PlanItem = memo(
                 id={`times-${item.id}`}
                 name="times"
                 control={control}
-                min={1}
+                min={minTimes}
                 max={maxTimes}
                 isBottomSpace={false}
                 className="w-full"
