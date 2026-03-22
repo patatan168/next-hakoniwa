@@ -149,7 +149,7 @@ export const propaganda: planType = {
   maxTimes: 99,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ turn, uuid }: changeDataArgs) {
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
@@ -158,6 +158,7 @@ export const propaganda: planType = {
     toIsland.money -= this.cost;
     toIsland.propaganda = 100;
     const log = logNoCoordinateCommonDev(toIsland, this);
+    plan.times -= 1;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
 };
@@ -179,7 +180,7 @@ export const financing: planType = {
   maxTimes: 1,
   maxTimesPerTurn: 1,
   unit: '回',
-  changeData: function ({ turn, uuid }: changeDataArgs) {
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
     using toIslandGetSet = islandDataGetSet(uuid.toIsland);
     const toIsland = toIslandGetSet.islandData;
     if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
@@ -187,6 +188,7 @@ export const financing: planType = {
     const baseLog = getBaseLog(turn, toIsland);
     toIsland.money -= this.cost;
     const log = logNoCoordinateCommonDev(toIsland, this);
+    plan.times = 0;
     return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
 };
