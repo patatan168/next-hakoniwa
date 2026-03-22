@@ -132,6 +132,36 @@ export const foodExport: planType = {
   },
 };
 
+export const propaganda: planType = {
+  planNo: 998,
+  type: 'propaganda',
+  coordinate: false,
+  category: '運営',
+  name: '誘致活動',
+  description:
+    '誘致活動を行います。このターンは人口の増加がやや増えます。また、既に人口の増加が停滞した都市も増えます。',
+  otherIsland: false,
+  immediate: false,
+  mapType: 'none',
+  cost: 1000,
+  costType: 'money',
+  minTimes: 1,
+  maxTimes: 99,
+  maxTimesPerTurn: 1,
+  unit: '回',
+  changeData: function ({ turn, uuid }: changeDataArgs) {
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+    const baseLog = getBaseLog(turn, toIsland);
+    toIsland.money -= this.cost;
+    toIsland.propaganda = 100;
+    const log = logNoCoordinateCommonDev(toIsland, this);
+    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
+  },
+};
+
 export const financing: planType = {
   planNo: 999,
   type: 'financing',
