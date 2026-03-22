@@ -88,6 +88,7 @@ docker compose up -d
 | [環境変数一覧](./docs/environment_variables.md)              | 全環境変数の説明とデフォルト値                  |
 | [ターン処理仕様](./docs/turn_process_specification.md)       | ターン処理の実行順序とシーケンス図              |
 | [ターンログ仕様](./docs/turn_log_specification.md)           | ターンログのカスタムタグ仕様                    |
+| [Define追加ガイド](./docs/define/README.md)                  | plan/map/log/achievement 定義の追加手順と注意点 |
 | [Docker検証環境手順](./docs/docker_verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |
 
 ## 依存ライブラリ
