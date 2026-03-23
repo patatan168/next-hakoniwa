@@ -1,7 +1,12 @@
 import { Island, User } from '@/db/kysely';
 import { describe, expect, test } from 'vitest';
-import { getAchievement, monsterKillAchievements, monumentAchievements } from '../achievementType';
-import { logMonsterKillAward, logMonumentAward } from '../logType';
+import {
+  getAchievement,
+  monsterKillAchievements,
+  monumentAchievements,
+  peaceAchievements,
+} from '../achievementType';
+import { logMonsterKillAward, logMonumentAward, logPeaceAward } from '../logType';
 
 const mockIsland = {
   uuid: 'test-uuid',
@@ -27,6 +32,38 @@ describe('achievementType', () => {
     ]);
   });
 
+  test('peaceAchievements は平和賞の閾値を持つ', () => {
+    expect(peaceAchievements.map((a) => [a.type, a.threshold])).toEqual([
+      ['peace_1', 20000],
+      ['peace_2', 50000],
+      ['peace_3', 100000],
+    ]);
+  });
+
+  test('平和賞しきい値未満では受賞対象にならない', () => {
+    const refugees = 19999;
+    const achievedPeaceTypes = peaceAchievements
+      .filter((a) => refugees >= a.threshold)
+      .map((a) => a.type);
+    expect(achievedPeaceTypes).toEqual([]);
+  });
+
+  test('平和賞しきい値ちょうどで受賞対象になる', () => {
+    const refugees = 50000;
+    const achievedPeaceTypes = peaceAchievements
+      .filter((a) => refugees >= a.threshold)
+      .map((a) => a.type);
+    expect(achievedPeaceTypes).toEqual(['peace_1', 'peace_2']);
+  });
+
+  test('平和賞しきい値超過で上位賞まで受賞対象になる', () => {
+    const refugees = 120000;
+    const achievedPeaceTypes = peaceAchievements
+      .filter((a) => refugees >= a.threshold)
+      .map((a) => a.type);
+    expect(achievedPeaceTypes).toEqual(['peace_1', 'peace_2', 'peace_3']);
+  });
+
   test('turn_xxx は100ターン刻みのみ動的生成する', () => {
     expect(getAchievement('turn_200')).toEqual({
       type: 'turn_200',
@@ -49,5 +86,11 @@ describe('award logs', () => {
     const log = logMonumentAward(mockIsland, '究極記念碑賞', 50);
     expect(log).toContain('究極記念碑賞');
     expect(log).toContain('累計記念碑建設：50基');
+  });
+
+  test('logPeaceAward は1回の難民受入数を含む', () => {
+    const log = logPeaceAward(mockIsland, '究極平和賞', 120000);
+    expect(log).toContain('究極平和賞');
+    expect(log).toContain('1回の難民受入：120000人');
   });
 });

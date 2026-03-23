@@ -36,6 +36,8 @@ export type planResult = {
   missileDestroyedMaps?: Record<string, number>;
   /** ミサイルで討伐した怪獣タイプ別内訳 */
   missileKilledMonsters?: Record<string, number>;
+  /** ミサイル1回の実行で受け入れた難民数 */
+  missileRefugeesAccepted?: number;
 };
 
 export type changeDataArgs = {

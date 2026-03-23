@@ -16,12 +16,14 @@ import {
   getAchievement,
   monsterKillAchievements,
   monumentAchievements,
+  peaceAchievements,
   prosperityAchievements,
 } from '@/global/define/achievementType';
 import {
   logDisaster,
   logMonsterKillAward,
   logMonumentAward,
+  logPeaceAward,
   logProsperity,
   logTurnCup,
   logTurnResult,
@@ -122,7 +124,7 @@ const awardByThreshold = (
 };
 
 /**
- * 繁栄賞・災難賞・怪獣討伐賞・記念碑賞の付与
+ * 繁栄賞・災難賞・怪獣討伐賞・記念碑賞・平和賞の付与
  * @param db DB接続情報
  * @param finalData 最終島情報一覧
  * @param prevPopulations ターン前の人口マップ (uuid -> population)
@@ -133,6 +135,7 @@ async function awardIslandAchievements(
   db: Kysely<Database>,
   finalData: islandInfoTurnProgress[],
   prevPopulations: Map<string, number>,
+  maxMissileRefugeesAcceptedMap: Map<string, number>,
   nextTurn: number,
   logArray: TurnLog[]
 ) {
@@ -175,6 +178,19 @@ async function awardIslandAchievements(
       nextTurn,
       logArray,
       (prizeName) => logProsperity(island, prizeName)
+    );
+
+    // 平和賞チェック（1回のミサイルで受け入れた難民数の最大値）
+    const maxRefugeesAccepted = maxMissileRefugeesAcceptedMap.get(island.uuid) ?? 0;
+    awardByThreshold(
+      island,
+      maxRefugeesAccepted,
+      peaceAchievements,
+      prizeSet,
+      newPrizes,
+      nextTurn,
+      logArray,
+      (prizeName) => logPeaceAward(island, prizeName, maxRefugeesAccepted)
     );
 
     // 災難賞チェック（今ターンの死亡者数 = ターン前人口 - 現在人口）
@@ -330,6 +346,7 @@ function planPhase(
   cityKills: number;
   destroyedMaps: MissileBreakdown;
   killedMonsters: MissileBreakdown;
+  maxMissileRefugeesAccepted: number;
   deferredPlan: DeferredPlanWrite | null;
 } {
   const nextTurn = currentTurn + 1;
@@ -338,6 +355,7 @@ function planPhase(
   const successCounts = new Map<string, number>();
   let monsterKills = 0;
   let cityKills = 0;
+  let maxMissileRefugeesAccepted = 0;
   const destroyedMaps: MissileBreakdown = {};
   const killedMonsters: MissileBreakdown = {};
 
@@ -363,6 +381,10 @@ function planPhase(
     cityKills += result.missileCityKills ?? 0;
     mergeBreakdowns(destroyedMaps, result.missileDestroyedMaps ?? {});
     mergeBreakdowns(killedMonsters, result.missileKilledMonsters ?? {});
+    maxMissileRefugeesAccepted = Math.max(
+      maxMissileRefugeesAccepted,
+      result.missileRefugeesAccepted ?? 0
+    );
 
     logArray.push(...result.log);
     if (plans[i].times < 1) dropPlans.add(plans[i]);
@@ -395,7 +417,15 @@ function planPhase(
     deferredPlan = { uuid: fromUuid, plans: insertPlans, deleteLength: dropLength };
   }
 
-  return { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters, deferredPlan };
+  return {
+    successCounts,
+    monsterKills,
+    cityKills,
+    destroyedMaps,
+    killedMonsters,
+    maxMissileRefugeesAccepted,
+    deferredPlan,
+  };
 }
 
 /**
@@ -573,6 +603,7 @@ async function processTurnForIslands(
   prevPopulations: Map<string, number>;
   planStats: Map<string, Map<string, number>>;
   missileStats: Map<string, MissileTurnStat>;
+  maxMissileRefugeesAccepted: Map<string, number>;
 }> {
   const allPlans = await fetchActivePlans(
     db,
@@ -586,6 +617,8 @@ async function processTurnForIslands(
   const planStats = new Map<string, Map<string, number>>();
   // ミサイル統計（uuid -> {monsterKill, cityKill}）
   const missileStats = new Map<string, MissileTurnStat>();
+  // 平和賞判定用（uuid -> 1回のミサイルで受け入れた難民数の最大値）
+  const maxMissileRefugeesAccepted = new Map<string, number>();
   // 遅延計画書き込みデータ
   const deferredPlanWrites: DeferredPlanWrite[] = [];
 
@@ -602,8 +635,15 @@ async function processTurnForIslands(
     });
 
     incomeAndEatenPhase(uuid);
-    const { successCounts, monsterKills, cityKills, destroyedMaps, killedMonsters, deferredPlan } =
-      planPhase(turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
+    const {
+      successCounts,
+      monsterKills,
+      cityKills,
+      destroyedMaps,
+      killedMonsters,
+      maxMissileRefugeesAccepted: islandMaxMissileRefugeesAccepted,
+      deferredPlan,
+    } = planPhase(turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
     if (deferredPlan) {
       deferredPlanWrites.push(deferredPlan);
     }
@@ -618,6 +658,9 @@ async function processTurnForIslands(
       destroyedMaps,
       killedMonsters
     );
+    if (islandMaxMissileRefugeesAccepted > 0) {
+      maxMissileRefugeesAccepted.set(uuid, islandMaxMissileRefugeesAccepted);
+    }
     processMapScan(turnInfo.turn, uuid, logArray);
     wideIslandEventPhase(turnInfo.turn, uuid, logArray);
   }
@@ -670,7 +713,7 @@ async function processTurnForIslands(
   // ターン前の人口マップを返す（称号判定に使用）
   const prevPopulations = new Map<string, number>();
   prevStats.forEach((prev, uuid) => prevPopulations.set(uuid, prev.population));
-  return { prevPopulations, planStats, missileStats };
+  return { prevPopulations, planStats, missileStats, maxMissileRefugeesAccepted };
 }
 
 /**
@@ -759,19 +802,22 @@ async function turnProceed(recursiveCount = 0) {
     const logArray: TurnLog[] = [];
     islandDataStore.setState({ data: islandList, indexMap: buildIndexMap(islandList) });
 
-    const { prevPopulations, planStats, missileStats } = await processTurnForIslands(
-      db,
-      islandList,
-      turnInfo,
-      logArray
-    );
+    const { prevPopulations, planStats, missileStats, maxMissileRefugeesAccepted } =
+      await processTurnForIslands(db, islandList, turnInfo, logArray);
 
     islandList = undefined;
     const finalData = islandDataStore.getState().data;
     if (!finalData) throw new Error('島データの取得に失敗しました。');
 
     // 称号付与(updateIslands より前に実行して island.prize を反映)
-    await awardIslandAchievements(db, finalData, prevPopulations, turnInfo.turn + 1, logArray);
+    await awardIslandAchievements(
+      db,
+      finalData,
+      prevPopulations,
+      maxMissileRefugeesAccepted,
+      turnInfo.turn + 1,
+      logArray
+    );
     await awardTurnCup(db, finalData, turnInfo.turn + 1, logArray);
 
     await updateIslands(db, finalData);
