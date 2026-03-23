@@ -49,22 +49,22 @@ export const achievements: achievementType[] = [
   {
     type: 'peace_1',
     name: '平和賞',
-    description: '難民を受け入れた島に贈られる賞。',
-    condition: '20000人以上難民を受け入れる',
+    description: '1回のミサイルで難民を受け入れた島に贈られる賞。',
+    condition: '1回のミサイルで20000人以上の難民を受け入れる',
     threshold: 20_000,
   },
   {
     type: 'peace_2',
     name: '超平和賞',
-    description: '多くの難民を受け入れた島に贈られる賞。',
-    condition: '50000人以上難民を受け入れる',
+    description: '1回のミサイルで多くの難民を受け入れた島に贈られる賞。',
+    condition: '1回のミサイルで50000人以上の難民を受け入れる',
     threshold: 50_000,
   },
   {
     type: 'peace_3',
     name: '究極平和賞',
-    description: 'とてつもなく多くの難民を受け入れた島に贈られる賞。',
-    condition: '100000人以上難民を受け入れる',
+    description: '1回のミサイルでとてつもなく多くの難民を受け入れた島に贈られる賞。',
+    condition: '1回のミサイルで100000人以上の難民を受け入れる',
     threshold: 100_000,
   },
   // 災難賞
