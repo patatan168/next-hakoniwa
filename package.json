@@ -17,7 +17,7 @@
     "turn": "tsx ./src/db/turn.ts",
     "lint": "eslint 'src/**/*.{ts,tsx}' && npm run lint:style && npm run lint:type",
     "lint:style": "stylelint --ignore-path .gitignore 'src/**/*.(css|tsx)'",
-    "lint:type": "tsc --noEmit",
+    "lint:type": "tsc --noEmit --incremental false",
     "fmt": "prettier --write **/*.{css,scss,json,md,ts,tsx}",
     "fmt-check": "prettier --check **/*.{css,scss,json,md}",
     "ncu:upd": "npx -y npm-check-updates -u",
@@ -102,7 +102,6 @@
     "terser-webpack-plugin": "^5.4.0",
     "typedoc": "^0.28.17",
     "typescript": "5.9.3",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.0"
   }
 }

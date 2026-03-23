@@ -26,6 +26,7 @@ describe('FetchStore - GET refresh の保留機構', () => {
       status: 200,
       statusText: 'OK',
       json: async () => data,
+      text: async () => JSON.stringify(data),
     }) as any as Response;
 
   it('isLoading 中の GET refresh は保留され、完了後に再実行される', async () => {

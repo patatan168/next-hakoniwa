@@ -71,6 +71,9 @@ export const grantLoginBonus = async (
   if (currentDay > lastBonusDay) {
     const isConsecutive = currentDay === lastBonusDay + 1;
     const newConsecutiveDays = isConsecutive ? lastLogin.consecutive_login_days + 1 : 1;
+    const lastBonusReceivedAtValue = (
+      typeof lastLogin.last_bonus_received_at === 'string' ? String(nowSeconds) : nowSeconds
+    ) as typeof lastLogin.last_bonus_received_at;
 
     // ボーナス報酬内容
     const envMoney = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_MONEY || '200', 10);
@@ -94,7 +97,7 @@ export const grantLoginBonus = async (
       await trx
         .updateTable('last_login')
         .set({
-          last_bonus_received_at: nowSeconds,
+          last_bonus_received_at: lastBonusReceivedAtValue,
           consecutive_login_days: newConsecutiveDays,
         })
         .where('uuid', '=', uuid)
