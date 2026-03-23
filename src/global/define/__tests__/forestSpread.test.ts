@@ -5,21 +5,20 @@ import { islandDataStore } from '@/global/store/turnProgress';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as mapLand from '../mapCategory/mapLand';
 
+vi.mock('../metadata', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../metadata')>();
+  return {
+    default: {
+      ...actual.default,
+      MAP_SIZE: 10,
+    },
+  };
+});
+
 describe('Forest Spread', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     islandDataStore.getState().reset();
-  });
-
-  // Move mock to top level
-  vi.mock('../metadata', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('../metadata')>();
-    return {
-      default: {
-        ...actual.default,
-        MAP_SIZE: 10,
-      },
-    };
   });
 
   test('Forest should spread to adjacent plains', () => {
