@@ -46,6 +46,9 @@ jobs:
         run: npm ci
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b336ef2 (chore: GitHub ActionsのCI/CDワークフローを更新し、データベーススキーマの同期とNext.jsルートタイプの生成を追加)
       - name: Generate Next.js route types
         run: npx next typegen
 
@@ -55,8 +58,11 @@ jobs:
           DB_CONNECTION_STRING: ./src/db/data/develop.db
         run: npm run db:init
 
+<<<<<<< HEAD
 =======
 >>>>>>> 665bb7d (chore: GitHub ActionsのCI/CDワークフローを追加)
+=======
+>>>>>>> b336ef2 (chore: GitHub ActionsのCI/CDワークフローを更新し、データベーススキーマの同期とNext.jsルートタイプの生成を追加)
       - name: Run lint
         run: npm run lint
 
@@ -98,6 +104,9 @@ jobs:
         run: npm ci
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b336ef2 (chore: GitHub ActionsのCI/CDワークフローを更新し、データベーススキーマの同期とNext.jsルートタイプの生成を追加)
       - name: Generate Next.js route types
         run: npx next typegen
 
@@ -107,7 +116,10 @@ jobs:
           DB_CONNECTION_STRING: ./src/db/data/develop.db
         run: npm run db:init
 
+<<<<<<< HEAD
 =======
 >>>>>>> 665bb7d (chore: GitHub ActionsのCI/CDワークフローを追加)
+=======
+>>>>>>> b336ef2 (chore: GitHub ActionsのCI/CDワークフローを更新し、データベーススキーマの同期とNext.jsルートタイプの生成を追加)
       - name: Run build
         run: npm run build
