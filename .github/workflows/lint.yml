@@ -45,6 +45,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+<<<<<<< HEAD
       - name: Generate Next.js route types
         run: npx next typegen
 
@@ -54,6 +55,8 @@ jobs:
           DB_CONNECTION_STRING: ./src/db/data/develop.db
         run: npm run db:init
 
+=======
+>>>>>>> 665bb7d (chore: GitHub ActionsのCI/CDワークフローを追加)
       - name: Run lint
         run: npm run lint
 
@@ -94,6 +97,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+<<<<<<< HEAD
       - name: Generate Next.js route types
         run: npx next typegen
 
@@ -103,5 +107,7 @@ jobs:
           DB_CONNECTION_STRING: ./src/db/data/develop.db
         run: npm run db:init
 
+=======
+>>>>>>> 665bb7d (chore: GitHub ActionsのCI/CDワークフローを追加)
       - name: Run build
         run: npm run build
