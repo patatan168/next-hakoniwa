@@ -69,22 +69,22 @@ export const achievements: achievementType[] = [
     type: 'disaster_1',
     name: '災難賞',
     description: '度重なる災害に見舞われながらも生き延びた証。',
-    condition: '1ターンに5000人以上の人口が死亡する',
-    threshold: 5_000,
+    condition: '1ターンに50000人以上の人口が死亡する',
+    threshold: 50_000,
   },
   {
     type: 'disaster_2',
     name: '超災難賞',
     description: '更に度重なる災害に見舞われながらも生き延びた証。',
-    condition: '1ターンに10000人以上の人口が死亡する',
-    threshold: 10_000,
+    condition: '1ターンに100000人以上の人口が死亡する',
+    threshold: 100_000,
   },
   {
     type: 'disaster_3',
     name: '究極災難賞',
     description: '天変地異に見舞われながらも生き延びた証。',
-    condition: '1ターンに20000人以上の人口が死亡する',
-    threshold: 20_000,
+    condition: '1ターンに200000人以上の人口が死亡する',
+    threshold: 200_000,
   },
   // 怪獣討伐賞
   {
