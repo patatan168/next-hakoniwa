@@ -7,5 +7,6 @@
     "**/build/**": true,
     "**/coverage/**": true,
     "**/log/**": true
-  }
+  },
+  "git.enableCommitSigning": true
 }
