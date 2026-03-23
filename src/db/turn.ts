@@ -124,7 +124,7 @@ const awardByThreshold = (
 };
 
 /**
- * 繁栄賞・災難賞・怪獣討伐賞・記念碑賞の付与
+ * 繁栄賞・災難賞・怪獣討伐賞・記念碑賞・平和賞の付与
  * @param db DB接続情報
  * @param finalData 最終島情報一覧
  * @param prevPopulations ターン前の人口マップ (uuid -> population)
