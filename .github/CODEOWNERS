@@ -1,0 +1,5 @@
+# CODEOWNERS
+# This file defines the default reviewers for all files in the repository.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @patatan168
