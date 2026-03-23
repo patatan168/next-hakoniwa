@@ -52,6 +52,7 @@ export const normaMissile: planType = {
       missileCityKills: result.cityKills,
       missileDestroyedMaps: result.destroyedMaps,
       missileKilledMonsters: result.killedMonsters,
+      missileRefugeesAccepted: result.refugeeAccepted,
     };
   },
 };
@@ -102,6 +103,7 @@ export const ppMissile: planType = {
       missileCityKills: result.cityKills,
       missileDestroyedMaps: result.destroyedMaps,
       missileKilledMonsters: result.killedMonsters,
+      missileRefugeesAccepted: result.refugeeAccepted,
     };
   },
 };
@@ -152,6 +154,7 @@ export const stMissile: planType = {
       missileCityKills: result.cityKills,
       missileDestroyedMaps: result.destroyedMaps,
       missileKilledMonsters: result.killedMonsters,
+      missileRefugeesAccepted: result.refugeeAccepted,
     };
   },
 };
@@ -202,6 +205,7 @@ export const ldMissile: planType = {
       missileCityKills: result.cityKills,
       missileDestroyedMaps: result.destroyedMaps,
       missileKilledMonsters: result.killedMonsters,
+      missileRefugeesAccepted: result.refugeeAccepted,
     };
   },
 };

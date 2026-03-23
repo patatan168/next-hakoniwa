@@ -120,6 +120,7 @@ export const executeMissile = ({
   cityKills: number;
   destroyedMaps: MissileBreakdown;
   killedMonsters: MissileBreakdown;
+  refugeeAccepted: number;
 } => {
   if (!toIsland) {
     const log = logMissileNoTarget(fromIsland, planName);
@@ -129,6 +130,7 @@ export const executeMissile = ({
       cityKills: 0,
       destroyedMaps: {},
       killedMonsters: {},
+      refugeeAccepted: 0,
     };
   }
 
@@ -141,6 +143,7 @@ export const executeMissile = ({
       cityKills: 0,
       destroyedMaps: {},
       killedMonsters: {},
+      refugeeAccepted: 0,
     };
   }
 
@@ -222,6 +225,7 @@ const processMissileImpacts = ({
   let flagShot = false;
   let monsterKills = 0;
   let cityKills = 0;
+  let refugeeAccepted = 0;
   const destroyedMaps: MissileBreakdown = {};
   const killedMonsters: MissileBreakdown = {};
 
@@ -281,11 +285,12 @@ const processMissileImpacts = ({
   ) {
     // 発生した難民のうち、海上を生き延びて無事に他島へ漂着できるのは半数のみとする仕様
     const validRefugees = Math.floor(accumulatedRefugees / 2);
-    const refugeeLogs = processRefugees(fromIsland, turn, validRefugees);
-    if (refugeeLogs) logs.push(refugeeLogs);
+    const refugeeResult = processRefugees(fromIsland, turn, validRefugees);
+    refugeeAccepted = refugeeResult.distributed;
+    if (refugeeResult.log) logs.push(refugeeResult.log);
   }
 
-  return { logs, monsterKills, cityKills, destroyedMaps, killedMonsters };
+  return { logs, monsterKills, cityKills, destroyedMaps, killedMonsters, refugeeAccepted };
 };
 
 /**
@@ -834,10 +839,14 @@ const handleMonsterImpact = (
  * @param fromIsland 漂着元の島情報
  * @param turn 現在のターン数
  * @param validRefugees 実際に漂着する難民の数
- * @returns 発生した難民漂着ログ（ログがない場合はundefined）
+ * @returns 実際の受け入れ難民数と、発生した場合のみ難民漂着ログ
  */
-const processRefugees = (fromIsland: IslandWithUser, turn: number, validRefugees: number) => {
-  if (validRefugees <= 0) return undefined;
+const processRefugees = (
+  fromIsland: IslandWithUser,
+  turn: number,
+  validRefugees: number
+): { log?: TurnLog; distributed: number } => {
+  if (validRefugees <= 0) return { distributed: 0 };
   let refugeesToDistribute = validRefugees;
   let distributed = 0;
 
@@ -869,9 +878,12 @@ const processRefugees = (fromIsland: IslandWithUser, turn: number, validRefugees
 
   if (distributed > 0) {
     const log = logMissileBoatPeople(fromIsland, distributed);
-    return { ...getBaseLog(turn, fromIsland), secret_log: log, log: null };
+    return {
+      distributed,
+      log: { ...getBaseLog(turn, fromIsland), secret_log: log, log: null },
+    };
   }
-  return undefined;
+  return { distributed: 0 };
 };
 
 /**

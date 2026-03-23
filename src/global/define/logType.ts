@@ -1376,6 +1376,21 @@ export const logDisaster = (
 };
 
 /**
+ * 平和賞受賞ログ
+ * @param island 受賞した島情報
+ * @param prizeName 称号名
+ * @param refugees 1回のミサイルで受け入れた難民数
+ * @returns ログ文字列
+ */
+export const logPeaceAward = (
+  island: Island & Pick<User, 'island_name'>,
+  prizeName: string,
+  refugees: number
+): string => {
+  return `${islandName(island)}が[b]${prizeName}[/b]を受賞しました！（1回の難民受入：${refugees}人）`;
+};
+
+/**
  * 怪獣討伐賞受賞ログ
  * @param island 受賞した島情報
  * @param prizeName 称号名
