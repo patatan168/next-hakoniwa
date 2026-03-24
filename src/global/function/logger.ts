@@ -25,7 +25,7 @@ const logger = (dir: string, request?: NextRequest) => {
   const logDirectory = `log/${dir}`;
   mkdirSync(logDirectory, { recursive: true });
 
-  const transports: winston.transport[] = [
+  const transports = [
     new winston.transports.Console(),
     new DailyRotateFile({
       filename: `${logDirectory}/%DATE%.log`,
