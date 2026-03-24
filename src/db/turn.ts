@@ -763,13 +763,30 @@ async function saveTurnResourceHistory(
 
   if (cutoffRows.rows.length === 0) return;
 
+  const cutoffMap = new Map<number, string[]>();
+  for (const row of cutoffRows.rows) {
+    const cutoffTurn = Number(row.cutoff_turn);
+    if (!Number.isFinite(cutoffTurn)) continue;
+
+    const targetUuids = cutoffMap.get(cutoffTurn);
+    if (targetUuids) {
+      targetUuids.push(row.uuid);
+    } else {
+      cutoffMap.set(cutoffTurn, [row.uuid]);
+    }
+  }
+
+  if (cutoffMap.size === 0) return;
+
   await db.transaction().execute(async (trx) => {
-    for (const row of cutoffRows.rows) {
-      await trx
-        .deleteFrom('turn_resource_history')
-        .where('uuid', '=', row.uuid)
-        .where('turn', '<', row.cutoff_turn)
-        .execute();
+    for (const [cutoffTurn, targetUuids] of cutoffMap) {
+      for (let i = 0; i < targetUuids.length; i += 900) {
+        await trx
+          .deleteFrom('turn_resource_history')
+          .where('uuid', 'in', targetUuids.slice(i, i + 900))
+          .where('turn', '<', cutoffTurn)
+          .execute();
+      }
     }
   });
 }
