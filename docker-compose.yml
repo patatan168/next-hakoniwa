@@ -37,7 +37,6 @@ services:
         condition: service_healthy
     volumes:
       - ./log:/app/log
-      - ./log/next-cache:/app/.next/cache
     command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
 
   web:

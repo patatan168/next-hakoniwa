@@ -38,8 +38,16 @@ ENV HOSTNAME "0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# ビルド成果物・依存パッケージをすべてコピー（Standaloneではなく普通に実行するため全コピー）
-COPY --from=builder --chown=nextjs:nodejs /app ./
+# 実行に必要な成果物のみコピーしてイメージを軽量化する
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/package-lock.json ./package-lock.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
+COPY --from=builder --chown=nextjs:nodejs /app/src/global ./src/global
 
 USER nextjs
 
