@@ -24,7 +24,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: hakoniwa-app
-    user: '${DOCKER_APP_UID:-1000}:${DOCKER_APP_GID:-1000}'
     env_file:
       - .env
       - path: .env.local
