@@ -24,6 +24,8 @@ ENV DB_CONNECTION_STRING mysql://dummy:dummy@localhost:3306/hakoniwa
 
 # Kyselyの自動生成はビルド時ではなくDB起動後に実行したいため、ここでは純粋なnext buildだけ行う
 RUN npm run build
+# runner向けに開発依存を削除しておく
+RUN npm prune --omit=dev
 
 # 3. 実行用ステージ
 FROM node:24-alpine AS runner
@@ -43,13 +45,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/package-lock.json ./package-lock.json
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
 COPY --from=builder --chown=nextjs:nodejs /app/src/global ./src/global
-
-# runner用にはproduction依存のみインストールしてイメージサイズを削減する
-RUN npm ci --omit=dev
 USER nextjs
 
 EXPOSE 3000
