@@ -241,7 +241,7 @@ async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Pro
   await runSafe(sql`CREATE INDEX plan_from_uuid_plan_no_index ON plan(from_uuid, plan_no)`);
   // turn_log の UUID ページング比較を index-friendly にするため、バイナリ照合順序へ寄せる
   await runSafe(
-    sql`ALTER TABLE turn_log MODIFY log_uuid varchar(255) COLLATE utf8mb4_bin NOT NULL`
+    sql`ALTER TABLE turn_log MODIFY log_uuid varchar(25) COLLATE utf8mb4_bin NOT NULL`
   );
   await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
 }
