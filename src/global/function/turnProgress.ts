@@ -190,7 +190,8 @@ export const updateIslands = async (
       const chunk = islandData.slice(i, i + CHUNK);
       const values = chunk.map((tmp) => {
         const islandInfoJson = JSON.stringify(tmp.island_info);
-        return sql`(${tmp.uuid}, ${tmp.money}, ${tmp.area}, ${tmp.population}, ${tmp.food}, ${tmp.farm}, ${tmp.factory}, ${tmp.mining}, ${tmp.missile}, ${typeof tmp.prize === 'string' ? tmp.prize : ''}, ${islandInfoJson})`;
+        const islandInfoParam = isSqlite ? sql`jsonb(${islandInfoJson})` : islandInfoJson;
+        return sql`(${tmp.uuid}, ${tmp.money}, ${tmp.area}, ${tmp.population}, ${tmp.food}, ${tmp.farm}, ${tmp.factory}, ${tmp.mining}, ${tmp.missile}, ${typeof tmp.prize === 'string' ? tmp.prize : ''}, ${islandInfoParam})`;
       });
 
       if (isSqlite) {
