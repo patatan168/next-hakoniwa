@@ -183,30 +183,46 @@ export const updateIslands = async (
   db: Kysely<Database> | Transaction<Database>,
   islandData: islandData
 ) => {
-  await db.transaction().execute(async (trx) => {
-    for (const tmp of islandData) {
-      // island_infoのみJSONとして保存する
-      const islandInfoJson = JSON.stringify(tmp.island_info);
-      const islandInfoSql = isSqlite
-        ? sql<string>`jsonb(${islandInfoJson})`
-        : sql<string>`${islandInfoJson}`;
+  const CHUNK = 200;
 
-      await trx
-        .updateTable('island')
-        .set({
-          prize: typeof tmp.prize === 'string' ? tmp.prize : '',
-          money: tmp.money,
-          area: tmp.area,
-          population: tmp.population,
-          food: tmp.food,
-          farm: tmp.farm,
-          factory: tmp.factory,
-          mining: tmp.mining,
-          missile: tmp.missile,
-          island_info: islandInfoSql,
-        })
-        .where('uuid', '=', tmp.uuid)
-        .execute();
+  await db.transaction().execute(async (trx) => {
+    for (let i = 0; i < islandData.length; i += CHUNK) {
+      const chunk = islandData.slice(i, i + CHUNK);
+      const values = chunk.map((tmp) => {
+        const islandInfoJson = JSON.stringify(tmp.island_info);
+        const islandInfoParam = isSqlite ? sql`jsonb(${islandInfoJson})` : islandInfoJson;
+        return sql`(${tmp.uuid}, ${tmp.money}, ${tmp.area}, ${tmp.population}, ${tmp.food}, ${tmp.farm}, ${tmp.factory}, ${tmp.mining}, ${tmp.missile}, ${typeof tmp.prize === 'string' ? tmp.prize : ''}, ${islandInfoParam})`;
+      });
+
+      if (isSqlite) {
+        await sql`INSERT INTO island (uuid, money, area, population, food, farm, factory, mining, missile, prize, island_info)
+          VALUES ${sql.join(values)}
+          ON CONFLICT(uuid) DO UPDATE SET
+            money = excluded.money,
+            area = excluded.area,
+            population = excluded.population,
+            food = excluded.food,
+            farm = excluded.farm,
+            factory = excluded.factory,
+            mining = excluded.mining,
+            missile = excluded.missile,
+            prize = excluded.prize,
+            island_info = excluded.island_info`.execute(trx);
+      } else {
+        await sql`INSERT INTO island (uuid, money, area, population, food, farm, factory, mining, missile, prize, island_info)
+          VALUES ${sql.join(values)}
+          ON DUPLICATE KEY UPDATE
+            money = VALUES(money),
+            area = VALUES(area),
+            population = VALUES(population),
+            food = VALUES(food),
+            farm = VALUES(farm),
+            factory = VALUES(factory),
+            mining = VALUES(mining),
+            missile = VALUES(missile),
+            prize = VALUES(prize),
+            island_info = VALUES(island_info)`.execute(trx);
+      }
     }
   });
 };

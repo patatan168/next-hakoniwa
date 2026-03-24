@@ -2,7 +2,7 @@
  * @module auth/turn-log
  * @description 認証済みユーザー向けターンログを返すAPIルート。
  */
-import { db, isSqlite } from '@/db/kysely';
+import { db } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
@@ -31,19 +31,29 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  let query = db
-    .selectFrom('turn_log')
-    .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'secret_log'])
-    .where((eb) => eb.or([eb('from_uuid', '=', uuid), eb('to_uuid', '=', uuid)]));
+  const log = await sql<{
+    log_uuid: string;
+    from_uuid: string;
+    to_uuid: string | null;
+    turn: number;
+    secret_log: string;
+  }>`
+    SELECT log_uuid, from_uuid, to_uuid, turn, secret_log
+    FROM (
+      SELECT log_uuid, from_uuid, to_uuid, turn, secret_log
+      FROM turn_log
+      WHERE from_uuid = ${uuid}
+        AND log_uuid < ${logUuid}
+      UNION ALL
+      SELECT log_uuid, from_uuid, to_uuid, turn, secret_log
+      FROM turn_log
+      WHERE to_uuid = ${uuid}
+        AND from_uuid <> ${uuid}
+        AND log_uuid < ${logUuid}
+    ) AS merged
+    ORDER BY log_uuid DESC
+    LIMIT 100
+  `.execute(db);
 
-  if (isSqlite) {
-    query = query.where('log_uuid', '<', logUuid).orderBy('log_uuid', 'desc');
-  } else {
-    query = query
-      .where(sql<boolean>`BINARY log_uuid < ${logUuid}`)
-      .orderBy(sql`BINARY log_uuid`, 'desc');
-  }
-
-  const log = await query.limit(100).execute();
-  return NextResponse.json(log);
+  return NextResponse.json(log.rows);
 }

@@ -205,6 +205,12 @@ async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Pro
     await sql`CREATE INDEX IF NOT EXISTS turn_log_uuid_index ON turn_log(log_uuid DESC)`.execute(
       db
     );
+    await sql`CREATE INDEX IF NOT EXISTS turn_log_from_uuid_log_uuid_index ON turn_log(from_uuid, log_uuid DESC)`.execute(
+      db
+    );
+    await sql`CREATE INDEX IF NOT EXISTS turn_log_to_uuid_log_uuid_index ON turn_log(to_uuid, log_uuid DESC)`.execute(
+      db
+    );
     await sql`CREATE UNIQUE INDEX IF NOT EXISTS turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`.execute(
       db
     );
@@ -212,6 +218,9 @@ async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Pro
       db
     );
     await sql`CREATE INDEX IF NOT EXISTS plan_from_uuid_index ON plan(from_uuid)`.execute(db);
+    await sql`CREATE INDEX IF NOT EXISTS plan_from_uuid_plan_no_index ON plan(from_uuid, plan_no)`.execute(
+      db
+    );
     return;
   }
 
@@ -219,10 +228,21 @@ async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Pro
   await runSafe(sql`CREATE INDEX island_population_index ON island(population)`);
   await runSafe(sql`CREATE INDEX turn_log_uuid_index ON turn_log(log_uuid DESC)`);
   await runSafe(
+    sql`CREATE INDEX turn_log_from_uuid_log_uuid_index ON turn_log(from_uuid, log_uuid DESC)`
+  );
+  await runSafe(
+    sql`CREATE INDEX turn_log_to_uuid_log_uuid_index ON turn_log(to_uuid, log_uuid DESC)`
+  );
+  await runSafe(
     sql`CREATE UNIQUE INDEX turn_resource_history_uuid_turn_unique ON turn_resource_history(uuid, turn)`
   );
   await runSafe(sql`CREATE INDEX turn_resource_history_uuid_index ON turn_resource_history(uuid)`);
   await runSafe(sql`CREATE INDEX plan_from_uuid_index ON plan(from_uuid)`);
+  await runSafe(sql`CREATE INDEX plan_from_uuid_plan_no_index ON plan(from_uuid, plan_no)`);
+  // turn_log の UUID ページング比較を index-friendly にするため、バイナリ照合順序へ寄せる
+  await runSafe(
+    sql`ALTER TABLE turn_log MODIFY log_uuid varchar(25) COLLATE utf8mb4_bin NOT NULL`
+  );
   await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
 }
 
