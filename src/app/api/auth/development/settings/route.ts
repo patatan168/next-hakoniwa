@@ -10,6 +10,7 @@ import {
   getIslandNameChangeCooldownSeconds,
 } from '@/global/function/islandNameChangeCooldown';
 import { accessLogger } from '@/global/function/logger';
+import { profanityCheck } from '@/global/function/profanity';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { developmentSettingsSchema } from '@/global/valid/server/developmentSettings';
 import { NextRequest, NextResponse } from 'next/server';
@@ -132,6 +133,13 @@ export async function PUT(request: NextRequest) {
 
   const titleError = await validateTitleSelection(uuid, nextTitle);
   if (titleError) return titleError;
+
+  if (nextIslandNamePrefix) {
+    // 卑猥語/差別用語チェック
+    if (profanityCheck(nextIslandNamePrefix)) {
+      return errorResponse('不適切な単語が含まれています', 400);
+    }
+  }
 
   await updateDevelopmentSettings(uuid, nextIslandName, nextIslandNamePrefix, nextTitle);
 
