@@ -74,6 +74,25 @@ async function validateTitleSelection(uuid: string, nextTitle?: string) {
   return null;
 }
 
+function validateDisplayNameProfanity(
+  nextIslandName: string | undefined,
+  nextIslandNamePrefix: string | undefined
+) {
+  if (nextIslandName && profanityCheck(nextIslandName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+  if (nextIslandNamePrefix && profanityCheck(nextIslandNamePrefix)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+
+  const combinedDisplayName = [nextIslandNamePrefix, nextIslandName].filter(Boolean).join('');
+  if (combinedDisplayName && profanityCheck(combinedDisplayName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+
+  return null;
+}
+
 async function updateDevelopmentSettings(
   uuid: string,
   nextIslandName: string | undefined,
@@ -135,25 +154,8 @@ export async function PUT(request: NextRequest) {
   const titleError = await validateTitleSelection(uuid, nextTitle);
   if (titleError) return titleError;
 
-  // 卑猥語/差別用語チェック
-  // 単体の prefix / islandName だけでなく、結合後の表示名に対してもチェックを行う
-  if (nextIslandName && profanityCheck(nextIslandName)) {
-    return errorResponse('不適切な単語が含まれています', 400);
-  }
-  if (nextIslandNamePrefix && profanityCheck(nextIslandNamePrefix)) {
-    return errorResponse('不適切な単語が含まれています', 400);
-  }
-  const displayNameParts: string[] = [];
-  if (nextIslandNamePrefix) {
-    displayNameParts.push(nextIslandNamePrefix);
-  }
-  if (nextIslandName) {
-    displayNameParts.push(nextIslandName);
-  }
-  const combinedDisplayName = displayNameParts.join('');
-  if (combinedDisplayName && profanityCheck(combinedDisplayName)) {
-    return errorResponse('不適切な単語が含まれています', 400);
-  }
+  const profanityError = validateDisplayNameProfanity(nextIslandName, nextIslandNamePrefix);
+  if (profanityError) return profanityError;
 
   await updateDevelopmentSettings(uuid, nextIslandName, nextIslandNamePrefix, nextTitle);
 
