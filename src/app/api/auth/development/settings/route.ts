@@ -135,11 +135,24 @@ export async function PUT(request: NextRequest) {
   const titleError = await validateTitleSelection(uuid, nextTitle);
   if (titleError) return titleError;
 
+  // 卑猥語/差別用語チェック
+  // 単体の prefix / islandName だけでなく、結合後の表示名に対してもチェックを行う
+  if (nextIslandName && profanityCheck(nextIslandName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+  if (nextIslandNamePrefix && profanityCheck(nextIslandNamePrefix)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+  const displayNameParts: string[] = [];
   if (nextIslandNamePrefix) {
-    // 卑猥語/差別用語チェック
-    if (profanityCheck(nextIslandNamePrefix)) {
-      return errorResponse('不適切な単語が含まれています', 400);
-    }
+    displayNameParts.push(nextIslandNamePrefix);
+  }
+  if (nextIslandName) {
+    displayNameParts.push(nextIslandName);
+  }
+  const combinedDisplayName = displayNameParts.join('');
+  if (combinedDisplayName && profanityCheck(combinedDisplayName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
   }
 
   await updateDevelopmentSettings(uuid, nextIslandName, nextIslandNamePrefix, nextTitle);
