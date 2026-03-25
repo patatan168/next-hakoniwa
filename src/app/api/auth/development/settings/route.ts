@@ -10,6 +10,7 @@ import {
   getIslandNameChangeCooldownSeconds,
 } from '@/global/function/islandNameChangeCooldown';
 import { accessLogger } from '@/global/function/logger';
+import { profanityCheck } from '@/global/function/profanity';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { developmentSettingsSchema } from '@/global/valid/server/developmentSettings';
 import { NextRequest, NextResponse } from 'next/server';
@@ -42,6 +43,7 @@ async function validateIslandNameChange(
     .select('uuid')
     .where('island_name', '=', nextIslandName)
     .where('uuid', '!=', uuid)
+    .where('inhabited', '=', 1)
     .executeTakeFirst();
   if (exists) {
     return errorResponse('同じ島名は登録できません。', 409);
@@ -67,6 +69,25 @@ async function validateTitleSelection(uuid: string, nextTitle?: string) {
     .executeTakeFirst();
   if (!hasPrize) {
     return errorResponse('その称号は選択できません。', 400);
+  }
+
+  return null;
+}
+
+function validateDisplayNameProfanity(
+  nextIslandName: string | undefined,
+  nextIslandNamePrefix: string | undefined
+) {
+  if (nextIslandName && profanityCheck(nextIslandName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+  if (nextIslandNamePrefix && profanityCheck(nextIslandNamePrefix)) {
+    return errorResponse('不適切な単語が含まれています', 400);
+  }
+
+  const combinedDisplayName = [nextIslandNamePrefix, nextIslandName].filter(Boolean).join('');
+  if (combinedDisplayName && profanityCheck(combinedDisplayName)) {
+    return errorResponse('不適切な単語が含まれています', 400);
   }
 
   return null;
@@ -132,6 +153,9 @@ export async function PUT(request: NextRequest) {
 
   const titleError = await validateTitleSelection(uuid, nextTitle);
   if (titleError) return titleError;
+
+  const profanityError = validateDisplayNameProfanity(nextIslandName, nextIslandNamePrefix);
+  if (profanityError) return profanityError;
 
   await updateDevelopmentSettings(uuid, nextIslandName, nextIslandNamePrefix, nextTitle);
 
