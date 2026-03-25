@@ -25,6 +25,16 @@ const logger = (dir: string, request?: NextRequest) => {
   const logDirectory = `log/${dir}`;
   mkdirSync(logDirectory, { recursive: true });
 
+  const transports = [
+    new winston.transports.Console(),
+    new DailyRotateFile({
+      filename: `${logDirectory}/%DATE%.log`,
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxFiles: '90d',
+    }),
+  ];
+
   return winston.createLogger({
     level: 'silly',
     format: winston.format.combine(
@@ -33,15 +43,7 @@ const logger = (dir: string, request?: NextRequest) => {
       }),
       logFormat(request)
     ),
-    transports: [
-      new winston.transports.Console(),
-      new DailyRotateFile({
-        filename: `${logDirectory}/%DATE%.log`,
-        datePattern: 'YYYY-MM-DD',
-        maxSize: '20m',
-        maxFiles: '90d',
-      }),
-    ],
+    transports,
   });
 };
 

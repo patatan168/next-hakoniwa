@@ -24,7 +24,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: hakoniwa-app
-    user: '${DOCKER_APP_UID:-1000}:${DOCKER_APP_GID:-1000}'
+    env_file:
+      - .env
+      - path: .env.local
+        required: false
     environment:
       # build時にDB_TYPE=mysqlでビルドされているが、ここでも明示しておく
       DB_TYPE: mysql
@@ -37,7 +40,6 @@ services:
         condition: service_healthy
     volumes:
       - ./log:/app/log
-      - ./log/next-cache:/app/.next/cache
     command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
 
   web:

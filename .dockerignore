@@ -1,0 +1,16 @@
+.git
+.github
+.vscode
+node_modules
+
+coverage
+storybook-static
+pentest-results
+log
+
+docs
+
+*.log
+*.tmp
+
+.DS_Store

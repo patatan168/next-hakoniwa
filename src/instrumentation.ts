@@ -26,20 +26,21 @@ export async function register() {
       const tz = process.env.NEXT_PUBLIC_TURN_TIMEZONE;
       // cronerを用いてパース、スケジュール登録（書式が不正であればここでエラーになる）
       const job = new Cron(cronStr, { timezone: tz }, () => {
-        console.log('[TurnScheduler] Executing npm run turn (cron triggered)...');
-        // Execute npm run turn in a child process so it doesn't block the main event loop
-        const child = spawn('npm', ['run', 'turn'], {
+        console.log('[TurnScheduler] Executing turn script (cron triggered)...');
+        // npm を経由せず node を直接起動し、オーバーヘッドを抑える
+        const child = spawn(process.execPath, ['--import', 'tsx', './src/db/turn.ts'], {
           stdio: 'inherit',
-          shell: true,
+          shell: false,
+          env: process.env,
         });
 
         child.on('error', (err) => {
-          console.error('[TurnScheduler] Error executing npm run turn:', err);
+          console.error('[TurnScheduler] Error executing turn script:', err);
         });
 
         child.on('close', (code) => {
           if (code !== 0) {
-            console.error(`[TurnScheduler] npm run turn process exited with code ${code}`);
+            console.error(`[TurnScheduler] turn process exited with code ${code}`);
           } else {
             console.log('[TurnScheduler] Turn progress execution completed successfully.');
           }
