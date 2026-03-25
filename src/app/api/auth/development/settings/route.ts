@@ -43,6 +43,7 @@ async function validateIslandNameChange(
     .select('uuid')
     .where('island_name', '=', nextIslandName)
     .where('uuid', '!=', uuid)
+    .where('inhabited', '=', 1)
     .executeTakeFirst();
   if (exists) {
     return errorResponse('同じ島名は登録できません。', 409);
