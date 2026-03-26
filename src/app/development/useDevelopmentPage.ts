@@ -65,7 +65,7 @@ export const useDevelopmentPage = () => {
     fetch: fetchSightData,
     isLoading: isSightLoading,
   } = useClientFetch(islandSightStore);
-  const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
+  const { data: turnData, fetch: fetchTurn } = useClientFetch(turnStore);
   const {
     data: fetchPlanData,
     isLoading: isPlanLoading,
@@ -120,10 +120,17 @@ export const useDevelopmentPage = () => {
 
   useEffect(() => {
     fetchDevelop({ method: 'GET' });
-    fetchTurn({ method: 'GET' });
+    fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true, query: `_=${Date.now()}` });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true, query: `_=${Date.now()}` });
+    }, 10000);
+    return () => clearInterval(id);
+  }, [fetchTurn]);
 
   useEffect(() => {
     if (!currentSelectedIslandUuid || !ownIslandUuid) return;
