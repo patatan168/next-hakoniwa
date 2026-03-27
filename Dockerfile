@@ -8,6 +8,13 @@ COPY package.json package-lock.json* ./
 # lefthook が .git ディレクトリを要求するため、ダミーで初期化してからインストールする
 RUN git init && npm ci
 
+# 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
+FROM node:24-alpine AS prod-deps
+RUN apk add --no-cache libc6-compat git python3 make g++
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN git init && npm ci --omit=dev --ignore-scripts
+
 # 2. ビルド用ステージ
 FROM node:24-alpine AS builder
 WORKDIR /app
@@ -24,8 +31,6 @@ ENV DB_CONNECTION_STRING mysql://dummy:dummy@localhost:3306/hakoniwa
 
 # Kyselyの自動生成はビルド時ではなくDB起動後に実行したいため、ここでは純粋なnext buildだけ行う
 RUN npm run build
-# runner向けに開発依存を削除しておく
-RUN npm prune --omit=dev
 
 # 3. 実行用ステージ
 FROM node:24-alpine AS runner
@@ -44,7 +49,7 @@ COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/package-lock.json ./package-lock.json
 COPY --from=builder --chown=node:node /app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=node:node /app/tsconfig.json ./tsconfig.json
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/.next ./.next
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/src/db ./src/db
