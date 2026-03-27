@@ -120,7 +120,7 @@ export const useDevelopmentPage = () => {
 
   useEffect(() => {
     fetchDevelop({ method: 'GET' });
-    fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true, query: `_=${Date.now()}` });
+    fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
