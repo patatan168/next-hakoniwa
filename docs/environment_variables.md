@@ -136,24 +136,27 @@
 
 各種イベントの発生確率は「毎ターンの発生確率（%）」です。
 
-| 変数名                                  | 例     | 説明                              |
-| --------------------------------------- | ------ | --------------------------------- |
-| `NEXT_PUBLIC_EARTHQUAKE_RATE`           | `0.5`  | 地震の発生確率（%）               |
-| `NEXT_PUBLIC_EARTHQUAKE_DESTROY_RATE`   | `25`   | 地震で破壊される地形の割合（%）   |
-| `NEXT_PUBLIC_TSUNAMI_RATE`              | `1.5`  | 津波の発生確率（%）               |
-| `NEXT_PUBLIC_TYPHOON_RATE`              | `2`    | 台風の発生確率（%）               |
-| `NEXT_PUBLIC_METEORITE_RATE`            | `1.5`  | 隕石の発生確率（%）               |
-| `NEXT_PUBLIC_CONTINUOUS_METEORITE_RATE` | `50`   | 隕石が連続して落下する確率（%）   |
-| `NEXT_PUBLIC_HUGE_METEORITE_RATE`       | `0.5`  | 巨大隕石の発生確率（%）           |
-| `NEXT_PUBLIC_ERUPTION_RATE`             | `1`    | 火山噴火の発生確率（%）           |
-| `NEXT_PUBLIC_FIRE_RATE`                 | `1`    | 火災の発生確率（%）               |
-| `NEXT_PUBLIC_FALL_DOWN_RATE`            | `3`    | 建物崩壊の発生確率（%）           |
-| `NEXT_PUBLIC_FALL_DOWN_BORDER`          | `9000` | 建物崩壊が発生する人口の閾値      |
-| `NEXT_PUBLIC_BURIED_TREASURE_RATE`      | `0.1`  | 埋蔵金発見の発生確率（%）         |
-| `NEXT_PUBLIC_OIL_FIELD_RATE`            | `1`    | 油田発見の発生確率（%）           |
-| `NEXT_PUBLIC_OIL_EXHAUSTION_RATE`       | `40`   | 油田が枯渇する確率（%、毎ターン） |
-| `NEXT_PUBLIC_OIL_EARN`                  | `1000` | 油田からの収益                    |
-| `NEXT_PUBLIC_MONSTER_RATE`              | `0.03` | 怪獣出現の発生確率（%）           |
+| 変数名                                  | 例       | 説明                              |
+| --------------------------------------- | -------- | --------------------------------- |
+| `NEXT_PUBLIC_EARTHQUAKE_RATE`           | `0.5`    | 地震の発生確率（%）               |
+| `NEXT_PUBLIC_EARTHQUAKE_DESTROY_RATE`   | `25`     | 地震で破壊される地形の割合（%）   |
+| `NEXT_PUBLIC_TSUNAMI_RATE`              | `1.5`    | 津波の発生確率（%）               |
+| `NEXT_PUBLIC_TYPHOON_RATE`              | `2`      | 台風の発生確率（%）               |
+| `NEXT_PUBLIC_METEORITE_RATE`            | `1.5`    | 隕石の発生確率（%）               |
+| `NEXT_PUBLIC_CONTINUOUS_METEORITE_RATE` | `50`     | 隕石が連続して落下する確率（%）   |
+| `NEXT_PUBLIC_HUGE_METEORITE_RATE`       | `0.5`    | 巨大隕石の発生確率（%）           |
+| `NEXT_PUBLIC_ERUPTION_RATE`             | `1`      | 火山噴火の発生確率（%）           |
+| `NEXT_PUBLIC_FIRE_RATE`                 | `1`      | 火災の発生確率（%）               |
+| `NEXT_PUBLIC_FALL_DOWN_RATE`            | `3`      | 建物崩壊の発生確率（%）           |
+| `NEXT_PUBLIC_FALL_DOWN_BORDER`          | `9000`   | 建物崩壊が発生する人口の閾値      |
+| `NEXT_PUBLIC_BURIED_TREASURE_RATE`      | `0.1`    | 埋蔵金発見の発生確率（%）         |
+| `NEXT_PUBLIC_OIL_FIELD_RATE`            | `1`      | 油田発見の発生確率（%）           |
+| `NEXT_PUBLIC_OIL_EXHAUSTION_RATE`       | `40`     | 油田が枯渇する確率（%、毎ターン） |
+| `NEXT_PUBLIC_OIL_EARN`                  | `1000`   | 油田からの収益                    |
+| `NEXT_PUBLIC_MONSTER_RATE`              | `0.03`   | 怪獣出現の発生確率（%）           |
+| `NEXT_PUBLIC_MONSTER_POP_BORDER_1`      | `100000` | 怪獣出現レベル1の人口閾値         |
+| `NEXT_PUBLIC_MONSTER_POP_BORDER_2`      | `250000` | 怪獣出現レベル2の人口閾値         |
+| `NEXT_PUBLIC_MONSTER_POP_BORDER_3`      | `400000` | 怪獣出現レベル3の人口閾値         |
 
 ---
 

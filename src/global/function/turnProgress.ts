@@ -685,11 +685,33 @@ export const tsunamiExecute = (islandUuid: string, turn: number) => {
  * @returns モンスター配列
  */
 const getPopMonsterArray = (population: number) => {
-  const monsterArray: mapType[] =
-    Object.entries(mapMonster)
-      .map(([_, value]) => ({ ...value }))
-      .filter((map) => population >= valueOrSafeLimit(map.minPopPopulation, 'max')) ?? [];
-  return monsterArray;
+  if (population >= META_DATA.MONSTER_POP_BORDER_3) {
+    return [
+      mapMonster.inora,
+      mapMonster.sanjira,
+      mapMonster.redInora,
+      mapMonster.darkInora,
+      mapMonster.inoraGhost,
+      mapMonster.kujira,
+      mapMonster.kingInora,
+    ];
+  }
+
+  if (population >= META_DATA.MONSTER_POP_BORDER_2) {
+    return [
+      mapMonster.inora,
+      mapMonster.sanjira,
+      mapMonster.redInora,
+      mapMonster.darkInora,
+      mapMonster.inoraGhost,
+    ];
+  }
+
+  if (population >= META_DATA.MONSTER_POP_BORDER_1) {
+    return [mapMonster.inora, mapMonster.sanjira];
+  }
+
+  return [];
 };
 
 /**
@@ -745,13 +767,15 @@ export const popMonsterExecute = (islandUuid: string, turn: number) => {
   if (island.artificialMonster > 0) {
     // 怪獣派遣がされている場合は、メカいのらを出現させる
     return popMonster(island, mapMonster.mekaInora, turn, island.artificialMonster);
-  } else if (checkProbability((island.monster * island.area) / 100)) {
-    // 怪獣派遣がされていない場合は、人口に応じたモンスターを出現させる
-    const monsterArray = getPopMonsterArray(island.population);
-    if (monsterArray.length > 0) {
-      const popMonsterType = monsterArray[randomIntInRange(0, monsterArray.length - 1)];
-      return popMonster(island, popMonsterType, turn);
-    }
+  }
+
+  // 怪獣派遣がされていない場合は、人口に応じたモンスターを出現させる
+  const monsterArray = getPopMonsterArray(island.population);
+  if (monsterArray.length === 0) return;
+
+  if (checkProbability((island.monster * island.area) / 100)) {
+    const popMonsterType = monsterArray[randomIntInRange(0, monsterArray.length - 1)];
+    return popMonster(island, popMonsterType, turn);
   }
 };
 

@@ -86,6 +86,12 @@ const META_DATA = Object.freeze({
   VILLAGE_APPEARANCE_RATE: Number(process.env.NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE!),
   /** 面積あたりの怪獣出現率 ( % / 100万坪 ) */
   MONSTER_RATE: Number(process.env.NEXT_PUBLIC_MONSTER_RATE!),
+  /** 怪獣出現の人口閾値1 */
+  MONSTER_POP_BORDER_1: Number(process.env.NEXT_PUBLIC_MONSTER_POP_BORDER_1!),
+  /** 怪獣出現の人口閾値2 */
+  MONSTER_POP_BORDER_2: Number(process.env.NEXT_PUBLIC_MONSTER_POP_BORDER_2!),
+  /** 怪獣出現の人口閾値3 */
+  MONSTER_POP_BORDER_3: Number(process.env.NEXT_PUBLIC_MONSTER_POP_BORDER_3!),
   /** ターンあたりの最大人口増加量 ( 百人 / Turn ) */
   PEOPLE_GROWTH: {
     VILLAGE: Number(process.env.NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE!),
