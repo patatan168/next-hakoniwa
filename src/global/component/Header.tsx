@@ -4,7 +4,7 @@
  */
 'use client';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
 import { getCookie } from '../function/cookie';
 import { useClientFetch } from '../function/fetch/clientFetch';
@@ -18,9 +18,18 @@ const SignUp = dynamic(() => import('./SignUp'), { ssr: false });
 export default function Header() {
   const [existsToken, setExistsToken] = useState<boolean | null>(null);
   const { data, fetch } = useClientFetch(turnStore);
-  useEffect(() => {
-    fetch({ method: 'GET' }, { refresh: true });
+
+  const refreshTurn = useCallback(async () => {
+    await fetch({ method: 'GET', cache: 'no-store' }, { refresh: true });
+    // 2秒後に再取得して最新値を確実に反映する
+    setTimeout(() => {
+      fetch({ method: 'GET', cache: 'no-store' }, { refresh: true });
+    }, 2000);
   }, [fetch]);
+
+  useEffect(() => {
+    refreshTurn();
+  }, [refreshTurn]);
 
   useEffect(() => {
     const update = () => setExistsToken(!!getCookie('__Host-exists_refresh_token'));
@@ -42,7 +51,7 @@ export default function Header() {
 
       // ターン処理中はポーリングで完了を待つ
       if (turnState.turn_processing === 1) {
-        fetch({ method: 'GET' }, { refresh: true });
+        refreshTurn();
         setNextUpdateStr('(更新処理中...)');
         return;
       }
@@ -51,7 +60,7 @@ export default function Header() {
 
       // 更新予定時刻を過ぎた場合には最新の状態を取得するために再度フェッチする
       if (remainMs <= 0) {
-        fetch({ method: 'GET' }, { refresh: true });
+        refreshTurn();
         setNextUpdateStr('(更新処理中...)');
         return;
       }
@@ -73,7 +82,7 @@ export default function Header() {
     updateNextTime();
     const id = setInterval(updateNextTime, 1000);
     return () => clearInterval(id);
-  }, [data.get]);
+  }, [data.get, refreshTurn]);
 
   return (
     <header className="bg-emerald-100">

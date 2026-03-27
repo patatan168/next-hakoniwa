@@ -65,7 +65,7 @@ export const useDevelopmentPage = () => {
     fetch: fetchSightData,
     isLoading: isSightLoading,
   } = useClientFetch(islandSightStore);
-  const { data: turnData, fetchIfNeeded: fetchTurn } = useClientFetch(turnStore);
+  const { data: turnData, fetch: fetchTurn } = useClientFetch(turnStore);
   const {
     data: fetchPlanData,
     isLoading: isPlanLoading,
@@ -120,7 +120,7 @@ export const useDevelopmentPage = () => {
 
   useEffect(() => {
     fetchDevelop({ method: 'GET' });
-    fetchTurn({ method: 'GET' });
+    fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true });
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
