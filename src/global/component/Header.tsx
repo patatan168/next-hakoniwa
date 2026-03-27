@@ -4,7 +4,7 @@
  */
 'use client';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { IoBookSharp, IoHomeSharp } from 'react-icons/io5';
 import { getCookie } from '../function/cookie';
 import { useClientFetch } from '../function/fetch/clientFetch';
@@ -19,17 +19,17 @@ export default function Header() {
   const [existsToken, setExistsToken] = useState<boolean | null>(null);
   const { data, fetch } = useClientFetch(turnStore);
 
-  const refreshTurn = async () => {
+  const refreshTurn = useCallback(async () => {
     await fetch({ method: 'GET', cache: 'no-store' }, { refresh: true });
     // 2秒後に再取得して最新値を確実に反映する
     setTimeout(() => {
       fetch({ method: 'GET', cache: 'no-store' }, { refresh: true });
     }, 2000);
-  };
+  }, [fetch]);
 
   useEffect(() => {
     refreshTurn();
-  }, []);
+  }, [refreshTurn]);
 
   useEffect(() => {
     const update = () => setExistsToken(!!getCookie('__Host-exists_refresh_token'));
@@ -82,7 +82,7 @@ export default function Header() {
     updateNextTime();
     const id = setInterval(updateNextTime, 1000);
     return () => clearInterval(id);
-  }, [data.get]);
+  }, [data.get, refreshTurn]);
 
   return (
     <header className="bg-emerald-100">
