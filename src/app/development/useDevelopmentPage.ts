@@ -126,13 +126,6 @@ export const useDevelopmentPage = () => {
   }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true, query: `_=${Date.now()}` });
-    }, 10000);
-    return () => clearInterval(id);
-  }, [fetchTurn]);
-
-  useEffect(() => {
     if (!currentSelectedIslandUuid || !ownIslandUuid) return;
     if (currentSelectedIslandUuid === ownIslandUuid) {
       fetchDevelop({ method: 'GET' });
