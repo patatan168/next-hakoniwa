@@ -249,14 +249,15 @@ export function monsterMove(
   // 怪獣の移動イベントが実行済みか判定
   if (mapInfo.monsterDistance !== undefined && mapInfo.monsterDistance >= maxMoveDistance) return;
 
-  // 移動カウントの更新
-  mapInfo.monsterDistance = (mapInfo.monsterDistance ?? 0) + 1;
-
   // 移動先の決定
   const moveCoordinate = decideMonsterMoveCoordinate(x, y, maxMoveDistance, fromIsland);
 
   // 移動先が決定しない場合は終了
   if (!moveCoordinate) return;
+
+  // 実際に移動できる場合のみ移動カウントを更新
+  mapInfo.monsterDistance = (mapInfo.monsterDistance ?? 0) + 1;
+  const movedMonsterDistance = mapInfo.monsterDistance;
 
   const { x: moveX, y: moveY } = moveCoordinate;
   const moveMapInfo = fromIsland.island_info[mapArrayConverter(moveX, moveY)];
@@ -271,8 +272,10 @@ export function monsterMove(
   const log = logMonsterMove(fromIsland, x, y, moveX, moveY);
   // 移動先のマップ情報を変更
   changeMapData(fromIsland, moveX, moveY, mapInfo.type, { type: 'ins', value: mapInfo.landValue });
+  moveMapInfo.monsterDistance = movedMonsterDistance;
   // 元のマップを荒地に変更
   changeMapData(fromIsland, x, y, 'wasteland', { type: 'ins', value: 0 });
+  delete mapInfo.monsterDistance;
 
   return [{ ...baseLog, log, secret_log: log }];
 }
