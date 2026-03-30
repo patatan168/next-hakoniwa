@@ -103,6 +103,8 @@ describe('popMonsterExecute', () => {
 
     expect(logs).toHaveLength(1);
     expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBe('meka_inora');
+    expect(logs?.[0].log).toContain('[b]都市[/b]が踏み荒らされました');
+    expect(logs?.[0].log).not.toContain('[b]怪獣メカいのら[/b]が踏み荒らされました');
     expect(probabilitySpy).not.toHaveBeenCalled();
   });
 

@@ -742,12 +742,13 @@ const popMonster = (
       islandInfoFindPeople[arrayNum[i]].y
     );
     const islandInfo = island.island_info[islandInfoNum];
+    const beforePopMapInfo = { ...islandInfo };
     const monsterLevel = randomIntInRange(popMonsterType.defVal, popMonsterType.maxVal);
     changeMapData(island, islandInfo.x, islandInfo.y, popMonsterType.type, {
       type: 'ins',
       value: monsterLevel,
     });
-    const log = logPopMonster(island, popMonsterType, islandInfo.x, islandInfo.y);
+    const log = logPopMonster(island, popMonsterType, islandInfo.x, islandInfo.y, beforePopMapInfo);
     logs.push({ ...baseLog(), log: log, secret_log: log });
   }
   return logs;
