@@ -4,7 +4,7 @@ import { mapArrayConverter } from '@/global/function/island';
 import * as utility from '@/global/function/utility';
 import { buildIndexMap, islandDataStore } from '@/global/store/turnProgress';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { popMonsterExecute } from '../turnProgress';
+import { popMonsterExecute, sanitizeIslandInfoForPersistence } from '../turnProgress';
 
 vi.mock('@/global/define/metadata', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/global/define/metadata')>();
@@ -164,5 +164,26 @@ describe('popMonsterExecute', () => {
     const updated = islandDataStore.getState().islandGet('test-uuid');
 
     expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBe('king_inora');
+  });
+});
+
+describe('sanitizeIslandInfoForPersistence', () => {
+  test('x,y,type,landValue 以外のキーを除去する', () => {
+    const source = [
+      {
+        x: 1,
+        y: 2,
+        type: 'meka_inora',
+        landValue: 2,
+        monsterDistance: 99,
+        tempFlag: true,
+      } as unknown as islandInfo,
+    ];
+
+    const sanitized = sanitizeIslandInfoForPersistence(source);
+
+    expect(sanitized).toEqual([{ x: 1, y: 2, type: 'meka_inora', landValue: 2 }]);
+    expect(sanitized[0]).not.toHaveProperty('monsterDistance');
+    expect(sanitized[0]).not.toHaveProperty('tempFlag');
   });
 });

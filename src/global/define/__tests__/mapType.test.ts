@@ -25,7 +25,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const createMonsterIsland = (): islandInfoTurnProgress => {
+const createMonsterIsland = (
+  monsterType = 'meka_inora',
+  monsterLandValue = 2
+): islandInfoTurnProgress => {
   const mapSize = META_DATA.MAP_SIZE;
   const centerX = Math.floor(mapSize / 2);
   const centerY = Math.floor(mapSize / 2);
@@ -40,8 +43,8 @@ const createMonsterIsland = (): islandInfoTurnProgress => {
   islandInfo[mapArrayConverter(centerX, centerY)] = {
     x: centerX,
     y: centerY,
-    type: 'meka_inora',
-    landValue: 2,
+    type: monsterType,
+    landValue: monsterLandValue,
   } as islandInfo;
 
   return {
@@ -208,6 +211,43 @@ describe('monsterMove', () => {
     expect(remainedMonsters).toHaveLength(1);
     expect(remainedMonsters[0].x).toBe(movedMonster.x);
     expect(remainedMonsters[0].y).toBe(movedMonster.y);
+  });
+
+  test('dark_inora は maxMoveDistance=2 のため同一ターンで2回移動できる', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
+    const mapSize = META_DATA.MAP_SIZE;
+    const centerX = Math.floor(mapSize / 2);
+    const centerY = Math.floor(mapSize / 2);
+    const island = createMonsterIsland('dark_inora', 2);
+
+    const firstLogs = MapType.monsterMove(centerX, centerY, 1, 'test-uuid', island);
+    expect(firstLogs).toHaveLength(1);
+
+    const movedMonsterAfterFirst = island.island_info.find((cell) => cell.type === 'dark_inora');
+    expect(movedMonsterAfterFirst).toBeDefined();
+    if (!movedMonsterAfterFirst) throw new Error('movedMonsterAfterFirst not found');
+
+    const secondLogs = MapType.monsterMove(
+      movedMonsterAfterFirst.x,
+      movedMonsterAfterFirst.y,
+      1,
+      'test-uuid',
+      island
+    );
+    expect(secondLogs).toHaveLength(1);
+
+    const movedMonsterAfterSecond = island.island_info.find((cell) => cell.type === 'dark_inora');
+    expect(movedMonsterAfterSecond).toBeDefined();
+    if (!movedMonsterAfterSecond) throw new Error('movedMonsterAfterSecond not found');
+
+    const thirdLogs = MapType.monsterMove(
+      movedMonsterAfterSecond.x,
+      movedMonsterAfterSecond.y,
+      1,
+      'test-uuid',
+      island
+    );
+    expect(thirdLogs).toBeUndefined();
   });
 
   test('移動先が見つからないターンでは移動カウントを消費しない', () => {

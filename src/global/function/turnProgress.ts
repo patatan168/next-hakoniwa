@@ -175,6 +175,15 @@ export const getEventRate = async (db: Kysely<Database> | Transaction<Database>,
   await db.selectFrom('event_rate').selectAll().where('uuid', '=', uuid).executeTakeFirst();
 
 /**
+ * DB保存用に island_info を正規化する
+ * @param islandInfo マップデータ
+ * @returns 永続化対象キーのみを含むマップデータ
+ */
+export const sanitizeIslandInfoForPersistence = (islandInfo: islandInfo[]) => {
+  return islandInfo.map(({ x, y, type, landValue }) => ({ x, y, type, landValue }));
+};
+
+/**
  * 島情報の一括更新
  * @param islandData 全島情報
  * @param uuid UUID
@@ -189,7 +198,7 @@ export const updateIslands = async (
     for (let i = 0; i < islandData.length; i += CHUNK) {
       const chunk = islandData.slice(i, i + CHUNK);
       const values = chunk.map((tmp) => {
-        const islandInfoJson = JSON.stringify(tmp.island_info);
+        const islandInfoJson = JSON.stringify(sanitizeIslandInfoForPersistence(tmp.island_info));
         const islandInfoParam = isSqlite ? sql`jsonb(${islandInfoJson})` : islandInfoJson;
         return sql`(${tmp.uuid}, ${tmp.money}, ${tmp.area}, ${tmp.population}, ${tmp.food}, ${tmp.farm}, ${tmp.factory}, ${tmp.mining}, ${tmp.missile}, ${typeof tmp.prize === 'string' ? tmp.prize : ''}, ${islandInfoParam})`;
       });
