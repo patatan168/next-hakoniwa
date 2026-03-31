@@ -1,4 +1,5 @@
 import type { islandInfo, islandInfoTurnProgress } from '@/db/kysely';
+import * as mapMonster from '@/global/define/mapCategory/mapMonster';
 import META_DATA from '@/global/define/metadata';
 import { mapArrayConverter } from '@/global/function/island';
 import * as utility from '@/global/function/utility';
@@ -12,9 +13,6 @@ vi.mock('@/global/define/metadata', async (importOriginal) => {
     default: {
       ...actual.default,
       MAP_SIZE: 12,
-      MONSTER_POP_BORDER_1: 100_000,
-      MONSTER_POP_BORDER_2: 250_000,
-      MONSTER_POP_BORDER_3: 400_000,
     },
   };
 });
@@ -81,6 +79,21 @@ const setIslandToStore = (island: islandInfoTurnProgress) => {
   islandDataStore.setState({ data: [island], indexMap: buildIndexMap([island]) });
 };
 
+const getNaturalMonsterTypes = (population: number) => {
+  return Object.values(mapMonster)
+    .filter(
+      (
+        monster
+      ): monster is (typeof mapMonster)[keyof typeof mapMonster] & { minPopPopulation: number } =>
+        typeof monster === 'object' &&
+        monster !== null &&
+        'type' in monster &&
+        typeof monster.minPopPopulation === 'number' &&
+        monster.minPopPopulation <= population
+    )
+    .map((monster) => monster.type);
+};
+
 describe('popMonsterExecute', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -126,7 +139,7 @@ describe('popMonsterExecute', () => {
     expect(probabilitySpy).not.toHaveBeenCalled();
   });
 
-  test('人口25万人帯では level2 までの怪獣候補から選ばれる', () => {
+  test('人口25万人帯では minPopPopulation を満たす怪獣候補から選ばれる', () => {
     const island = createIsland({
       population: 250_000,
       area: 100,
@@ -134,19 +147,25 @@ describe('popMonsterExecute', () => {
     });
     setIslandToStore(island);
 
+    const expectedMonsterTypes = getNaturalMonsterTypes(island.population);
+
     vi.spyOn(utility, 'checkProbability').mockReturnValue(true);
     vi.spyOn(utility, 'randomIntInRange').mockImplementation((min, max) => {
-      if (min === 0 && max === 4) return 4;
+      if (min === 0 && max === expectedMonsterTypes.length - 1) return max;
       return min;
     });
 
     popMonsterExecute('test-uuid', 1);
     const updated = islandDataStore.getState().islandGet('test-uuid');
 
-    expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBe('inora_ghost');
+    expect(expectedMonsterTypes).toHaveLength(5);
+    expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBeDefined();
+    expect(expectedMonsterTypes).toContain(updated?.island_info[mapArrayConverter(0, 0)].type);
+    expect(expectedMonsterTypes).not.toContain('king_inora');
+    expect(expectedMonsterTypes).not.toContain('kujira');
   });
 
-  test('人口40万人帯では全怪獣候補（キングいのら含む）から選ばれる', () => {
+  test('人口40万人帯では minPopPopulation を満たす全怪獣候補から選ばれる', () => {
     const island = createIsland({
       population: 400_000,
       area: 100,
@@ -154,16 +173,22 @@ describe('popMonsterExecute', () => {
     });
     setIslandToStore(island);
 
+    const expectedMonsterTypes = getNaturalMonsterTypes(island.population);
+
     vi.spyOn(utility, 'checkProbability').mockReturnValue(true);
     vi.spyOn(utility, 'randomIntInRange').mockImplementation((min, max) => {
-      if (min === 0 && max === 6) return 6;
+      if (min === 0 && max === expectedMonsterTypes.length - 1) return max;
       return min;
     });
 
     popMonsterExecute('test-uuid', 1);
     const updated = islandDataStore.getState().islandGet('test-uuid');
 
-    expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBe('king_inora');
+    expect(expectedMonsterTypes).toHaveLength(7);
+    expect(updated?.island_info[mapArrayConverter(0, 0)].type).toBeDefined();
+    expect(expectedMonsterTypes).toContain(updated?.island_info[mapArrayConverter(0, 0)].type);
+    expect(expectedMonsterTypes).toContain('king_inora');
+    expect(expectedMonsterTypes).toContain('kujira');
   });
 });
 

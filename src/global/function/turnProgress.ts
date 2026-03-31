@@ -61,6 +61,22 @@ import {
 import { arrayRandomInt, checkProbability, randomIntInRange, valueOrSafeLimit } from './utility';
 import { createUuid25 } from './uuid';
 
+type popMonsterType = mapType & { minPopPopulation: number };
+
+const isPopMonsterType = (value: unknown): value is popMonsterType => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    'minPopPopulation' in value &&
+    typeof value.minPopPopulation === 'number'
+  );
+};
+
+const NATURAL_POP_MONSTER_ARRAY = Object.values(mapMonster)
+  .filter(isPopMonsterType)
+  .toSorted((a, b) => a.minPopPopulation - b.minPopPopulation);
+
 /**
  * 全島情報の取得
  * @param db DB接続情報
@@ -694,33 +710,7 @@ export const tsunamiExecute = (islandUuid: string, turn: number) => {
  * @returns モンスター配列
  */
 const getPopMonsterArray = (population: number) => {
-  if (population >= META_DATA.MONSTER_POP_BORDER_3) {
-    return [
-      mapMonster.inora,
-      mapMonster.sanjira,
-      mapMonster.redInora,
-      mapMonster.darkInora,
-      mapMonster.inoraGhost,
-      mapMonster.kujira,
-      mapMonster.kingInora,
-    ];
-  }
-
-  if (population >= META_DATA.MONSTER_POP_BORDER_2) {
-    return [
-      mapMonster.inora,
-      mapMonster.sanjira,
-      mapMonster.redInora,
-      mapMonster.darkInora,
-      mapMonster.inoraGhost,
-    ];
-  }
-
-  if (population >= META_DATA.MONSTER_POP_BORDER_1) {
-    return [mapMonster.inora, mapMonster.sanjira];
-  }
-
-  return [];
+  return NATURAL_POP_MONSTER_ARRAY.filter((monster) => population >= monster.minPopPopulation);
 };
 
 /**
