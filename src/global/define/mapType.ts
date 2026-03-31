@@ -22,6 +22,8 @@ import * as mapMonster from './mapCategory/mapMonster';
 import * as mapOther from './mapCategory/mapOther';
 import META_DATA from './metadata';
 
+const DEFANCE_JIRA_IMG_PATH = '/img/monster/defance_jira.gif';
+
 export type landType =
   | 'sea'
   | 'shallows'
@@ -157,7 +159,26 @@ export const getMapName = (type: string, landValue: number, name: string | strin
   }
 };
 
-export const getMapImpPath = (type: string, landValue: number, imgPath: string | string[]) => {
+/**
+ * サンジラ・クジラが硬化状態かどうかを判定する
+ * @param type マップタイプ
+ * @param turn ターン数
+ * @returns 硬化状態であれば true
+ */
+export const isMonsterHardened = (type: string, turn: number): boolean => {
+  return (type === 'sanjira' && turn % 2 !== 0) || (type === 'kujira' && turn % 2 === 0);
+};
+
+export const getMapImpPath = (
+  type: string,
+  landValue: number,
+  imgPath: string | string[],
+  turn?: number
+) => {
+  if (turn !== undefined && isMonsterHardened(type, turn)) {
+    return DEFANCE_JIRA_IMG_PATH;
+  }
+
   if (typeof imgPath !== 'string') {
     const levelNum = getMapLevel(type, landValue);
     return imgPath[levelNum - 1];
@@ -240,8 +261,7 @@ export function monsterMove(
   const mapInfo = fromIsland.island_info[mapArrayConverter(x, y)];
 
   // サンジラとクジラの硬化判定
-  if (turn % 2 !== 0 && mapInfo.type === 'sanjira') return;
-  if (turn % 2 === 0 && mapInfo.type === 'kujira') return;
+  if (isMonsterHardened(mapInfo.type, turn)) return;
 
   // 最大移動距離の取得
   const maxMoveDistance = getMapDefine(mapInfo.type).maxMoveDistance ?? 1;

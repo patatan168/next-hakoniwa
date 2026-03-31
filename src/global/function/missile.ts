@@ -31,7 +31,7 @@ import {
   logMissileWaste,
   logMissileWasteS,
 } from '../define/logType';
-import { getMapDefine, getMapLevel } from '../define/mapType';
+import { getMapDefine, getMapLevel, isMonsterHardened } from '../define/mapType';
 import META_DATA from '../define/metadata';
 import {
   changeMapData,
@@ -558,18 +558,34 @@ const applyLandDestructionMissile = ({
     );
     changeMapData(toIsland, impactPoint.x, impactPoint.y, 'shallows', { type: 'ins', value: 0 });
   } else if (['monster', 'sanjira', 'kujira'].includes(impactBaseLand)) {
-    log = logMissileLDMonster(
-      fromIsland,
-      toIsland,
-      planName,
-      targetX,
-      targetY,
-      impactPoint.x,
-      impactPoint.y,
-      impactMapInfo
-    );
-    changeMapData(toIsland, impactPoint.x, impactPoint.y, 'shallows', { type: 'ins', value: 0 });
-    monsterKills = 1;
+    if (isMonsterHardened(impactMapInfo.type, turn)) {
+      log = logMissileMonNoDamage(
+        fromIsland,
+        toIsland,
+        planName,
+        targetX,
+        targetY,
+        impactPoint.x,
+        impactPoint.y,
+        impactMapInfo
+      );
+    } else {
+      log = logMissileLDMonster(
+        fromIsland,
+        toIsland,
+        planName,
+        targetX,
+        targetY,
+        impactPoint.x,
+        impactPoint.y,
+        impactMapInfo
+      );
+      changeMapData(toIsland, impactPoint.x, impactPoint.y, 'shallows', {
+        type: 'ins',
+        value: 0,
+      });
+      monsterKills = 1;
+    }
   } else if (impactMapInfo.type === 'shallows') {
     log = logMissileLDSea1(
       fromIsland,
@@ -761,9 +777,7 @@ const handleMonsterImpact = (
   base: { x: number; y: number }
 ): { monsterKills: number; killedMonsterType?: string } => {
   // サンジラは奇数ターン、クジラは偶数ターンに硬化状態となり、あらゆるミサイルのダメージを無効化する
-  const isHardened =
-    (impactMapInfo.type === 'sanjira' && turn % 2 !== 0) ||
-    (impactMapInfo.type === 'kujira' && turn % 2 === 0);
+  const isHardened = isMonsterHardened(impactMapInfo.type, turn);
 
   if (isHardened) {
     const logMonNoDamS = logMissileMonNoDamageS(

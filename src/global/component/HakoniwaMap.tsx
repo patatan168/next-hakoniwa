@@ -116,6 +116,7 @@ type HakoniwaMapProps = {
   className?: string;
   isLoading: boolean;
   islandName?: string;
+  turn?: number;
   data?: islandInfoData;
   isDevelop?: boolean;
   uuid?: string;
@@ -134,6 +135,7 @@ type MapClickModalProps = {
   fromUuid: string;
   targetUuid?: string;
   restrictToAttackOrAid?: boolean;
+  turn?: number;
   data: islandInfoData;
   open: boolean;
   openToggle: (open: boolean) => void;
@@ -146,12 +148,14 @@ const MapCellPreview = memo(
     cy,
     isCenter,
     modalMapSize,
+    turn,
   }: {
     data: islandInfoData;
     cx: number;
     cy: number;
     isCenter?: boolean;
     modalMapSize: number;
+    turn?: number;
   }) => {
     const cell = data.find((d: islandInfo) => d.x === cx && d.y === cy);
     if (!cell) {
@@ -168,7 +172,7 @@ const MapCellPreview = memo(
       );
     }
     const { imgPath, name } = getMapDefine(cell.type);
-    const src = getMapImpPath(cell.type, cell.landValue, imgPath);
+    const src = getMapImpPath(cell.type, cell.landValue, imgPath, turn);
     const alt = getMapName(cell.type, cell.landValue, name);
     return (
       <div className="relative" style={{ width: modalMapSize, height: modalMapSize }}>
@@ -199,11 +203,13 @@ const NeighboringCellsPreview = memo(
     y,
     data,
     modalMapSize,
+    turn,
   }: {
     x: number;
     y: number;
     data: islandInfoData;
     modalMapSize: number;
+    turn?: number;
   }) => {
     const isEvenY = y % 2 === 0;
     const topRow = isEvenY
@@ -236,7 +242,13 @@ const NeighboringCellsPreview = memo(
           <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
             {topRow.map((pos, i) => (
               <Fragment key={`top-${i}`}>
-                <MapCellPreview data={data} cx={pos.x} cy={pos.y} modalMapSize={modalMapSize} />
+                <MapCellPreview
+                  data={data}
+                  cx={pos.x}
+                  cy={pos.y}
+                  modalMapSize={modalMapSize}
+                  turn={turn}
+                />
               </Fragment>
             ))}
           </div>
@@ -249,6 +261,7 @@ const NeighboringCellsPreview = memo(
                   cy={pos.y}
                   modalMapSize={modalMapSize}
                   isCenter={i === 1}
+                  turn={turn}
                 />
               </Fragment>
             ))}
@@ -256,7 +269,13 @@ const NeighboringCellsPreview = memo(
           <div className="flex" style={{ marginLeft: modalMapSize / 2 }}>
             {bottomRow.map((pos, i) => (
               <Fragment key={`bottom-${i}`}>
-                <MapCellPreview data={data} cx={pos.x} cy={pos.y} modalMapSize={modalMapSize} />
+                <MapCellPreview
+                  data={data}
+                  cx={pos.x}
+                  cy={pos.y}
+                  modalMapSize={modalMapSize}
+                  turn={turn}
+                />
               </Fragment>
             ))}
           </div>
@@ -275,6 +294,7 @@ const MapClickModal = ({
   fromUuid,
   targetUuid,
   restrictToAttackOrAid = false,
+  turn,
   data,
   open,
   openToggle,
@@ -445,7 +465,7 @@ const MapClickModal = ({
 
   const body = (
     <div className="flex flex-col gap-4">
-      <NeighboringCellsPreview x={x} y={y} data={data} modalMapSize={modalMapSize} />
+      <NeighboringCellsPreview x={x} y={y} data={data} modalMapSize={modalMapSize} turn={turn} />
       <div>
         <div className="mb-2 flex border-b border-gray-200 dark:border-gray-700">
           {categories.map((cat) => (
@@ -590,6 +610,7 @@ export default memo(
       className,
       isLoading,
       islandName,
+      turn,
       data,
       isDevelop = false,
       uuid,
@@ -634,6 +655,7 @@ export default memo(
               targetUuid={targetUuid}
               restrictToAttackOrAid={restrictToAttackOrAid}
               data={data}
+              turn={turn}
               open={modalOpen}
               openToggle={setModalOpen}
             />
@@ -653,7 +675,7 @@ export default memo(
         {data.map(({ x, y, type, landValue }: islandInfo) => {
           const { imgPath, name } = getMapDefine(type);
           const alt = getMapName(type, landValue, name);
-          const src = getMapImpPath(type, landValue, imgPath);
+          const src = getMapImpPath(type, landValue, imgPath, turn);
           const mapInfoText = getMapInfoText(x, y, type, landValue);
           const tooltipPosition = getToolTipPosition(x, y);
           const divCallback = (node: HTMLDivElement) => {

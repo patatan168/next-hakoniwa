@@ -186,7 +186,67 @@ describe('getMapLevel', () => {
   });
 });
 
+describe('isMonsterHardened', () => {
+  test('サンジラは奇数ターンで硬化する', () => {
+    expect(MapType.isMonsterHardened('sanjira', 1)).toBe(true);
+    expect(MapType.isMonsterHardened('sanjira', 2)).toBe(false);
+  });
+
+  test('クジラは偶数ターンで硬化する', () => {
+    expect(MapType.isMonsterHardened('kujira', 2)).toBe(true);
+    expect(MapType.isMonsterHardened('kujira', 1)).toBe(false);
+  });
+
+  test('その他の怪獣は硬化しない', () => {
+    expect(MapType.isMonsterHardened('inora', 1)).toBe(false);
+    expect(MapType.isMonsterHardened('meka_inora', 2)).toBe(false);
+  });
+});
+
+describe('getMapImpPath', () => {
+  test('サンジラは奇数ターンで硬化画像になる', () => {
+    const src = MapType.getMapImpPath('sanjira', 2, '/img/monster/sanjira.gif', 1);
+    expect(src).toBe('/img/monster/defance_jira.gif');
+  });
+
+  test('クジラは偶数ターンで硬化画像になる', () => {
+    const src = MapType.getMapImpPath('kujira', 4, '/img/monster/kujira.gif', 2);
+    expect(src).toBe('/img/monster/defance_jira.gif');
+  });
+
+  test('非硬化ターンは元画像のまま', () => {
+    expect(MapType.getMapImpPath('sanjira', 2, '/img/monster/sanjira.gif', 2)).toBe(
+      '/img/monster/sanjira.gif'
+    );
+    expect(MapType.getMapImpPath('kujira', 4, '/img/monster/kujira.gif', 1)).toBe(
+      '/img/monster/kujira.gif'
+    );
+  });
+});
+
 describe('monsterMove', () => {
+  test('サンジラは奇数ターンに硬化し移動しない', () => {
+    const mapSize = META_DATA.MAP_SIZE;
+    const centerX = Math.floor(mapSize / 2);
+    const centerY = Math.floor(mapSize / 2);
+    const island = createMonsterIsland('sanjira', 2);
+
+    const logs = MapType.monsterMove(centerX, centerY, 1, 'test-uuid', island);
+    expect(logs).toBeUndefined();
+    expect(island.island_info[mapArrayConverter(centerX, centerY)].type).toBe('sanjira');
+  });
+
+  test('クジラは偶数ターンに硬化し移動しない', () => {
+    const mapSize = META_DATA.MAP_SIZE;
+    const centerX = Math.floor(mapSize / 2);
+    const centerY = Math.floor(mapSize / 2);
+    const island = createMonsterIsland('kujira', 4);
+
+    const logs = MapType.monsterMove(centerX, centerY, 2, 'test-uuid', island);
+    expect(logs).toBeUndefined();
+    expect(island.island_info[mapArrayConverter(centerX, centerY)].type).toBe('kujira');
+  });
+
   test('meka_inora は maxMoveDistance=1 のため2回目は移動しない', () => {
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
     const mapSize = META_DATA.MAP_SIZE;
