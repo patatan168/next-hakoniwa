@@ -7,6 +7,7 @@ import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { islandSightStore } from '@/global/store/api/public/islandSight';
+import { turnStore } from '@/global/store/api/public/turn';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -20,6 +21,7 @@ export default function MapSight({
   create?: boolean;
 }) {
   const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
+  const { data: turnData, fetch: fetchTurn } = useClientFetch(turnStore);
   const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
   const displayIslandName = `${islandData.get?.island_name_prefix ?? ''}${islandData.get?.island_name ?? ''}`;
 
@@ -29,6 +31,7 @@ export default function MapSight({
 
   useEffect(() => {
     fetchIsland({ method: 'GET' }, { query: `uuid=${uuid}` });
+    fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true });
   }, []);
 
   return (
@@ -55,6 +58,7 @@ export default function MapSight({
         className="max-w-full"
         isLoading={isLoading.get}
         islandName={displayIslandName}
+        turn={turnData.get?.turn}
         data={islandData.get?.island_info}
       />
     </div>

@@ -28,6 +28,11 @@ type SharedMenuProps = Omit<
   'isMobile' | 'listHeight' | 'listCallback'
 >;
 
+const getMainGridClassName = (isMobile: boolean) => {
+  if (isMobile) return 'grid gap-1 grid-cols-1';
+  return 'grid gap-1 grid-cols-[auto_1fr]';
+};
+
 function MobileDevelopmentMenu({
   showMenu,
   setShowMenu,
@@ -228,7 +233,7 @@ export default function IslandList() {
         </div>
       </div>
 
-      <div className={`grid gap-1 ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'}`}>
+      <div className={getMainGridClassName(isMobile)}>
         <div className="grid grid-rows-[auto_1fr] items-start justify-items-center gap-1 px-1">
           <IslandData
             mode={isOtherIslandView ? 'sight' : 'development'}
@@ -239,6 +244,7 @@ export default function IslandList() {
             style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
             isLoading={displayedLoading}
             islandName={displayedIslandData?.island_name}
+            turn={turnData.get?.turn}
             data={displayedIslandData?.island_info}
             isDevelop={!!developData.get?.uuid}
             uuid={developData.get?.uuid}

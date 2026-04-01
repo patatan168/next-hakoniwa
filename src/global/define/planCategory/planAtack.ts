@@ -4,7 +4,8 @@
  */
 import { executeMissile } from '@/global/function/missile';
 import { islandDataGetSet } from '@/global/store/turnProgress';
-import { changeDataArgs, planType } from '../planType';
+import { getBaseLog, logCommonAid } from '../logType';
+import { changeDataArgs, planType, validCostAndLandType } from '../planType';
 
 export const normaMissile: planType = {
   planNo: 201,
@@ -207,5 +208,47 @@ export const ldMissile: planType = {
       missileKilledMonsters: result.killedMonsters,
       missileRefugeesAccepted: result.refugeeAccepted,
     };
+  },
+};
+
+export const sendMonster: planType = {
+  planNo: 299,
+  type: 'send_monster',
+  coordinate: false,
+  category: '攻撃',
+  name: '怪獣派遣',
+  description:
+    '対象の島へ人造怪獣を派遣します。派遣された怪獣は対象の島でメカいのらとして出現します。',
+  otherIsland: true,
+  immediate: false,
+  mapType: 'none',
+  cost: 3000,
+  costType: 'money',
+  minTimes: 1,
+  maxTimes: 1,
+  maxTimesPerTurn: 1,
+  unit: '回',
+  changeData: function ({ plan, turn, uuid }: changeDataArgs) {
+    using fromIslandGetSet = islandDataGetSet(uuid.fromIsland);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`派遣元の島情報が見つかりません。uuid=${uuid.fromIsland}`);
+
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`派遣先の島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+    const validConstAndLand = validCostAndLandType(fromIsland, this, plan.x, plan.y, turn);
+    if (validConstAndLand.nextPlan) {
+      plan.times = 0;
+      return validConstAndLand;
+    }
+
+    toIsland.artificialMonster += 1;
+    fromIsland.money -= this.cost;
+    const baseLog = getBaseLog(turn, fromIsland, toIsland);
+    const log = logCommonAid(fromIsland, toIsland, this, 1);
+    plan.times = 0;
+
+    return { nextPlan: this.immediate, log: [{ ...baseLog, secret_log: log, log: log }] };
   },
 };

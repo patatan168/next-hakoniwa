@@ -61,6 +61,7 @@ import {
 import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
 import { Kysely, Transaction, sql } from 'kysely';
+import { runIslandTurnPhases } from './turnPhases';
 
 /** 再実行上限数 */
 const MAX_RECURSIVE = 3;
@@ -622,48 +623,56 @@ async function processTurnForIslands(
   // 遅延計画書き込みデータ
   const deferredPlanWrites: DeferredPlanWrite[] = [];
 
-  // フェーズ1: 実際のターン処理を全島に対して実行
-  for (const index of randomIndices) {
-    const island = islandList[index];
-    const uuid = island.uuid;
+  // 島ごとに完結させずフェーズ単位で全島を処理する。
+  runIslandTurnPhases({
+    islands: islandList,
+    randomIndices,
+    incomeAndEatenPhase: (island) => {
+      prevStats.set(island.uuid, {
+        money: island.money,
+        food: island.food,
+        population: island.population,
+      });
+      incomeAndEatenPhase(island.uuid);
+    },
+    planPhase: (island) => {
+      const {
+        successCounts,
+        monsterKills,
+        cityKills,
+        destroyedMaps,
+        killedMonsters,
+        maxMissileRefugeesAccepted: islandMaxMissileRefugeesAccepted,
+        deferredPlan,
+      } = planPhase(turnInfo.turn, island.uuid, allPlans[island.uuid] || [], logArray);
 
-    // 変動量を計算するために元の値を保持
-    prevStats.set(uuid, {
-      money: island.money,
-      food: island.food,
-      population: island.population,
-    });
+      if (deferredPlan) {
+        deferredPlanWrites.push(deferredPlan);
+      }
+      if (successCounts.size > 0) {
+        planStats.set(island.uuid, successCounts);
+      }
 
-    incomeAndEatenPhase(uuid);
-    const {
-      successCounts,
-      monsterKills,
-      cityKills,
-      destroyedMaps,
-      killedMonsters,
-      maxMissileRefugeesAccepted: islandMaxMissileRefugeesAccepted,
-      deferredPlan,
-    } = planPhase(turnInfo.turn, uuid, allPlans[uuid] || [], logArray);
-    if (deferredPlan) {
-      deferredPlanWrites.push(deferredPlan);
-    }
-    if (successCounts.size > 0) {
-      planStats.set(uuid, successCounts);
-    }
-    accumulateMissileStats(
-      missileStats,
-      uuid,
-      monsterKills,
-      cityKills,
-      destroyedMaps,
-      killedMonsters
-    );
-    if (islandMaxMissileRefugeesAccepted > 0) {
-      maxMissileRefugeesAccepted.set(uuid, islandMaxMissileRefugeesAccepted);
-    }
-    processMapScan(turnInfo.turn, uuid, logArray);
-    wideIslandEventPhase(turnInfo.turn, uuid, logArray);
-  }
+      accumulateMissileStats(
+        missileStats,
+        island.uuid,
+        monsterKills,
+        cityKills,
+        destroyedMaps,
+        killedMonsters
+      );
+
+      if (islandMaxMissileRefugeesAccepted > 0) {
+        maxMissileRefugeesAccepted.set(island.uuid, islandMaxMissileRefugeesAccepted);
+      }
+    },
+    mapScanPhase: (island) => {
+      processMapScan(turnInfo.turn, island.uuid, logArray);
+    },
+    wideIslandEventPhase: (island) => {
+      wideIslandEventPhase(turnInfo.turn, island.uuid, logArray);
+    },
+  });
 
   // 計画の一括書き込み（メインループ外で1トランザクション）
   await batchInsertDeletePlans(db, deferredPlanWrites);

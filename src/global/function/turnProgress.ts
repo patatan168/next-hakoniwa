@@ -61,6 +61,22 @@ import {
 import { arrayRandomInt, checkProbability, randomIntInRange, valueOrSafeLimit } from './utility';
 import { createUuid25 } from './uuid';
 
+type popMonsterType = mapType & { minPopPopulation: number };
+
+const isPopMonsterType = (value: unknown): value is popMonsterType => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    'minPopPopulation' in value &&
+    typeof value.minPopPopulation === 'number'
+  );
+};
+
+const NATURAL_POP_MONSTER_ARRAY = Object.values(mapMonster)
+  .filter(isPopMonsterType)
+  .toSorted((a, b) => a.minPopPopulation - b.minPopPopulation);
+
 /**
  * 全島情報の取得
  * @param db DB接続情報
@@ -175,6 +191,15 @@ export const getEventRate = async (db: Kysely<Database> | Transaction<Database>,
   await db.selectFrom('event_rate').selectAll().where('uuid', '=', uuid).executeTakeFirst();
 
 /**
+ * DB保存用に island_info を正規化する
+ * @param islandInfo マップデータ
+ * @returns 永続化対象キーのみを含むマップデータ
+ */
+export const sanitizeIslandInfoForPersistence = (islandInfo: islandInfo[]) => {
+  return islandInfo.map(({ x, y, type, landValue }) => ({ x, y, type, landValue }));
+};
+
+/**
  * 島情報の一括更新
  * @param islandData 全島情報
  * @param uuid UUID
@@ -189,7 +214,7 @@ export const updateIslands = async (
     for (let i = 0; i < islandData.length; i += CHUNK) {
       const chunk = islandData.slice(i, i + CHUNK);
       const values = chunk.map((tmp) => {
-        const islandInfoJson = JSON.stringify(tmp.island_info);
+        const islandInfoJson = JSON.stringify(sanitizeIslandInfoForPersistence(tmp.island_info));
         const islandInfoParam = isSqlite ? sql`jsonb(${islandInfoJson})` : islandInfoJson;
         return sql`(${tmp.uuid}, ${tmp.money}, ${tmp.area}, ${tmp.population}, ${tmp.food}, ${tmp.farm}, ${tmp.factory}, ${tmp.mining}, ${tmp.missile}, ${typeof tmp.prize === 'string' ? tmp.prize : ''}, ${islandInfoParam})`;
       });
@@ -685,11 +710,7 @@ export const tsunamiExecute = (islandUuid: string, turn: number) => {
  * @returns モンスター配列
  */
 const getPopMonsterArray = (population: number) => {
-  const monsterArray: mapType[] =
-    Object.entries(mapMonster)
-      .map(([_, value]) => ({ ...value }))
-      .filter((map) => population >= valueOrSafeLimit(map.minPopPopulation, 'max')) ?? [];
-  return monsterArray;
+  return NATURAL_POP_MONSTER_ARRAY.filter((monster) => population >= monster.minPopPopulation);
 };
 
 /**
@@ -720,12 +741,13 @@ const popMonster = (
       islandInfoFindPeople[arrayNum[i]].y
     );
     const islandInfo = island.island_info[islandInfoNum];
+    const beforePopMapInfo = { ...islandInfo };
     const monsterLevel = randomIntInRange(popMonsterType.defVal, popMonsterType.maxVal);
     changeMapData(island, islandInfo.x, islandInfo.y, popMonsterType.type, {
       type: 'ins',
       value: monsterLevel,
     });
-    const log = logPopMonster(island, popMonsterType, islandInfo.x, islandInfo.y);
+    const log = logPopMonster(island, popMonsterType, islandInfo.x, islandInfo.y, beforePopMapInfo);
     logs.push({ ...baseLog(), log: log, secret_log: log });
   }
   return logs;
@@ -745,13 +767,15 @@ export const popMonsterExecute = (islandUuid: string, turn: number) => {
   if (island.artificialMonster > 0) {
     // 怪獣派遣がされている場合は、メカいのらを出現させる
     return popMonster(island, mapMonster.mekaInora, turn, island.artificialMonster);
-  } else if (checkProbability((island.monster * island.area) / 100)) {
-    // 怪獣派遣がされていない場合は、人口に応じたモンスターを出現させる
-    const monsterArray = getPopMonsterArray(island.population);
-    if (monsterArray.length > 0) {
-      const popMonsterType = monsterArray[randomIntInRange(0, monsterArray.length - 1)];
-      return popMonster(island, popMonsterType, turn);
-    }
+  }
+
+  // 怪獣派遣がされていない場合は、人口に応じたモンスターを出現させる
+  const monsterArray = getPopMonsterArray(island.population);
+  if (monsterArray.length === 0) return;
+
+  if (checkProbability((island.monster * island.area) / 100)) {
+    const popMonsterType = monsterArray[randomIntInRange(0, monsterArray.length - 1)];
+    return popMonster(island, popMonsterType, turn);
   }
 };
 

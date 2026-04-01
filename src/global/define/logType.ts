@@ -537,10 +537,11 @@ export const logPopMonster = (
   island: Island & Pick<User, 'island_name'>,
   popMonsterType: mapType,
   x: number,
-  y: number
+  y: number,
+  beforeMapInfo?: islandInfo
 ): string => {
   // マップ情報の取得
-  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  const mapInfo = beforeMapInfo ?? island.island_info[mapArrayConverter(x, y)];
 
   const monsterName = popMonsterType.name;
   return `${islandName(island)}${coordinate(x, y)}に[b]怪獣${monsterName}[/b]が出現！！${coordinate(x, y)}の${mapName(mapInfo)}が踏み荒らされました。`;
