@@ -95,23 +95,23 @@ docker compose up -d
 
 | ライブラリ                | バージョン |
 | ------------------------- | ---------- |
-| Node.js                   | 24.14.0    |
+| Node.js                   | 24.14.1    |
 | React                     | 19.2.4     |
-| Next.js                   | 16.2.0     |
-| Tailwind CSS              | 4.x        |
-| sass                      | 1.x        |
-| React Icons               | 5.x        |
-| react-virtuoso            | 4.x        |
-| better-sqlite3            | 12.x       |
-| react-hook-form           | 7.x        |
-| zod                       | 4.x        |
-| es-toolkit                | 1.x        |
-| kysely                    | 0.28.x     |
-| jsonwebtoken              | 9.x        |
-| winston                   | 3.x        |
-| winston-daily-rotate-file | 5.x        |
-| argon2                    | 0.44.x     |
-| auto-animate              | 0.9.x      |
-| zustand                   | 5.x        |
-| croner                    | 10.x       |
-| simpleWebAuthn            | 13.x       |
+| Next.js                   | 16.2.2     |
+| Tailwind CSS              | 4.2.2      |
+| sass                      | 1.98.0     |
+| React Icons               | 5.6.0      |
+| react-virtuoso            | 4.18.3     |
+| better-sqlite3            | 12.8.0     |
+| react-hook-form           | 7.72.0     |
+| zod                       | 4.3.6      |
+| es-toolkit                | 1.45.1     |
+| kysely                    | 0.28.14    |
+| jsonwebtoken              | 9.0.3      |
+| winston                   | 3.19.0     |
+| winston-daily-rotate-file | 5.0.0      |
+| argon2                    | 0.44.0     |
+| auto-animate              | 0.9.0      |
+| zustand                   | 5.0.12     |
+| croner                    | 10.0.1     |
+| simpleWebAuthn            | 13.3.0     |
