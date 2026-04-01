@@ -1,6 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc';
 import jsESLint from '@eslint/js';
-import typeScriptESLint from '@typescript-eslint/eslint-plugin';
 import typeScriptESLintParser from '@typescript-eslint/parser';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import eslintConfigPrettier from 'eslint-config-prettier';
@@ -35,8 +34,6 @@ export default [
   {
     files: ['src/**/*.{ts,tsx}'],
     plugins: {
-      '@typescript-eslint': typeScriptESLint,
-      typeScriptESLintParser,
       prettier,
       'react-refresh': reactRefresh,
       tailwindcss,
