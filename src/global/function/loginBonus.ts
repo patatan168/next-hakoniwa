@@ -2,7 +2,7 @@
  * @module loginBonus
  * @description ログインボーナスの判定・付与処理。
  */
-import { db, Island } from '@/db/kysely';
+import { db, Island, isSqlite } from '@/db/kysely';
 import { getResource } from '@/global/function/resource';
 
 export type LoginBonusResult = {
@@ -12,6 +12,22 @@ export type LoginBonusResult = {
 };
 
 const SECONDS_PER_DAY = 86400;
+const MAX_CONCURRENT_RETRY_COUNT = 3;
+
+class RetryableLoginBonusConflictError extends Error {
+  constructor() {
+    super('login bonus state changed during update');
+    this.name = 'RetryableLoginBonusConflictError';
+  }
+}
+
+const getUpdatedRowCount = (numUpdatedRows: bigint | number | undefined) => {
+  if (typeof numUpdatedRows === 'bigint') {
+    return Number(numUpdatedRows);
+  }
+
+  return numUpdatedRows ?? 0;
+};
 
 /**
  * 指定されたタイムゾーン（デフォルトは NEXT_PUBLIC_TURN_TIMEZONE）における
@@ -56,76 +72,124 @@ export const grantLoginBonus = async (
     return null;
   }
 
-  const lastLogin = await db
-    .selectFrom('last_login')
-    .selectAll()
-    .where('uuid', '=', uuid)
-    .executeTakeFirst();
+  // ボーナス報酬内容
+  const envMoney = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_MONEY || '200', 10);
+  const envFood = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_FOOD || '2000', 10);
+  const bonusMoney = Number.isNaN(envMoney) ? 200 : Math.max(0, envMoney);
+  const bonusFood = Number.isNaN(envFood) ? 2000 : Math.max(0, envFood);
 
-  if (!lastLogin) return null;
+  for (let retryCount = 0; retryCount < MAX_CONCURRENT_RETRY_COUNT; retryCount += 1) {
+    const nowSeconds = Math.floor(Date.now() / 1000);
 
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const currentDay = getTzDayNumber(nowSeconds);
-  const lastBonusDay = getTzDayNumber(Number(lastLogin.last_bonus_received_at));
+    try {
+      const bonusResult = await db.transaction().execute(async (trx) => {
+        const lastLoginBaseQuery = trx
+          .selectFrom('last_login')
+          .selectAll()
+          .where('uuid', '=', uuid);
 
-  if (currentDay > lastBonusDay) {
-    const isConsecutive = currentDay === lastBonusDay + 1;
-    const newConsecutiveDays = isConsecutive ? lastLogin.consecutive_login_days + 1 : 1;
-    const lastBonusReceivedAtValue = (
-      typeof lastLogin.last_bonus_received_at === 'string' ? String(nowSeconds) : nowSeconds
-    ) as typeof lastLogin.last_bonus_received_at;
+        const lastLogin = isSqlite
+          ? await lastLoginBaseQuery.executeTakeFirst()
+          : await lastLoginBaseQuery.forUpdate().executeTakeFirst();
 
-    // ボーナス報酬内容
-    const envMoney = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_MONEY || '200', 10);
-    const envFood = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_FOOD || '2000', 10);
-    const bonusMoney = Number.isNaN(envMoney) ? 200 : Math.max(0, envMoney);
-    const bonusFood = Number.isNaN(envFood) ? 2000 : Math.max(0, envFood);
+        if (!lastLogin) {
+          return null;
+        }
 
-    const currentResource = getResource({
-      money: islandData.money,
-      food: islandData.food,
-    });
+        const currentDay = getTzDayNumber(nowSeconds);
+        const lastBonusDay = getTzDayNumber(Number(lastLogin.last_bonus_received_at));
 
-    const nextResource = getResource(currentResource, {
-      money: bonusMoney,
-      food: bonusFood,
-    });
+        if (currentDay <= lastBonusDay) {
+          return null;
+        }
 
-    const receivedMoney = Math.max(0, nextResource.money - currentResource.money);
-    const receivedFood = Math.max(0, nextResource.food - currentResource.food);
+        const currentIslandBaseQuery = trx
+          .selectFrom('island')
+          .select(['money', 'food'])
+          .where('uuid', '=', uuid);
 
-    // トランザクションでDB更新
-    await db.transaction().execute(async (trx) => {
-      // islandTableの更新
-      await trx
-        .updateTable('island')
-        .set({
-          money: nextResource.money,
-          food: nextResource.food,
-        })
-        .where('uuid', '=', uuid)
-        .execute();
+        const currentIsland = isSqlite
+          ? await currentIslandBaseQuery.executeTakeFirst()
+          : await currentIslandBaseQuery.forUpdate().executeTakeFirst();
 
-      // lastLoginTableの更新
-      await trx
-        .updateTable('last_login')
-        .set({
-          last_bonus_received_at: lastBonusReceivedAtValue,
-          consecutive_login_days: newConsecutiveDays,
-        })
-        .where('uuid', '=', uuid)
-        .execute();
-    });
+        if (!currentIsland) {
+          return null;
+        }
 
-    // 引数の islandData を直接更新
-    islandData.money = nextResource.money;
-    islandData.food = nextResource.food;
+        const isConsecutive = currentDay === lastBonusDay + 1;
+        const newConsecutiveDays = isConsecutive ? lastLogin.consecutive_login_days + 1 : 1;
+        const lastBonusReceivedAtValue = (
+          typeof lastLogin.last_bonus_received_at === 'string' ? String(nowSeconds) : nowSeconds
+        ) as typeof lastLogin.last_bonus_received_at;
 
-    return {
-      money: receivedMoney,
-      food: receivedFood,
-      consecutive_login_days: newConsecutiveDays,
-    };
+        const currentResource = getResource({
+          money: currentIsland.money,
+          food: currentIsland.food,
+        });
+
+        const nextResource = getResource(currentResource, {
+          money: bonusMoney,
+          food: bonusFood,
+        });
+
+        const lastLoginUpdateResult = await trx
+          .updateTable('last_login')
+          .set({
+            last_bonus_received_at: lastBonusReceivedAtValue,
+            consecutive_login_days: newConsecutiveDays,
+          })
+          .where('uuid', '=', uuid)
+          .where('last_bonus_received_at', '=', lastLogin.last_bonus_received_at)
+          .executeTakeFirst();
+
+        if (getUpdatedRowCount(lastLoginUpdateResult.numUpdatedRows) !== 1) {
+          throw new RetryableLoginBonusConflictError();
+        }
+
+        const islandUpdateResult = await trx
+          .updateTable('island')
+          .set({
+            money: nextResource.money,
+            food: nextResource.food,
+          })
+          .where('uuid', '=', uuid)
+          .where('money', '=', currentIsland.money)
+          .where('food', '=', currentIsland.food)
+          .executeTakeFirst();
+
+        if (getUpdatedRowCount(islandUpdateResult.numUpdatedRows) !== 1) {
+          throw new RetryableLoginBonusConflictError();
+        }
+
+        const receivedMoney = Math.max(0, nextResource.money - currentResource.money);
+        const receivedFood = Math.max(0, nextResource.food - currentResource.food);
+
+        return {
+          nextResource,
+          loginBonus: {
+            money: receivedMoney,
+            food: receivedFood,
+            consecutive_login_days: newConsecutiveDays,
+          },
+        };
+      });
+
+      if (!bonusResult) {
+        return null;
+      }
+
+      // 引数の islandData を直接更新
+      islandData.money = bonusResult.nextResource.money;
+      islandData.food = bonusResult.nextResource.food;
+
+      return bonusResult.loginBonus;
+    } catch (error) {
+      if (error instanceof RetryableLoginBonusConflictError) {
+        continue;
+      }
+
+      throw error;
+    }
   }
 
   return null;
