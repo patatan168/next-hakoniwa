@@ -18,12 +18,21 @@ mise install
 npm install
 ```
 
-### 2. 環境変数の設定
+### 2. lefthook のインストール
+
+このリポジトリでは Git Hook 管理に lefthook を使用します。
+`npm install` 後に一度だけ以下を実行してください。
+
+```bash
+npm run lefthook
+```
+
+### 3. 環境変数の設定
 
 `.env` ファイルを参考に、必要な環境変数を設定します。
 詳細については [環境変数一覧](./docs/environment_variables.md) を参照してください。
 
-### 3. データベースの初期化
+### 4. データベースの初期化
 
 ```bash
 npm run db:init
@@ -38,6 +47,7 @@ npm run db:init
 | `npm run start`     | 本番サーバーの起動                           |
 | `npm run test`      | ユニットテストの実行                         |
 | `npm run lint`      | ESLint / Stylelint / TypeScript の静的解析   |
+| `npm run lefthook`  | Git Hook（pre-commit）のインストール         |
 | `npm run fmt`       | Prettier によるフォーマット                  |
 | `npm run storybook` | Storybook の起動（コンポーネントのカタログ） |
 | `npm run turn`      | ターン処理の手動実行                         |
