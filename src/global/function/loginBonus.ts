@@ -3,7 +3,7 @@
  * @description ログインボーナスの判定・付与処理。
  */
 import { db, Island } from '@/db/kysely';
-import { sql } from 'kysely';
+import { getResource } from '@/global/function/resource';
 
 export type LoginBonusResult = {
   money: number;
@@ -78,8 +78,21 @@ export const grantLoginBonus = async (
     // ボーナス報酬内容
     const envMoney = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_MONEY || '200', 10);
     const envFood = parseInt(process.env.NEXT_PUBLIC_LOGIN_BONUS_FOOD || '2000', 10);
-    const bonusMoney = Number.isNaN(envMoney) ? 200 : envMoney;
-    const bonusFood = Number.isNaN(envFood) ? 2000 : envFood;
+    const bonusMoney = Number.isNaN(envMoney) ? 200 : Math.max(0, envMoney);
+    const bonusFood = Number.isNaN(envFood) ? 2000 : Math.max(0, envFood);
+
+    const currentResource = getResource({
+      money: islandData.money,
+      food: islandData.food,
+    });
+
+    const nextResource = getResource(currentResource, {
+      money: bonusMoney,
+      food: bonusFood,
+    });
+
+    const receivedMoney = Math.max(0, nextResource.money - currentResource.money);
+    const receivedFood = Math.max(0, nextResource.food - currentResource.food);
 
     // トランザクションでDB更新
     await db.transaction().execute(async (trx) => {
@@ -87,8 +100,8 @@ export const grantLoginBonus = async (
       await trx
         .updateTable('island')
         .set({
-          money: sql`money + ${bonusMoney}`,
-          food: sql`food + ${bonusFood}`,
+          money: nextResource.money,
+          food: nextResource.food,
         })
         .where('uuid', '=', uuid)
         .execute();
@@ -105,12 +118,12 @@ export const grantLoginBonus = async (
     });
 
     // 引数の islandData を直接更新
-    islandData.money += bonusMoney;
-    islandData.food += bonusFood;
+    islandData.money = nextResource.money;
+    islandData.food = nextResource.food;
 
     return {
-      money: bonusMoney,
-      food: bonusFood,
+      money: receivedMoney,
+      food: receivedFood,
       consecutive_login_days: newConsecutiveDays,
     };
   }
