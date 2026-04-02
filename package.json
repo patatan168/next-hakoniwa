@@ -9,6 +9,7 @@
     "npm": "11.9.0"
   },
   "scripts": {
+    "lefthook": "npx lefthook install",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
