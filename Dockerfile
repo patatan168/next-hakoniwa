@@ -1,5 +1,5 @@
 # 1. 依存関係のインストール用ステージ
-FROM node:24-alpine AS deps
+FROM node:24.14.1-alpine AS deps
 RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
@@ -9,14 +9,14 @@ COPY package.json package-lock.json* ./
 RUN git init && npm ci
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
-FROM node:24-alpine AS prod-deps
+FROM node:24.14.1-alpine AS prod-deps
 RUN apk add --no-cache libc6-compat git python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN git init && npm ci --omit=dev --ignore-scripts
 
 # 2. ビルド用ステージ
-FROM node:24-alpine AS builder
+FROM node:24.14.1-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -33,7 +33,7 @@ ENV DB_CONNECTION_STRING mysql://dummy:dummy@localhost:3306/hakoniwa
 RUN npm run build
 
 # 3. 実行用ステージ
-FROM node:24-alpine AS runner
+FROM node:24.14.1-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
