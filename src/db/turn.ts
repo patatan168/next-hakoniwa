@@ -35,6 +35,7 @@ import { getPlanDefine } from '@/global/define/planType';
 import { createUuid25 } from '@/global/function/encrypt';
 import { IslandStats, accumulateCellStats, createIslandStats } from '@/global/function/island';
 import { turnProceedLogger } from '@/global/function/logger';
+import { getResource } from '@/global/function/resource';
 import {
   batchInsertDeletePlans,
   earthquakeExecute,
@@ -487,13 +488,12 @@ function processMapScan(currentTurn: number, fromUuid: string, logArray: TurnLog
   islandInfo.missile = Math.trunc(stats.missile);
 
   // 食料と資金の処理
-  if (islandInfo.food > META_DATA.MAX_FOOD) {
-    islandInfo.money += Math.ceil(
-      (islandInfo.food - META_DATA.MAX_FOOD) * META_DATA.FOOD_TO_MONEY_RATE
-    );
-    islandInfo.food = Math.min(islandInfo.food, META_DATA.MAX_FOOD);
-  }
-  islandInfo.money = Math.trunc(Math.max(0, Math.min(islandInfo.money, META_DATA.MAX_MONEY)));
+  const normalizedResource = getResource({
+    money: islandInfo.money,
+    food: islandInfo.food,
+  });
+  islandInfo.money = normalizedResource.money;
+  islandInfo.food = normalizedResource.food;
 }
 
 /**
