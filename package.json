@@ -5,11 +5,11 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": "24.14.0",
-    "npm": "11.9.0"
+    "node": "24.14.1",
+    "npm": "11.11.0"
   },
   "scripts": {
-    "postinstall": "npx lefthook install",
+    "lefthook": "npx lefthook install",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
