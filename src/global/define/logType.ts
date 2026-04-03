@@ -413,9 +413,8 @@ export const logMonsterMove = (
 
   // 移動先の地形を取得
   const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
-  const { name: moveName } = getMapDefine(moveMapInfo.type);
 
-  return `${islandName(island)}${coordinate(moveX, moveY)}の${moveName}が[b]怪獣${name}[/b]に踏み荒らされました。`;
+  return `${islandName(island)}${coordinate(moveX, moveY)}の${mapName(moveMapInfo)}が[b]${name}[/b]に踏み荒らされました。`;
 };
 
 /**
@@ -439,9 +438,8 @@ export const logMonsterSuicideBombing = (
 
   // 移動先の地形を取得
   const moveMapInfo = island.island_info[mapArrayConverter(moveX, moveY)];
-  const { name: moveName } = getMapDefine(moveMapInfo.type);
 
-  return `怪獣${mapName(mapInfo)}が${islandName(island)}${coordinate(moveX, moveY)}へ到達、${moveName}の${disaster('自爆装置が発動！！')}`;
+  return `${mapName(mapInfo)}が${islandName(island)}${coordinate(moveX, moveY)}へ到達、${mapName(moveMapInfo)}の${disaster('自爆装置が発動！！')}`;
 };
 
 /**
