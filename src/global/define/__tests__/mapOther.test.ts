@@ -15,7 +15,11 @@ vi.mock('../metadata', async (importOriginal) => {
   };
 });
 
-const createIsland = (landValue: number, propaganda: number): islandInfoTurnProgress => {
+const createIsland = (
+  landValue: number,
+  propaganda: number,
+  food = 100
+): islandInfoTurnProgress => {
   const mapSize = 10;
   const islandInfo = new Array(mapSize * mapSize).fill(null).map((_, i) => ({
     x: i % mapSize,
@@ -38,7 +42,7 @@ const createIsland = (landValue: number, propaganda: number): islandInfoTurnProg
     money: 0,
     area: 0,
     population: 0,
-    food: 100,
+    food,
     farm: 0,
     factory: 0,
     mining: 0,
@@ -87,5 +91,81 @@ describe('people growth', () => {
     });
 
     expect(island.island_info[mapArrayConverter(0, 0)].landValue).toBe(100);
+  });
+
+  test('food=0 では人口が減少する', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-3);
+    vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
+
+    const island = createIsland(20, 0, 0);
+
+    mapOther.people.event?.({
+      x: 0,
+      y: 0,
+      turn: 1,
+      fromUuid: 'test-uuid',
+      island,
+    });
+
+    const peopleCell = island.island_info[mapArrayConverter(0, 0)];
+    expect(peopleCell.type).toBe('people');
+    expect(peopleCell.landValue).toBe(17);
+  });
+
+  test('food=0 では人口がmaxVal(200)でも減少する', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-2);
+    vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
+
+    const island = createIsland(200, 0, 0);
+
+    mapOther.people.event?.({
+      x: 0,
+      y: 0,
+      turn: 1,
+      fromUuid: 'test-uuid',
+      island,
+    });
+
+    const peopleCell = island.island_info[mapArrayConverter(0, 0)];
+    expect(peopleCell.type).toBe('people');
+    expect(peopleCell.landValue).toBe(198);
+  });
+
+  test('food=0 かつ propaganda!=100 でも減少時は100に切り詰められない', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-2);
+    vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
+
+    const island = createIsland(150, 0, 0);
+
+    mapOther.people.event?.({
+      x: 0,
+      y: 0,
+      turn: 1,
+      fromUuid: 'test-uuid',
+      island,
+    });
+
+    const peopleCell = island.island_info[mapArrayConverter(0, 0)];
+    expect(peopleCell.type).toBe('people');
+    expect(peopleCell.landValue).toBe(148);
+  });
+
+  test('foodが負数で人口が0以下になった場合は平地に戻る', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-5);
+    vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
+
+    const island = createIsland(2, 0, -1);
+
+    mapOther.people.event?.({
+      x: 0,
+      y: 0,
+      turn: 1,
+      fromUuid: 'test-uuid',
+      island,
+    });
+
+    const peopleCell = island.island_info[mapArrayConverter(0, 0)];
+    expect(peopleCell.type).toBe('plains');
+    expect(peopleCell.landValue).toBe(0);
   });
 });
