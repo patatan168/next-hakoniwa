@@ -20,7 +20,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "target": "es2024"
+    "target": "es2025"
   },
   "include": [
     "next-env.d.ts",

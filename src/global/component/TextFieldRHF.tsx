@@ -2,7 +2,7 @@
  * @module TextFieldRHF
  * @description React Hook Form対応のテキストフィールドコンポーネント。
  */
-import { isEqual, omit } from 'es-toolkit';
+import { isEqual, omit } from '@/global/function/collection';
 import dynamic from 'next/dynamic';
 import { CSSProperties, InputHTMLAttributes, memo, useId, useMemo, useState } from 'react';
 import { Controller, FieldPath, FieldValues, UseControllerProps } from 'react-hook-form';
@@ -169,7 +169,7 @@ function TextFieldRHFInner<
 /**
  * TextFieldRHF is a memoized React component that integrates a text input field with React Hook Form.
  * It provides controlled input handling, validation, and error display.
- * It uses `isEqual` from `es-toolkit` to optimize rendering by preventing unnecessary re-renders.
+ * It uses a shared deep-equality utility to optimize rendering by preventing unnecessary re-renders.
  * @param {TextFieldRHFProps} props - The properties for the TextFieldRHF component.
  * @returns {JSX.Element} A controlled text input field with validation and error handling.
  * @example

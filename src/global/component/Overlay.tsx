@@ -2,7 +2,7 @@
  * @module Overlay
  * @description 画面全体を覆うオーバーレイコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { HTMLAttributes, memo } from 'react';
 import { createPortalIdHook } from '../function/createPortalIdHook';
 

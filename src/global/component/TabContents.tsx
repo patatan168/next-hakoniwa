@@ -2,7 +2,7 @@
  * @module TabContents
  * @description タブ切り替えコンテンツコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { CSSProperties, memo } from 'react';
 
 export type TabType = {

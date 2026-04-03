@@ -3,8 +3,6 @@
  * @description マップデータの変換・操作・集計ユーティリティ。
  */
 import { islandInfo, islandInfoData, islandInfoTurnProgress } from '@/db/kysely';
-import { isEqual } from 'es-toolkit';
-import { differenceWith } from 'es-toolkit/array';
 import {
   getBaseLog,
   logDamageWaste,
@@ -125,6 +123,26 @@ export const getMapAround = (baseX: number, baseY: number, hex: number) => {
   }
 
   return result;
+};
+
+type MapCoordinate = Pick<islandInfo, 'x' | 'y'>;
+
+const mapCoordinateKey = ({ x, y }: MapCoordinate) => `${x},${y}`;
+
+/**
+ * 座標配列の差集合を返す
+ * @param source 元の座標配列
+ * @param remove 除外する座標配列
+ * @returns source から remove を除いた座標配列
+ */
+export const differenceMapCoordinates = (
+  source: ReadonlyArray<MapCoordinate>,
+  remove: ReadonlyArray<MapCoordinate>
+) => {
+  const sourceSet = new Set(source.map(mapCoordinateKey));
+  const removeSet = new Set(remove.map(mapCoordinateKey));
+  const difference = sourceSet.difference(removeSet);
+  return source.filter((point) => difference.has(mapCoordinateKey(point)));
 };
 
 /**
@@ -367,9 +385,9 @@ export const wideDamage = (toIslandUuid: string, x: number, y: number, turn: num
 
   const baseLog = () => getBaseLog(turn, toIsland);
   // 周囲1HEXのみ
-  const aroundHex1 = differenceWith(getMapAround(x, y, 1), [{ x, y }], isEqual);
+  const aroundHex1 = differenceMapCoordinates(getMapAround(x, y, 1), [{ x, y }]);
   // 周囲2HEXのみ
-  const aroundHex2 = differenceWith(getMapAround(x, y, 2), [...aroundHex1, { x, y }], isEqual);
+  const aroundHex2 = differenceMapCoordinates(getMapAround(x, y, 2), [...aroundHex1, { x, y }]);
 
   // 中心座標は完全に水没
   const { defVal } = getMapDefine('sea');

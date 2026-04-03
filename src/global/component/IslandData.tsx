@@ -3,7 +3,7 @@
  * @description 島の詳細データ表示コンポーネント。
  */
 import { Island } from '@/db/kysely';
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { forwardRef, memo } from 'react';
 import META_DATA from '../define/metadata';
 

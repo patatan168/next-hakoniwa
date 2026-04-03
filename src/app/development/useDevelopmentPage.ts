@@ -5,6 +5,7 @@
 import { Plan } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
 import { uuid25Regex } from '@/global/define/regex';
+import { isEqual, sortBy, uniqBy } from '@/global/function/collection';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
@@ -18,7 +19,6 @@ import { islandListStore } from '@/global/store/api/public/islandList';
 import { islandSightStore } from '@/global/store/api/public/islandSight';
 import { turnStore } from '@/global/store/api/public/turn';
 import { usePlanDataStore } from '@/global/store/usePlanDataStore';
-import { isEqual, sortBy, uniqBy } from 'es-toolkit';
 import { useEffect, useState } from 'react';
 
 const normalizePlanItems = (initPlans: Plan[], uuid: string) => {

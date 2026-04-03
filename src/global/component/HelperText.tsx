@@ -2,7 +2,7 @@
  * @module HelperText
  * @description フォームフィールド用ヘルパーテキストコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { CSSProperties, memo } from 'react';
 import { FieldError } from 'react-hook-form';
 import Tooltip from './Tooltip';
