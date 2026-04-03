@@ -19,8 +19,21 @@ export const people: mapType = {
   unit: '人',
   event: function ({ x, y, turn, fromUuid: _fromUuid, island }) {
     const mapInfo = island.island_info[mapArrayConverter(x, y)];
-    // 人口増加
-    if (mapInfo.landValue < this.maxVal) {
+    if (island.food <= 0) {
+      // 食料不足時は最大人口でも減少処理を優先する
+      const addValue = randomIntInRange(-META_DATA.PEOPLE_LOSS.FAMINE, 0);
+      const tmpValue = mapInfo.landValue + addValue;
+
+      if (tmpValue > 0) {
+        if (addValue !== 0) {
+          changeMapData(island, x, y, 'people', { type: 'ins', value: tmpValue });
+        }
+      } else {
+        // 人口不足時は平地に戻す
+        changeMapData(island, x, y, 'plains', { type: 'ins', value: 0 });
+      }
+    } else if (mapInfo.landValue < this.maxVal) {
+      // 人口増加
       const growthValue = () => {
         const propaganda = island.propaganda;
         if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[2], 'max')) {
@@ -39,22 +52,12 @@ export const people: mapType = {
 
       const cityLimit = valueOrSafeLimit(this.level?.[2], 'max');
       const capacityLimit = island.propaganda === 100 ? this.maxVal : cityLimit;
-      const addValue =
-        island.food <= 0
-          ? randomIntInRange(-META_DATA.PEOPLE_LOSS.FAMINE, 0)
-          : capacityLimit > mapInfo.landValue
-            ? randomIntInRange(1, growthValue())
-            : 0;
-      const tmpValue = mapInfo.landValue + addValue;
+      const addValue = capacityLimit > mapInfo.landValue ? randomIntInRange(1, growthValue()) : 0;
 
-      if (tmpValue > 0) {
-        if (addValue !== 0) {
-          const clampedValue = Math.min(tmpValue, capacityLimit);
-          changeMapData(island, x, y, 'people', { type: 'ins', value: clampedValue });
-        }
-      } else {
-        // 人口不足時は平地に戻す
-        changeMapData(island, x, y, 'plains', { type: 'ins', value: 0 });
+      if (addValue !== 0) {
+        const tmpValue = mapInfo.landValue + addValue;
+        const clampedValue = Math.min(tmpValue, capacityLimit);
+        changeMapData(island, x, y, 'people', { type: 'ins', value: clampedValue });
       }
     }
     // 町以上なら火事判定

@@ -112,6 +112,25 @@ describe('people growth', () => {
     expect(peopleCell.landValue).toBe(17);
   });
 
+  test('food=0 では人口がmaxVal(200)でも減少する', () => {
+    vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-2);
+    vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
+
+    const island = createIsland(200, 0, 0);
+
+    mapOther.people.event?.({
+      x: 0,
+      y: 0,
+      turn: 1,
+      fromUuid: 'test-uuid',
+      island,
+    });
+
+    const peopleCell = island.island_info[mapArrayConverter(0, 0)];
+    expect(peopleCell.type).toBe('people');
+    expect(peopleCell.landValue).toBe(198);
+  });
+
   test('foodが負数で人口が0以下になった場合は平地に戻る', () => {
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(-5);
     vi.spyOn(mapTypeModule, 'fireDisaster').mockReturnValue(undefined);
