@@ -144,23 +144,32 @@ const compareArrayBufferView = (a: object, b: object): boolean | undefined => {
   return true;
 };
 
+const consumeMatch = <T>(pool: T[], isMatch: (candidate: T) => boolean): boolean => {
+  for (let i = 0; i < pool.length; i++) {
+    if (!isMatch(pool[i])) continue;
+    pool.splice(i, 1);
+    return true;
+  }
+
+  return false;
+};
+
 const compareMap = (a: object, b: object, memo: PairMemo): boolean | undefined => {
   if (!(a instanceof Map) && !(b instanceof Map)) return undefined;
   if (!(a instanceof Map) || !(b instanceof Map)) return false;
   if (a.size !== b.size) return false;
 
+  const remaining = Array.from(b.entries());
+
   for (const [keyA, valueA] of a.entries()) {
-    let found = false;
-    for (const [keyB, valueB] of b.entries()) {
-      if (isEqualInternal(keyA, keyB, memo) && isEqualInternal(valueA, valueB, memo)) {
-        found = true;
-        break;
-      }
-    }
+    const found = consumeMatch(
+      remaining,
+      ([keyB, valueB]) => isEqualInternal(keyA, keyB, memo) && isEqualInternal(valueA, valueB, memo)
+    );
     if (!found) return false;
   }
 
-  return true;
+  return remaining.length === 0;
 };
 
 const compareSet = (a: object, b: object, memo: PairMemo): boolean | undefined => {
@@ -168,18 +177,14 @@ const compareSet = (a: object, b: object, memo: PairMemo): boolean | undefined =
   if (!(a instanceof Set) || !(b instanceof Set)) return false;
   if (a.size !== b.size) return false;
 
+  const remaining = Array.from(b.values());
+
   for (const valueA of a.values()) {
-    let found = false;
-    for (const valueB of b.values()) {
-      if (isEqualInternal(valueA, valueB, memo)) {
-        found = true;
-        break;
-      }
-    }
+    const found = consumeMatch(remaining, (valueB) => isEqualInternal(valueA, valueB, memo));
     if (!found) return false;
   }
 
-  return true;
+  return remaining.length === 0;
 };
 
 const compareEnumerableKeys = (a: object, b: object, memo: PairMemo): boolean => {

@@ -27,6 +27,26 @@ describe('collection utilities', () => {
     expect(isEqual(left, right)).toBe(true);
   });
 
+  test('isEqual enforces one-to-one matching for Set values', () => {
+    const left = new Set([{ id: 1 }, { id: 1 }]);
+    const right = new Set([{ id: 1 }, { id: 2 }]);
+
+    expect(isEqual(left, right)).toBe(false);
+  });
+
+  test('isEqual enforces one-to-one matching for Map entries', () => {
+    const left = new Map([
+      [{ key: 1 }, { value: 1 }],
+      [{ key: 1 }, { value: 1 }],
+    ]);
+    const right = new Map([
+      [{ key: 1 }, { value: 1 }],
+      [{ key: 2 }, { value: 1 }],
+    ]);
+
+    expect(isEqual(left, right)).toBe(false);
+  });
+
   test('uniqBy removes duplicates by iteratee', () => {
     const list = [
       { id: 1, value: 'A' },
