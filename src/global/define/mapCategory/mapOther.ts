@@ -48,7 +48,7 @@ export const people: mapType = {
       const tmpValue = mapInfo.landValue + addValue;
 
       if (tmpValue > 0) {
-        if (addValue > 0) {
+        if (addValue !== 0) {
           const clampedValue = Math.min(tmpValue, capacityLimit);
           changeMapData(island, x, y, 'people', { type: 'ins', value: clampedValue });
         }
