@@ -2,7 +2,7 @@
  * @module Button
  * @description 汎用ボタンコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import Link from 'next/link';
 import { ButtonHTMLAttributes, memo, useMemo } from 'react';
 import { TailwindColor, TailwindSize } from '../define/utilityType';

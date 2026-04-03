@@ -14,7 +14,6 @@ import {
   TurnLog,
   User,
 } from '@/db/kysely';
-import { differenceWith, isEqual } from 'es-toolkit';
 import { Kysely, sql, Transaction } from 'kysely';
 import {
   getBaseLog,
@@ -53,6 +52,7 @@ import {
   countBaseLandAround,
   countMapAround,
   createIslandStats,
+  differenceMapCoordinates,
   getMapAround,
   isOpenSea,
   mapArrayConverter,
@@ -1056,7 +1056,7 @@ export const eruptionExecute = (islandUuid: string, turn: number) => {
     changeMapData(island, x, y, 'mountain', { type: 'ins', value: 0 });
 
     // 周囲1HEXのみ
-    const aroundHex1 = differenceWith(getMapAround(x, y, 1), [{ x, y }], isEqual);
+    const aroundHex1 = differenceMapCoordinates(getMapAround(x, y, 1), [{ x, y }]);
     aroundHex1.forEach(({ x: changeX, y: changeY }) => {
       if (!isOpenSea(changeX, changeY)) {
         const mapInfo = island.island_info[mapArrayConverter(changeX, changeY)];

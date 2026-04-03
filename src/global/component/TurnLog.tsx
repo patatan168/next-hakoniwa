@@ -3,7 +3,7 @@
  * @description ターンログを表示するコンポーネント。
  */
 import { TurnLog } from '@/db/kysely';
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { forwardRef, memo, Ref } from 'react';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { TransformHTML } from './TransFormHTML';

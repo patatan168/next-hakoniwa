@@ -2,7 +2,7 @@
  * @module Card
  * @description 汎用カードコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { memo, ReactNode, Ref } from 'react';
 
 const defaultClassName = 'card-border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800';

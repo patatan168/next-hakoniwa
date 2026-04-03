@@ -10,7 +10,7 @@ import {
   isAttackOrAidPlan,
   validLandType,
 } from '@/global/define/planType';
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import Image from 'next/image';
 import { CSSProperties, forwardRef, Fragment, memo, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';

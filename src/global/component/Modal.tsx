@@ -2,7 +2,7 @@
  * @module Modal
  * @description Portalベースのモーダルダイアログコンポーネント。
  */
-import { isEqual } from 'es-toolkit';
+import { isEqual } from '@/global/function/collection';
 import { memo, ReactNode, useEffect, useState } from 'react';
 import { RxCross1 } from 'react-icons/rx';
 import { createPortalIdHook } from '../function/createPortalIdHook';

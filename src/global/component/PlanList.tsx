@@ -2,8 +2,8 @@
  * @module PlanList
  * @description 計画リスト全体の表示・編集・送信を管理するコンポーネント。
  */
+import { isEqual, omit, sortBy, uniqBy } from '@/global/function/collection';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { isEqual, omit, sortBy, uniqBy } from 'es-toolkit';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { IoArrowRedo, IoArrowUndo, IoSendSharp } from 'react-icons/io5';
 import META_DATA from '../define/metadata';

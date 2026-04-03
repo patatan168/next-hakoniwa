@@ -2,8 +2,8 @@
  * @module PlanItem
  * @description 計画リストの1行分を表示・編集するコンポーネント。
  */
+import { isEqual, omit } from '@/global/function/collection';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isEqual, omit } from 'es-toolkit';
 import { forwardRef, memo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoTrash } from 'react-icons/io5';

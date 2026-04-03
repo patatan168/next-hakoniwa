@@ -115,7 +115,6 @@ docker compose up -d
 | better-sqlite3            | 12.8.0     |
 | react-hook-form           | 7.72.0     |
 | zod                       | 4.3.6      |
-| es-toolkit                | 1.45.1     |
 | kysely                    | 0.28.14    |
 | jsonwebtoken              | 9.0.3      |
 | winston                   | 3.19.0     |
