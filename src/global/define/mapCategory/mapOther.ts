@@ -22,29 +22,29 @@ export const people: mapType = {
     // 人口増加
     if (mapInfo.landValue < this.maxVal) {
       const growthValue = () => {
-        if (island.food >= 0) {
-          const propaganda = island.propaganda;
-          if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[2], 'max')) {
-            return propaganda === 100 ? META_DATA.PEOPLE_PROPAGANDA.CITY : 0; // 都市は誘致活動しないと増加しない
-          } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[1], 'max')) {
-            return propaganda === 100
-              ? META_DATA.PEOPLE_PROPAGANDA.TOWN
-              : META_DATA.PEOPLE_GROWTH.TOWN;
-          } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[0], 'max')) {
-            return propaganda === 100
-              ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
-              : META_DATA.PEOPLE_GROWTH.VILLAGE;
-          } else {
-            return 0;
-          }
-        } else {
-          return META_DATA.PEOPLE_LOSS.FAMINE;
+        const propaganda = island.propaganda;
+        if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[2], 'max')) {
+          return propaganda === 100 ? META_DATA.PEOPLE_PROPAGANDA.CITY : 0; // 都市は誘致活動しないと増加しない
+        } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[1], 'max')) {
+          return propaganda === 100
+            ? META_DATA.PEOPLE_PROPAGANDA.TOWN
+            : META_DATA.PEOPLE_GROWTH.TOWN;
+        } else if (mapInfo.landValue >= valueOrSafeLimit(this.level?.[0], 'max')) {
+          return propaganda === 100
+            ? META_DATA.PEOPLE_PROPAGANDA.VILLAGE
+            : META_DATA.PEOPLE_GROWTH.VILLAGE;
         }
+        return 0;
       };
 
       const cityLimit = valueOrSafeLimit(this.level?.[2], 'max');
       const capacityLimit = island.propaganda === 100 ? this.maxVal : cityLimit;
-      const addValue = capacityLimit > mapInfo.landValue ? randomIntInRange(1, growthValue()) : 0;
+      const addValue =
+        island.food <= 0
+          ? randomIntInRange(-META_DATA.PEOPLE_LOSS.FAMINE, 0)
+          : capacityLimit > mapInfo.landValue
+            ? randomIntInRange(1, growthValue())
+            : 0;
       const tmpValue = mapInfo.landValue + addValue;
 
       if (tmpValue > 0) {
