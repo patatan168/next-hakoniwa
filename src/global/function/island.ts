@@ -390,9 +390,11 @@ export const wideDamage = (toIslandUuid: string, x: number, y: number, turn: num
   const aroundHex2 = differenceMapCoordinates(getMapAround(x, y, 2), [...aroundHex1, { x, y }]);
 
   // 中心座標は完全に水没
+  const centerMapInfo = toIsland.island_info[mapArrayConverter(x, y)];
+  const beforeCenterMapInfo = { ...centerMapInfo };
   const { defVal } = getMapDefine('sea');
   changeMapData(toIsland, x, y, 'sea', { type: 'ins', value: defVal });
-  const tmpLog = logSubmersion(toIsland, x, y);
+  const tmpLog = logSubmersion(toIsland, x, y, beforeCenterMapInfo);
   const log = [{ ...baseLog(), secret_log: tmpLog, log: tmpLog }];
 
   // 周囲1HEXは陸地破壊相当の処理 (NOTE: 山は消し飛ぶ)
@@ -403,15 +405,17 @@ export const wideDamage = (toIslandUuid: string, x: number, y: number, turn: num
       const excludeType = ['sea', 'shallows'];
       // マップの変更
       if (!excludeType.includes(mapInfo.type)) {
-        const { defVal, baseLand } = getMapDefine('shallows');
+        const beforeMapInfo = { ...mapInfo };
+        const { baseLand } = getMapDefine(beforeMapInfo.type);
+        const { defVal } = getMapDefine('shallows');
         changeMapData(toIsland, changeX, changeY, 'shallows', { type: 'ins', value: defVal });
         // ログ出力
         const monsterType = ['monster', 'sanjira', 'kujira'];
         if (monsterType.includes(baseLand)) {
-          const tmpLog = logMonsterSubmersion(toIsland, changeX, changeY);
+          const tmpLog = logMonsterSubmersion(toIsland, changeX, changeY, beforeMapInfo);
           log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         } else {
-          const tmpLog = logSubmersion(toIsland, changeX, changeY);
+          const tmpLog = logSubmersion(toIsland, changeX, changeY, beforeMapInfo);
           log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         }
       }
@@ -434,15 +438,17 @@ export const wideDamage = (toIslandUuid: string, x: number, y: number, turn: num
       ];
       // マップの変更
       if (!excludeType.includes(mapInfo.type)) {
-        const { defVal, baseLand } = getMapDefine('wasteland');
+        const beforeMapInfo = { ...mapInfo };
+        const { baseLand } = getMapDefine(beforeMapInfo.type);
+        const { defVal } = getMapDefine('wasteland');
         changeMapData(toIsland, changeX, changeY, 'wasteland', { type: 'ins', value: defVal });
         const monsterType = ['monster', 'sanjira', 'kujira'];
         // ログ出力
         if (monsterType.includes(baseLand)) {
-          const tmpLog = logScatterMonster(toIsland, changeX, changeY);
+          const tmpLog = logScatterMonster(toIsland, changeX, changeY, beforeMapInfo);
           log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         } else {
-          const tmpLog = logDamageWaste(toIsland, changeX, changeY);
+          const tmpLog = logDamageWaste(toIsland, changeX, changeY, beforeMapInfo);
           log.push({ ...baseLog(), secret_log: tmpLog, log: tmpLog });
         }
       }

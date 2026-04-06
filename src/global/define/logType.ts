@@ -200,15 +200,17 @@ export const logForest = (island: Island & Pick<User, 'island_name'>): string =>
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logSubmersion = (
   island: Island & Pick<User, 'island_name'>,
   x: number,
-  y: number
+  y: number,
+  beforeMapInfo?: islandInfo
 ): string => {
-  // マップ情報の取得
-  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  // マップ情報の取得 (広域被害では変更前地形を優先)
+  const mapInfo = beforeMapInfo ?? island.island_info[mapArrayConverter(x, y)];
   const { baseLand } = getMapDefine(mapInfo.type);
   const seaType = ['sea', 'submarine_missile', 'oil_field'];
   const submersionLog = seaType.includes(baseLand) ? '跡形もなくなりました。' : '水没しました。';
@@ -221,15 +223,17 @@ export const logSubmersion = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logMonsterSubmersion = (
   island: Island & Pick<User, 'island_name'>,
   x: number,
-  y: number
+  y: number,
+  beforeMapInfo?: islandInfo
 ): string => {
-  // マップ情報の取得
-  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  // マップ情報の取得 (広域被害では変更前地形を優先)
+  const mapInfo = beforeMapInfo ?? island.island_info[mapArrayConverter(x, y)];
 
   return `${islandName(island)}${coordinate(x, y)}の陸地は${mapName(mapInfo)}もろとも水没しました。`;
 };
@@ -239,15 +243,17 @@ export const logMonsterSubmersion = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logDamageWaste = (
   island: Island & Pick<User, 'island_name'>,
   x: number,
-  y: number
+  y: number,
+  beforeMapInfo?: islandInfo
 ): string => {
-  // マップ情報の取得
-  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  // マップ情報の取得 (広域被害では変更前地形を優先)
+  const mapInfo = beforeMapInfo ?? island.island_info[mapArrayConverter(x, y)];
 
   return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}は一瞬にして荒地と化しました。`;
 };
@@ -257,15 +263,17 @@ export const logDamageWaste = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logScatterMonster = (
   island: Island & Pick<User, 'island_name'>,
   x: number,
-  y: number
+  y: number,
+  beforeMapInfo?: islandInfo
 ): string => {
-  // マップ情報の取得
-  const mapInfo = island.island_info[mapArrayConverter(x, y)];
+  // マップ情報の取得 (広域被害では変更前地形を優先)
+  const mapInfo = beforeMapInfo ?? island.island_info[mapArrayConverter(x, y)];
 
   return `${islandName(island)}${coordinate(x, y)}の${mapName(mapInfo)}は消し飛びました。`;
 };
@@ -529,6 +537,7 @@ export const logTsunamiDamage = (
  * @param popMonsterType 出現したモンスターのタイプ
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo モンスター出現前の地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns モンスター出現のログ
  */
 export const logPopMonster = (
