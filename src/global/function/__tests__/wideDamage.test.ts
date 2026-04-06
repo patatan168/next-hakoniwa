@@ -1,4 +1,4 @@
-import { islandInfoTurnProgress } from '@/db/kysely';
+import type { islandInfoTurnProgress } from '@/db/kysely';
 import { logDamageWaste, logSubmersion } from '@/global/define/logType';
 import { getMapDefine } from '@/global/define/mapType';
 import { buildIndexMap, islandDataStore } from '@/global/store/turnProgress';
