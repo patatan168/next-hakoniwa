@@ -200,6 +200,7 @@ export const logForest = (island: Island & Pick<User, 'island_name'>): string =>
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logSubmersion = (
@@ -222,6 +223,7 @@ export const logSubmersion = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logMonsterSubmersion = (
@@ -241,6 +243,7 @@ export const logMonsterSubmersion = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logDamageWaste = (
@@ -260,6 +263,7 @@ export const logDamageWaste = (
  * @param island 島情報
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo 広域被害ログで変更前地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns ログ
  */
 export const logScatterMonster = (
@@ -533,6 +537,7 @@ export const logTsunamiDamage = (
  * @param popMonsterType 出現したモンスターのタイプ
  * @param x X座標
  * @param y Y座標
+ * @param beforeMapInfo モンスター出現前の地形を出力するためのマップ情報（省略時は現在地形を参照）
  * @returns モンスター出現のログ
  */
 export const logPopMonster = (
