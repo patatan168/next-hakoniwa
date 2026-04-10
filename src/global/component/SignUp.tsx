@@ -207,24 +207,30 @@ export default function SignUp() {
   const [open, setOpen] = useState(false);
   const {
     data: availabilityData,
+    error: availabilityError,
     fetch: fetchAvailability,
     isLoading: isAvailabilityLoading,
   } = useClientFetch(signUpAvailabilityStore);
 
-  useEffect(() => {
-    fetchAvailability({ method: 'GET', cache: 'no-store' }, { refresh: true });
-  }, [fetchAvailability]);
-
   const canSignUp = availabilityData.get?.canSignUp ?? true;
-  const signUpMessage = availabilityData.get?.message;
+  const signUpMessage = availabilityData.get?.message ?? availabilityError.get?.detail;
   const isModalOpen = open && canSignUp;
 
   const openToggle = (value: boolean) => {
     setOpen(value);
   };
 
-  const onOpen = () => {
-    if (!canSignUp) return;
+  const onOpen = async () => {
+    await fetchAvailability({ method: 'GET', cache: 'no-store' });
+    const latest = signUpAvailabilityStore.getState();
+
+    // 可否チェックに失敗した場合は入力自体は許可し、POST側の判定に委ねる
+    if (latest.error.get) {
+      openToggle(true);
+      return;
+    }
+
+    if (latest.data.get?.canSignUp === false) return;
     openToggle(true);
   };
 
@@ -238,7 +244,7 @@ export default function SignUp() {
           category="outline"
           aria-haspopup="dialog"
           aria-expanded={isModalOpen}
-          disabled={isAvailabilityLoading.get || !canSignUp}
+          disabled={isAvailabilityLoading.get}
           title={!canSignUp ? signUpMessage : undefined}
           onClick={onOpen}
         >

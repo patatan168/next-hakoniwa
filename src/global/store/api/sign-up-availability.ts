@@ -9,6 +9,11 @@ export type SignUpAvailabilityResponse = {
   message?: string;
 };
 
-const store = new FetchStore<SignUpAvailabilityResponse>('/api/sign-up');
+/** サインアップ可否チェックのキャッシュTTL (ms) */
+const SIGN_UP_AVAILABILITY_TTL_MS = 30 * 1000;
+
+const store = new FetchStore<SignUpAvailabilityResponse>('/api/sign-up', {
+  waitTime: SIGN_UP_AVAILABILITY_TTL_MS,
+});
 
 export const signUpAvailabilityStore = store.store;
