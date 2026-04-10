@@ -109,13 +109,13 @@ docker compose up -d
 | React                     | 19.2.4     |
 | Next.js                   | 16.2.2     |
 | Tailwind CSS              | 4.2.2      |
-| sass                      | 1.98.0     |
+| sass                      | 1.99.0     |
 | React Icons               | 5.6.0      |
-| react-virtuoso            | 4.18.3     |
+| react-virtuoso            | 4.18.4     |
 | better-sqlite3            | 12.8.0     |
-| react-hook-form           | 7.72.0     |
+| react-hook-form           | 7.72.1     |
 | zod                       | 4.3.6      |
-| kysely                    | 0.28.14    |
+| kysely                    | 0.28.15    |
 | jsonwebtoken              | 9.0.3      |
 | winston                   | 3.19.0     |
 | winston-daily-rotate-file | 5.0.0      |
