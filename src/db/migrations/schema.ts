@@ -240,9 +240,7 @@ async function createSchemaIndexes(db: Kysely<Database>, isSqlite: boolean): Pro
   await runSafe(sql`CREATE INDEX plan_from_uuid_index ON plan(from_uuid)`);
   await runSafe(sql`CREATE INDEX plan_from_uuid_plan_no_index ON plan(from_uuid, plan_no)`);
   // turn_log の UUID ページング比較を index-friendly にするため、バイナリ照合順序へ寄せる
-  await runSafe(
-    sql`ALTER TABLE turn_log MODIFY log_uuid varchar(25) COLLATE utf8mb4_bin NOT NULL`
-  );
+  await runSafe(sql`ALTER TABLE turn_log MODIFY log_uuid varchar(25) COLLATE utf8mb4_bin NOT NULL`);
   await runSafe(sql`ALTER TABLE prize ADD PRIMARY KEY (uuid, prize)`);
 }
 
@@ -254,6 +252,16 @@ async function ensureTurnStateSeeded(db: Kysely<Database>): Promise<void> {
   await sql`INSERT INTO turn_state (turn, turn_processing, last_updated_at) VALUES (0, 0, 0)`.execute(
     db
   );
+}
+
+async function ensureSignUpLockSeeded(db: Kysely<Database>): Promise<void> {
+  const existsRes = await sql<{
+    cnt: number;
+  }>`SELECT COUNT(*) as cnt FROM sign_up_lock WHERE lock_id = 1`.execute(db);
+  const exists = Number(existsRes.rows[0]?.cnt ?? 0);
+  if (exists > 0) return;
+
+  await sql`INSERT INTO sign_up_lock (lock_id) VALUES (1)`.execute(db);
 }
 
 async function seedInitialModerator(db: Kysely<Database>): Promise<void> {
@@ -504,12 +512,16 @@ export async function up(db: Kysely<Database>): Promise<void> {
       turn_processing: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
       last_updated_at: { type: 'integer', config: (col) => col.defaultTo(0).notNull() },
     },
+    sign_up_lock: {
+      lock_id: { type: 'integer', config: (col) => col.primaryKey().notNull() },
+    },
   };
 
   await syncDesiredSchema(db, desiredSchema, isSqlite);
   await dropLegacyRoleTableIfExists(db);
   await createSchemaIndexes(db, isSqlite);
   await ensureTurnStateSeeded(db);
+  await ensureSignUpLockSeeded(db);
   await seedInitialModerator(db);
 }
 

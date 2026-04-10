@@ -2,7 +2,7 @@
  * @module sign-up
  * @description サインアップ処理を行うAPIルート。
  */
-import { db } from '@/db/kysely';
+import { db, isSqlite } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
 import { asyncRequestValid } from '@/global/function/api';
 import { argon2Gen } from '@/global/function/argon2';
@@ -13,6 +13,7 @@ import { accessLogger } from '@/global/function/logger';
 import { profanityCheck } from '@/global/function/profanity';
 import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turnState';
 import { userInfoSchema } from '@/global/valid/server/userInfo';
+import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
 const SIGN_UP_LIMIT_MESSAGE = '現在は新規登録できません。登録ユーザー数が上限に達しています';
@@ -74,6 +75,25 @@ export async function POST(request: NextRequest) {
     }
 
     const uuid = await db.transaction().execute(async (trx) => {
+      // サインアップ可否判定を直列化して、同時登録での上限超過を防ぐ
+      if (isSqlite) {
+        const lockRows = await sql<{
+          lock_id: number;
+        }>`SELECT lock_id FROM sign_up_lock WHERE lock_id = 1`.execute(trx);
+        if (lockRows.rows.length === 0) {
+          throw new Error('sign_up_lock row is not initialized');
+        }
+
+        await sql`UPDATE sign_up_lock SET lock_id = lock_id WHERE lock_id = 1`.execute(trx);
+      } else {
+        const lockRows = await sql<{
+          lock_id: number;
+        }>`SELECT lock_id FROM sign_up_lock WHERE lock_id = 1 FOR UPDATE`.execute(trx);
+        if (lockRows.rows.length === 0) {
+          throw new Error('sign_up_lock row is not initialized');
+        }
+      }
+
       const activeUserCount = await trx
         .selectFrom('user')
         .select(trx.fn.countAll<number>().as('cnt'))
