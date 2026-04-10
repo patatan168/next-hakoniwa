@@ -115,6 +115,8 @@ const META_DATA = Object.freeze({
   LOGIN_LOCK_MINUTE: Number(process.env.LOGIN_LOCK_MINUTE!),
   /** 最大セッション数 */
   MAX_SESSIONS: Number(process.env.MAX_SESSIONS!),
+  /** 登録ユーザー数の上限（inhabited=1 のみカウント） */
+  MAX_REGISTERED_USERS: Number(process.env.MAX_REGISTERED_USERS!),
   /** WebAuthn RPの名称 */
   RP_NAME: process.env.NEXT_PUBLIC_RP_NAME!,
   /** WebAuthn RPのID（ドメイン名） */
