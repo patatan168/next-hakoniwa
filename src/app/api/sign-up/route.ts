@@ -15,8 +15,31 @@ import { isTurnProcessing, turnProcessingResponse } from '@/global/function/turn
 import { userInfoSchema } from '@/global/valid/server/userInfo';
 import { NextRequest, NextResponse } from 'next/server';
 
+const SIGN_UP_LIMIT_MESSAGE = '現在は新規登録できません。登録ユーザー数が上限に達しています';
+
 export async function OPTIONS() {
   return NextResponse.json({});
+}
+
+export async function GET() {
+  if (await isTurnProcessing()) {
+    return NextResponse.json({
+      canSignUp: false,
+      message: '現在ターン処理中のため、新規登録を受け付けていません。時間をおいてお試しください',
+    });
+  }
+
+  const activeUserCount = await db
+    .selectFrom('user')
+    .select(db.fn.countAll<number>().as('cnt'))
+    .where('inhabited', '=', 1)
+    .executeTakeFirst();
+
+  if ((activeUserCount?.cnt ?? 0) >= META_DATA.MAX_REGISTERED_USERS) {
+    return NextResponse.json({ canSignUp: false, message: SIGN_UP_LIMIT_MESSAGE });
+  }
+
+  return NextResponse.json({ canSignUp: true });
 }
 
 export async function POST(request: NextRequest) {
@@ -32,9 +55,6 @@ export async function POST(request: NextRequest) {
     if (profanityCheck(userName) || profanityCheck(islandName)) {
       return NextResponse.json({ error: '不適切な単語が含まれています' }, { status: 400 });
     }
-    const uuid = createUuid25();
-    const hashId = await sha256Gen(id);
-    const hashPass = await argon2Gen(password);
 
     // 本番環境のみフィンガープリントによる多重登録チェック
     const clientFpHash = request.headers.get('x-fp-hash') ?? '';
@@ -53,11 +73,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await db.transaction().execute(async (trx) => {
+    const uuid = await db.transaction().execute(async (trx) => {
+      const activeUserCount = await trx
+        .selectFrom('user')
+        .select(trx.fn.countAll<number>().as('cnt'))
+        .where('inhabited', '=', 1)
+        .executeTakeFirst();
+
+      if ((activeUserCount?.cnt ?? 0) >= META_DATA.MAX_REGISTERED_USERS) {
+        return null;
+      }
+
+      const createdUuid = createUuid25();
+      const hashId = await sha256Gen(id);
+      const hashPass = await argon2Gen(password);
+
       await trx
         .insertInto('user')
         .values({
-          uuid,
+          uuid: createdUuid,
           user_name: userName,
           island_name: islandName,
         })
@@ -66,7 +100,7 @@ export async function POST(request: NextRequest) {
       await trx
         .insertInto('auth')
         .values({
-          uuid,
+          uuid: createdUuid,
           id: hashId,
           password: hashPass,
           fp_hash: fpHash,
@@ -76,10 +110,16 @@ export async function POST(request: NextRequest) {
       await trx
         .insertInto('last_login')
         .values({
-          uuid,
+          uuid: createdUuid,
         })
         .execute();
+
+      return createdUuid;
     });
+
+    if (uuid === null) {
+      return NextResponse.json({ error: SIGN_UP_LIMIT_MESSAGE }, { status: 409 });
+    }
 
     // アクセストークンとリフレッシュトークンを発行
     await createJwtToken(db, uuid, false);

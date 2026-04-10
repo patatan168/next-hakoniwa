@@ -8,6 +8,7 @@ import Modal from '@/global/component/Modal';
 import { TextFieldRHF } from '@/global/component/TextFieldRHF';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { signUpStore } from '@/global/store/api/sign-up';
+import { signUpAvailabilityStore } from '@/global/store/api/sign-up-availability';
 import { userInfo, userInfoSchema } from '@/global/valid/userInfo';
 import { sanitizeJsonStringify } from '@/global/valid/xss';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -204,27 +205,56 @@ function SignUpForm() {
 
 export default function SignUp() {
   const [open, setOpen] = useState(false);
+  const {
+    data: availabilityData,
+    fetch: fetchAvailability,
+    isLoading: isAvailabilityLoading,
+  } = useClientFetch(signUpAvailabilityStore);
+
+  useEffect(() => {
+    fetchAvailability({ method: 'GET', cache: 'no-store' }, { refresh: true });
+  }, [fetchAvailability]);
+
+  const canSignUp = availabilityData.get?.canSignUp ?? true;
+  const signUpMessage = availabilityData.get?.message;
+  const isModalOpen = open && canSignUp;
+
   const openToggle = (value: boolean) => {
     setOpen(value);
   };
+
+  const onOpen = () => {
+    if (!canSignUp) return;
+    openToggle(true);
+  };
+
   return (
     <>
-      <Button
-        size="xs"
-        className="sm:text-sm"
-        type="button"
-        category="outline"
-        aria-haspopup="dialog"
-        aria-expanded="false"
-        onClick={() => openToggle(true)}
-      >
-        新規登録
-      </Button>
+      <div className="flex flex-col items-end">
+        <Button
+          size="xs"
+          className="sm:text-sm"
+          type="button"
+          category="outline"
+          aria-haspopup="dialog"
+          aria-expanded={isModalOpen}
+          disabled={isAvailabilityLoading.get || !canSignUp}
+          title={!canSignUp ? signUpMessage : undefined}
+          onClick={onOpen}
+        >
+          {canSignUp ? '新規登録' : '新規登録停止中'}
+        </Button>
+        {!canSignUp && signUpMessage && (
+          <p className="mt-1 max-w-52 text-right text-[11px] leading-tight text-red-700 sm:text-xs">
+            {signUpMessage}
+          </p>
+        )}
+      </div>
       <Modal
         hidden
         header="島を探す - 新規登録"
         body={<SignUpForm />}
-        open={open}
+        open={isModalOpen}
         openToggle={openToggle}
       />
     </>
