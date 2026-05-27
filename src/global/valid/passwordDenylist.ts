@@ -48,6 +48,12 @@ const leetToAlphaMap: Record<string, string> = {
   '!': 'i',
 };
 
+const hasConsecutiveSameCharRun = (value: string, minRunLength = 15): boolean => {
+  const escapedLength = Math.max(1, minRunLength - 1);
+  const pattern = new RegExp(`(.)\\1{${escapedLength},}`);
+  return pattern.test(value);
+};
+
 const normalizePasswordForBlocklist = (password: string): string => {
   const lower = password.toLowerCase();
   return Array.from(lower)
@@ -57,6 +63,10 @@ const normalizePasswordForBlocklist = (password: string): string => {
 };
 
 export const isCommonPassword = (password: string): boolean => {
+  if (hasConsecutiveSameCharRun(password, 15)) {
+    return true;
+  }
+
   const normalized = normalizePasswordForBlocklist(password);
 
   if (commonPasswordBlocklist.has(normalized)) {
