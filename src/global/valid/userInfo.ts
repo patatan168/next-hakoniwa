@@ -35,7 +35,10 @@ export const baseUserInfoSchema = z.object({
     .refine((value) => !isCommonPassword(value), {
       error: 'よく使用される推測されやすいパスワードは使用できません',
     }),
-  passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
+  passwordConfirm: z
+    .string()
+    .trim()
+    .min(1, { error: 'もう一度パスワードを入力してください' }),
   userName: z.coerce
     .string()
     .trim()
