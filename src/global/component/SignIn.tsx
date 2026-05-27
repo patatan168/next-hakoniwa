@@ -166,7 +166,7 @@ function SignInForm({ open, openToggle }: { open: boolean; openToggle: (value: b
           <TextFieldRHF
             required
             name="password"
-            pattern="^[\x00-\x7F]+$"
+            pattern="^[\x21-\x7E]+$"
             autoComplete="off"
             control={control}
             type="password"
