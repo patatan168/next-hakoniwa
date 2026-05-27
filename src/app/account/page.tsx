@@ -172,7 +172,7 @@ function ChangeAccountSection() {
             <TextFieldRHF
               required
               name="currentPassword"
-              pattern="^[\x20-\x7E]+$"
+              pattern="^[\x21-\x7E]+$"
               autoComplete="current-password"
               control={control}
               type="password"
@@ -243,7 +243,7 @@ function ChangeAccountSection() {
             <ExpandableFields show={changePassword}>
               <TextFieldRHF
                 name="newPassword"
-                pattern="^[\x20-\x7E]+$"
+                pattern="^[\x21-\x7E]+$"
                 autoComplete="new-password"
                 control={control}
                 type="password"
@@ -253,7 +253,7 @@ function ChangeAccountSection() {
               />
               <TextFieldRHF
                 name="newPasswordConfirm"
-                pattern="^[\x20-\x7E]+$"
+                pattern="^[\x21-\x7E]+$"
                 autoComplete="new-password"
                 control={control}
                 type="password"
@@ -347,7 +347,7 @@ function DeleteAccountSection() {
             <TextFieldRHF
               required
               name="currentPassword"
-              pattern="^[\x20-\x7E]+$"
+              pattern="^[\x21-\x7E]+$"
               autoComplete="current-password"
               control={control}
               type="password"
