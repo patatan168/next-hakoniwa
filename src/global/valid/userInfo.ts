@@ -5,12 +5,15 @@
 import * as z from 'zod';
 import { fetcher } from '../function/fetch/fetch';
 import { reactDebounce } from '../function/reactDebounce';
+import { isCommonPassword } from './passwordDenylist';
 
 export const baseUserInfoSchema = z.object({
   id: z.coerce
     .string()
     .trim()
-    .min(4, { error: '4文字上のIDを入力してください' })
+    .min(4, {
+      error: '4文字上のIDを入力してください',
+    })
     .regex(/^[a-zA-Z0-9]+$/, {
       error: '英大文字、英小文字、数字で入力してください',
     })
@@ -20,43 +23,44 @@ export const baseUserInfoSchema = z.object({
   password: z
     .string()
     .trim()
-    .min(8, {
-      error: '8文字以上のパスワードを英大文字、英小文字、数字を含めて入力してください',
+    .min(15, {
+      error: '15文字以上のパスワードを入力してください',
     })
-    .max(24, {
-      error: '24文字以下のパスワードを英大文字、英小文字、数字を含めて入力してください',
-    })
-    .regex(/(?=.*?[a-zA-Z])(?=.*?\d)[!-~]+/, {
-      error: '英大文字、英小文字、数字を含めて入力してください',
-    })
-    .regex(/^(?=.*[A-Za-z])(?=.*\d)[\x20-\x7E]+$/, {
-      error: '全角文字は使用できません',
+    .regex(/^[\x20-\x7E]+$/, {
+      error: '半角文字のみで入力してください',
     })
     .regex(/^[^<>&"'/`={}():%]+$/, {
       error: '「^ < > & " \' ` = { } ( ) : %」は使用できません',
+    })
+    .refine((value) => !isCommonPassword(value), {
+      error: 'よく使用される推測されやすいパスワードは使用できません',
     }),
   passwordConfirm: z.string().min(1, { error: 'もう一度パスワードを入力してください' }),
   userName: z.coerce
     .string()
     .trim()
     .min(1, { error: 'お名前を入力してください' })
-    .max(16, { error: '16文字以内で入力してください' })
     .regex(/^[^<>&"'/`={}():%]+$/, {
       error: '「^ < > & " \' ` = { } ( ) : %」は使用できません',
     })
     .regex(/^[^\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u, {
       error: '絵文字は使用できません',
+    })
+    .max(16, {
+      error: '16文字以内で入力してください',
     }),
   islandName: z.coerce
     .string()
     .trim()
     .min(1, { error: '島名を入力してください' })
-    .max(16, { error: '16文字以内の島名を入力してください' })
     .regex(/[^島]$/, {
       error: '末尾に「島」は使用できません',
     })
     .regex(/^[^<>&"'/`={}():%]+$/, {
       error: '「^ < > & " \' ` = { } ( ) : %」は使用できません',
+    })
+    .max(16, {
+      error: '16文字以内の島名を入力してください',
     }),
 });
 

@@ -176,7 +176,7 @@ function SignUpForm() {
           <TextFieldRHF
             required
             name="password"
-            pattern="^[\x00-\x7F]+$"
+            pattern="^[\x20-\x7E]+$"
             autoComplete="off"
             control={control}
             type="password"
@@ -189,7 +189,7 @@ function SignUpForm() {
           <TextFieldRHF
             required
             name="passwordConfirm"
-            pattern="^[\x00-\x7F]+$"
+            pattern="^[\x20-\x7E]+$"
             autoComplete="off"
             control={control}
             type="password"
