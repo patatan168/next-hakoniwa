@@ -15,7 +15,7 @@ const commonPasswordBlocklist = new Set([
   'welcome123456789',
   'iloveyou1234567',
   'abc123abc123abc',
-  'p@ssw0rd1234567',
+  'password1234567',
 ]);
 
 const commonPasswordRoots = [
