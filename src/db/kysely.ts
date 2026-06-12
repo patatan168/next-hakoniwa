@@ -66,6 +66,10 @@ export { parseJsonIslandData, parseJsonIslandDataTurnProgress } from './schema/i
  * @returns Kysely インスタンス
  */
 function getDialect(): Kysely<Database> {
+  if (process.env.NODE_ENV === 'production' && (!process.env.DB_TYPE || !process.env.DB_CONNECTION_STRING)) {
+    throw new Error('DB_TYPE and DB_CONNECTION_STRING must be explicitly set in production');
+  }
+
   const dbType = process.env.DB_TYPE ?? 'sqlite';
   const connectionString =
     process.env.DB_CONNECTION_STRING ??
