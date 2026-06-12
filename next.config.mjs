@@ -13,8 +13,9 @@ const nextConfig = {
   async headers() {
     if (process.env.NODE_ENV === 'development') return [];
 
-    // CORS 設定のため、環境変数から URL を取得（デフォルトはローカルホスト）
-    const urlValue = process.env.NEXT_PUBLIC_ORIGIN_URL ?? 'http://localhost:3000';
+  // CORS 設定のため、環境変数から URL を取得（デフォルトはローカルホスト）
+  // NOTE: Access-Control-Allow-Origin は末尾スラッシュ無しの Origin 形式に正規化する
+  const urlValue = (process.env.NEXT_PUBLIC_ORIGIN_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
     return [
       {
