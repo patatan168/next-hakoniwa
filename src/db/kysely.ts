@@ -66,8 +66,10 @@ export { parseJsonIslandData, parseJsonIslandDataTurnProgress } from './schema/i
  * @returns Kysely インスタンス
  */
 function getDialect(): Kysely<Database> {
-  const dbType = process.env.DB_TYPE;
-  const connectionString = process.env.DB_CONNECTION_STRING;
+  const dbType = process.env.DB_TYPE ?? 'sqlite';
+  const connectionString =
+    process.env.DB_CONNECTION_STRING ??
+    (dbType === 'sqlite' ? './src/db/data/develop.db' : undefined);
 
   if (dbType === 'sqlite') {
     if (!connectionString) {
@@ -98,7 +100,7 @@ function getDialect(): Kysely<Database> {
     });
   }
 
-  throw new Error(`Unsupported database type: ${dbType}`);
+  throw new Error(`Unsupported database type: ${dbType}. Expected one of: sqlite, mysql`);
 }
 
 export const db = getDialect();
