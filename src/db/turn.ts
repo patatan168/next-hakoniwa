@@ -52,6 +52,7 @@ import {
   saveMissileStats,
   savePlanStats,
   setAllIslandStats,
+  tryStartTurnProcessing,
   tsunamiExecute,
   typhoonExecute,
   updateIslands,
@@ -63,9 +64,6 @@ import { arrayRandomInt, memoryUsage } from '@/global/function/utility';
 import { buildIndexMap, islandDataGetSet, islandDataStore } from '@/global/store/turnProgress';
 import { Kysely, Transaction, sql } from 'kysely';
 import { runIslandTurnPhases } from './turnPhases';
-
-/** 再実行上限数 */
-const MAX_RECURSIVE = 3;
 
 type MissileBreakdown = Record<string, number>;
 
@@ -296,9 +294,6 @@ async function awardTurnCup(
     secret_log: logMessage,
   });
 }
-
-/** 再実行時の待機時間(ms) */
-const WAIT_TIME = 2000;
 
 /** 各島情報 */
 
@@ -802,24 +797,19 @@ async function saveTurnResourceHistory(
 
 /**
  * ターン処理のメインエントリポイント。全島のターンを進行し結果をDBに保存する。
- * @param recursiveCount - 再帰実行回数
  */
-async function turnProceed(recursiveCount = 0) {
-  const turnInfo = await getTurnInfo(db);
-  if (!turnInfo) return;
-  // ターン処理中チェック
-  if (turnInfo.turn_processing === 1) {
-    if (recursiveCount < MAX_RECURSIVE) {
-      turnProceedLogger.warn(
-        `現在のターン処理が完了していません。再実行します。試行数：${recursiveCount + 1}`
-      );
-      return setTimeout(turnProceed, WAIT_TIME * (recursiveCount + 1), recursiveCount + 1);
-    }
-    turnProceedLogger.error('再実行上限に達しました。終了します。');
+async function turnProceed() {
+  const acquired = await tryStartTurnProcessing(db);
+  if (!acquired) {
+    turnProceedLogger.info('別プロセスでターン処理中のため、このプロセスは何もせず終了します。');
     return;
   }
 
-  await updateTurnProgressing(db, true);
+  const turnInfo = await getTurnInfo(db);
+  if (!turnInfo) {
+    await updateTurnProgressing(db, false);
+    return;
+  }
 
   try {
     let islandList = await getAllIslands(db);
