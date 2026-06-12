@@ -1,7 +1,9 @@
-@if global-variable-exists(NEXT_PUBLIC_MAP_SIZE) {
+@use 'sass:meta';
+
+$mapSize: 12;
+
+@if meta.global-variable-exists(NEXT_PUBLIC_MAP_SIZE) {
   $mapSize: $NEXT_PUBLIC_MAP_SIZE;
-} @else {
-  $mapSize: 12;
 }
 .map-grid {
   display: grid;
