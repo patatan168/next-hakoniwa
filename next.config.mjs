@@ -12,6 +12,10 @@ const nextConfig = {
   },
   async headers() {
     if (process.env.NODE_ENV === 'development') return [];
+
+    // CORS 設定のため、環境変数から URL を取得（デフォルトはローカルホスト）
+    const urlValue = process.env.NEXT_PUBLIC_ORIGIN_URL ?? 'http://localhost:3000';
+
     return [
       {
         source: '/(.*)',
@@ -52,7 +56,7 @@ const nextConfig = {
         source: '/api/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'false' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ORIGIN_URL },
+          { key: 'Access-Control-Allow-Origin', value: urlValue },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
           {
             key: 'Access-Control-Allow-Headers',
@@ -87,7 +91,7 @@ const nextConfig = {
         source: '/api/auth/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ORIGIN_URL },
+          { key: 'Access-Control-Allow-Origin', value: urlValue },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
           {
             key: 'Access-Control-Allow-Headers',
@@ -122,7 +126,7 @@ const nextConfig = {
         source: '/api/admin/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ORIGIN_URL },
+          { key: 'Access-Control-Allow-Origin', value: urlValue },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
           {
             key: 'Access-Control-Allow-Headers',
