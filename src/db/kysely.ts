@@ -61,47 +61,74 @@ export type { islandData, islandInfoTurnProgress } from './schema/islandTable';
 
 export { parseJsonIslandData, parseJsonIslandDataTurnProgress } from './schema/islandTable';
 
+interface ResolvedDbConfig {
+  dbType: string;
+  connectionString?: string;
+}
+
+function resolveDbConfig(): ResolvedDbConfig {
+  const configuredDbType = process.env.DB_TYPE?.trim() || undefined;
+  const configuredConnectionString = process.env.DB_CONNECTION_STRING?.trim() || undefined;
+
+  const isProductionRuntime =
+    process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build';
+
+  if (isProductionRuntime && (!configuredDbType || !configuredConnectionString)) {
+    throw new Error('DB_TYPE and DB_CONNECTION_STRING must be explicitly set in production');
+  }
+
+  const dbType = configuredDbType ?? 'sqlite';
+  const connectionString =
+    configuredConnectionString ?? (dbType === 'sqlite' ? './src/db/data/develop.db' : undefined);
+
+  return {
+    dbType,
+    connectionString,
+  };
+}
+
+function createSqliteDialect(connectionString?: string): Kysely<Database> {
+  if (!connectionString) {
+    throw new Error('DB_CONNECTION_STRING is required for sqlite (path to db file)');
+  }
+  const database = new sqlite(connectionString);
+  database.pragma('journal_mode = WAL');
+  database.pragma('synchronous = NORMAL');
+  database.pragma('cache_size = -16000');
+  database.pragma('temp_store = MEMORY');
+  return new Kysely<Database>({
+    dialect: new SqliteDialect({
+      database,
+    }),
+  });
+}
+
+function createMysqlDialect(connectionString?: string): Kysely<Database> {
+  if (!connectionString) {
+    throw new Error('DB_CONNECTION_STRING is required for mysql');
+  }
+  return new Kysely<Database>({
+    dialect: new MysqlDialect({
+      pool: mysql.createPool(
+        connectionString
+      ) as unknown as import('kysely').MysqlDialectConfig['pool'],
+    }),
+  });
+}
+
 /**
  * Kysely インスタンスの生成
  * @returns Kysely インスタンス
  */
 function getDialect(): Kysely<Database> {
-  if (process.env.NODE_ENV === 'production' && (!process.env.DB_TYPE || !process.env.DB_CONNECTION_STRING)) {
-    throw new Error('DB_TYPE and DB_CONNECTION_STRING must be explicitly set in production');
-  }
-
-  const dbType = process.env.DB_TYPE ?? 'sqlite';
-  const connectionString =
-    process.env.DB_CONNECTION_STRING ??
-    (dbType === 'sqlite' ? './src/db/data/develop.db' : undefined);
+  const { dbType, connectionString } = resolveDbConfig();
 
   if (dbType === 'sqlite') {
-    if (!connectionString) {
-      throw new Error('DB_CONNECTION_STRING is required for sqlite (path to db file)');
-    }
-    const database = new sqlite(connectionString);
-    database.pragma('journal_mode = WAL');
-    database.pragma('synchronous = NORMAL');
-    database.pragma('cache_size = -16000');
-    database.pragma('temp_store = MEMORY');
-    return new Kysely<Database>({
-      dialect: new SqliteDialect({
-        database,
-      }),
-    });
+    return createSqliteDialect(connectionString);
   }
 
   if (dbType === 'mysql') {
-    if (!connectionString) {
-      throw new Error('DB_CONNECTION_STRING is required for mysql');
-    }
-    return new Kysely<Database>({
-      dialect: new MysqlDialect({
-        pool: mysql.createPool(
-          connectionString
-        ) as unknown as import('kysely').MysqlDialectConfig['pool'],
-      }),
-    });
+    return createMysqlDialect(connectionString);
   }
 
   throw new Error(`Unsupported database type: ${dbType}. Expected one of: sqlite, mysql`);
