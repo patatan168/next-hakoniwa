@@ -8,32 +8,21 @@ import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { extractClientIp } from './ip';
 
-/** ログフォーマッターを生成する */
-const logFormat = (request?: NextRequest) =>
-  format.printf(({ level, message, timestamp }) => {
-    if (request !== undefined) {
-      const ip = extractClientIp(request);
-      const logLevel = ip ? level : 'warn';
-      return `${logLevel}:\t[${timestamp}]\t[${ip}]\t[${request.nextUrl.host}]\t${message}`;
-    } else {
-      return `${level}:\t[${timestamp}]\t${message}`;
-    }
-  });
+/** アクセスログ用フォーマッター（ip/hostはchildメタデータから取得）*/
+const accessLogFormat = format.printf(({ level, message, timestamp, clientIp, host }) => {
+  const logLevel = clientIp ? level : 'warn';
+  return `${logLevel}:\t[${timestamp}]\t[${clientIp}]\t[${host}]\t${message}`;
+});
 
-/** Winstonロガーインスタンスを生成する */
-const logger = (dir: string, request?: NextRequest) => {
+/** ターンログ用フォーマッター */
+const turnLogFormat = format.printf(({ level, message, timestamp }) => {
+  return `${level}:\t[${timestamp}]\t${message}`;
+});
+
+/** ベースロガーをシングルトンとして生成する */
+const createBaseLogger = (dir: string, logFormat: winston.Logform.Format) => {
   const logDirectory = `log/${dir}`;
   mkdirSync(logDirectory, { recursive: true });
-
-  const transports = [
-    new winston.transports.Console(),
-    new DailyRotateFile({
-      filename: `${logDirectory}/%DATE%.log`,
-      datePattern: 'YYYY-MM-DD',
-      maxSize: '20m',
-      maxFiles: '90d',
-    }),
-  ];
 
   return winston.createLogger({
     level: 'silly',
@@ -41,20 +30,33 @@ const logger = (dir: string, request?: NextRequest) => {
       winston.format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss.SS',
       }),
-      logFormat(request)
+      logFormat
     ),
-    transports,
+    transports: [
+      new winston.transports.Console(),
+      new DailyRotateFile({
+        filename: `${logDirectory}/%DATE%.log`,
+        datePattern: 'YYYY-MM-DD',
+        maxSize: '20m',
+        maxFiles: '90d',
+      }),
+    ],
   });
 };
+
+/** アクセスログ用シングルトンロガー */
+const _accessLogger = createBaseLogger('access', accessLogFormat);
 
 /**
  * アクセスログ (log/access)
  * @param request Next.jsのリクエスト
  */
-export const accessLogger = (request: NextRequest) => logger('access', request);
+export const accessLogger = (request: NextRequest) => {
+  const ip = extractClientIp(request);
+  return _accessLogger.child({ clientIp: ip, host: request.nextUrl.host });
+};
 
 /**
  * ターン進行ログ (log/turn_proceed)
- * @param request Next.jsのリクエスト
  */
-export const turnProceedLogger = logger('turn_proceed');
+export const turnProceedLogger = createBaseLogger('turn_proceed', turnLogFormat);
