@@ -15,12 +15,9 @@ type LogEntry = {
 };
 
 const LOG_BASE_DIR = process.env.LOG_BASE_DIR?.trim() || 'log';
-const LOG_TRANSPORT_MODE = (process.env.LOG_TRANSPORT_MODE?.trim().toLowerCase() || 'both') as
+const LOG_TRANSPORT_MODE = (process.env.LOG_TRANSPORT_MODE?.trim().toLowerCase() || 'file,s3') as
   | 'file'
-  | 'network'
-  | 's3'
-  | 'both'
-  | 'all';
+  | 's3';
 const LOG_S3_BUCKET = process.env.LOG_S3_BUCKET?.trim();
 const LOG_S3_REGION = process.env.LOG_S3_REGION?.trim() || 'us-east-1';
 const LOG_S3_ENDPOINT = process.env.LOG_S3_ENDPOINT?.trim();
@@ -31,9 +28,7 @@ const LOG_S3_FORCE_PATH_STYLE = process.env.LOG_S3_FORCE_PATH_STYLE === 'true';
 
 const MAX_LOG_PREVIEW_CHARS = 200000;
 
-const transportModes = LOG_TRANSPORT_MODE.replace(/\bboth\b/g, 'file,network')
-  .replace(/\ball\b/g, 'file,network,s3')
-  .split(/[,;]+/)
+const transportModes = LOG_TRANSPORT_MODE.split(/[,;]+/)
   .map((mode) => mode.trim())
   .filter(Boolean);
 

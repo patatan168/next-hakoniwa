@@ -79,17 +79,6 @@ docker logs -f hakoniwa-app
 
 ※ `Ready in ...` が表示されていれば起動成功です。
 
-### 外部ログ集約サーバーへネットワーク送信する
-
-HTTP送信の場合は、以下のように環境変数へ設定してください。
-
-```env
-LOG_TRANSPORT_MODE=network
-LOG_NETWORK_URL=https://log-lb.example.com/ingest
-```
-
-運用初期は `LOG_TRANSPORT_MODE=both` を推奨します。ネットワーク障害時も `LOG_BASE_DIR` 配下へファイル出力されるため、ログ欠損のリスクを下げられます。
-
 ### データベースに直接接続する
 
 ホストマシン（あなたのPC）のDBクライアントツール群から、コンテナ内のMySQLに接続したい場合は以下の情報を使用してください。

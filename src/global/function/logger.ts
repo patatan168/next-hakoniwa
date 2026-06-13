@@ -13,13 +13,9 @@ import TransportStream from 'winston-transport';
 import { extractClientIp } from './ip';
 
 const LOG_BASE_DIR = process.env.LOG_BASE_DIR?.trim() || 'log';
-const LOG_NETWORK_URL = process.env.LOG_NETWORK_URL?.trim();
-const LOG_TRANSPORT_MODE = (process.env.LOG_TRANSPORT_MODE?.trim().toLowerCase() || 'both') as
+const LOG_TRANSPORT_MODE = (process.env.LOG_TRANSPORT_MODE?.trim().toLowerCase() || 'file,s3') as
   | 'file'
-  | 'network'
-  | 's3'
-  | 'both'
-  | 'all';
+  | 's3';
 const LOG_S3_BUCKET = process.env.LOG_S3_BUCKET?.trim();
 const LOG_S3_REGION = process.env.LOG_S3_REGION?.trim() || 'us-east-1';
 const LOG_S3_ENDPOINT = process.env.LOG_S3_ENDPOINT?.trim();
@@ -29,41 +25,12 @@ const LOG_S3_KEY_PREFIX = process.env.LOG_S3_KEY_PREFIX?.trim() || 'logs';
 const LOG_S3_FORCE_PATH_STYLE = process.env.LOG_S3_FORCE_PATH_STYLE === 'true';
 
 const resolveLogDirectory = (dir: string) => join(LOG_BASE_DIR, dir);
-const transportModes = LOG_TRANSPORT_MODE.replace(/\bboth\b/g, 'file,network')
-  .replace(/\ball\b/g, 'file,network,s3')
-  .replace(/\s*file\s*\+\s*s3\s*/g, 'file,s3')
-  .replace(/\s*file\s*,\s*s3\s*/g, 'file,s3')
-  .split(/[,;]+/)
+const transportModes = LOG_TRANSPORT_MODE.split(/[,;]+/)
   .map((mode) => mode.trim())
   .filter(Boolean);
 
 const useFileTransport = transportModes.includes('file');
-const useNetworkTransport = transportModes.includes('network');
 const useS3Transport = transportModes.includes('s3');
-
-const createNetworkTransport = () => {
-  if (!useNetworkTransport || !LOG_NETWORK_URL) return undefined;
-
-  try {
-    const parsed = new URL(LOG_NETWORK_URL);
-    const isHttps = parsed.protocol === 'https:';
-
-    if (!isHttps && parsed.protocol !== 'http:') {
-      console.warn(`[logger] LOG_NETWORK_URL protocol is invalid: ${parsed.protocol}`);
-      return undefined;
-    }
-
-    return new winston.transports.Http({
-      host: parsed.hostname,
-      port: parsed.port ? Number(parsed.port) : isHttps ? 443 : 80,
-      path: `${parsed.pathname}${parsed.search}`,
-      ssl: isHttps,
-    });
-  } catch {
-    console.warn('[logger] LOG_NETWORK_URL is invalid. network transport is disabled.');
-    return undefined;
-  }
-};
 
 const createS3Client = () => {
   if (!useS3Transport || !LOG_S3_BUCKET) return undefined;
@@ -158,11 +125,6 @@ const createBaseLogger = (dir: string, logFormat: winston.Logform.Format) => {
         maxFiles: '90d',
       })
     );
-  }
-
-  const networkTransport = createNetworkTransport();
-  if (networkTransport) {
-    transports.push(networkTransport);
   }
 
   if (useS3Transport) {
