@@ -7,6 +7,10 @@ import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
 
+const CACHE_HEADER = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
 export async function OPTIONS() {
   return NextResponse.json({});
 }
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     parseJsonIslandData(islandData, true);
 
-    return NextResponse.json(islandData);
+    return NextResponse.json(islandData, { headers: CACHE_HEADER });
   } else {
     return NextResponse.json({ error: '島の取得に失敗しました。' }, { status: 404 });
   }
