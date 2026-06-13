@@ -66,20 +66,28 @@
 
 ## ログ出力設定（サーバーサイドのみ）
 
-| 変数名               | 例                                  | 説明                   |
-| -------------------- | ----------------------------------- | ---------------------- |
-| `LOG_BASE_DIR`       | `log`                               | ログ保存先ディレクトリ |
-| `LOG_TRANSPORT_MODE` | `file` / `network` / `both`         | ログの出力方式         |
-| `LOG_NETWORK_URL`    | `https://log-lb.example.com/ingest` | ネットワーク送信先URL  |
+| 変数名                     | 例                                  | 説明                                                      |
+| -------------------------- | ----------------------------------- | --------------------------------------------------------- |
+| `LOG_BASE_DIR`             | `log`                               | ローカルファイル出力時の保存先ディレクトリ                |
+| `LOG_TRANSPORT_MODE`       | `file` / `network` / `s3` / `both`  | ログの出力方式。`s3` はS3互換ストレージへの保存           |
+| `LOG_NETWORK_URL`          | `https://log-lb.example.com/ingest` | HTTPログ送信先URL                                         |
+| `LOG_S3_BUCKET`            | `my-logs`                           | S3互換ストレージのバケット名                              |
+| `LOG_S3_REGION`            | `us-east-1`                         | S3互換ストレージのリージョン                              |
+| `LOG_S3_ENDPOINT`          | `https://minio.example.com`         | S3互換APIエンドポイント                                   |
+| `LOG_S3_ACCESS_KEY_ID`     | `your-access-key`                   | S3互換ストレージのアクセスキー                            |
+| `LOG_S3_SECRET_ACCESS_KEY` | `your-secret-key`                   | S3互換ストレージのシークレットキー                        |
+| `LOG_S3_KEY_PREFIX`        | `logs`                              | S3に保存するオブジェクトキーのプレフィックス              |
+| `LOG_S3_FORCE_PATH_STYLE`  | `false`                             | S3互換ストレージでパススタイルアクセスを使う場合は `true` |
 
 - `LOG_BASE_DIR`: `access` / `turn_proceed` のサブディレクトリを配下に作成します。
-- `LOG_TRANSPORT_MODE`: `file` はローカルファイル、`network` はHTTP送信、`both` は両方へ出力します。
-- `LOG_NETWORK_URL`: `LOG_TRANSPORT_MODE` が `network` / `both` のときに使用します。
+- `LOG_TRANSPORT_MODE`: `file` はローカルファイル、`network` はHTTP送信、`s3` はS3互換ストレージへの保存、`both` はローカルとHTTP、`all` はローカル・HTTP・S3の全てへ出力します。
+- `LOG_NETWORK_URL`: `LOG_TRANSPORT_MODE` が `network` / `both` / `all` のときに使用します。
+- `LOG_S3_*` 系: `LOG_TRANSPORT_MODE` が `s3` / `all` のときに使います。
 
 > [!NOTE]
 > HTTP送信の場合は `LOG_NETWORK_URL` にURLを指定してください。
 >
-> 推奨: 本番では `LOG_TRANSPORT_MODE=both` から始めると、ネットワーク障害時もファイルログを残せます。
+> 推奨: 本番では `LOG_TRANSPORT_MODE=all` または `both` から始め、障害時のログ欠損を避けることをおすすめします。
 
 ---
 
