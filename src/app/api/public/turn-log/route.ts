@@ -6,6 +6,10 @@ import { db } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { NextRequest, NextResponse } from 'next/server';
 
+const CACHE_HEADER = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
 export async function OPTIONS() {
   return NextResponse.json({});
 }
@@ -31,5 +35,5 @@ export async function GET(request: NextRequest) {
     .orderBy('log_uuid', 'desc');
 
   const log = await query.limit(100).execute();
-  return NextResponse.json(log);
+  return NextResponse.json(log, { headers: CACHE_HEADER });
 }

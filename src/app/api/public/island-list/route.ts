@@ -7,6 +7,12 @@ import { getAchievement } from '@/global/define/achievementType';
 import { sql } from 'kysely';
 import { NextResponse } from 'next/server';
 
+export const revalidate = 30;
+
+const CACHE_HEADER = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
 export async function OPTIONS() {
   return NextResponse.json({});
 }
@@ -45,5 +51,5 @@ export async function GET() {
     money: Math.round(row.money / 1000) * 1000,
   }));
 
-  return NextResponse.json(rounded);
+  return NextResponse.json(rounded, { headers: CACHE_HEADER });
 }
