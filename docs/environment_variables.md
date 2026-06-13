@@ -11,7 +11,7 @@
 このプロジェクトは [`dotenv-flow`](https://github.com/kerimdzhanov/dotenv-flow) を使用しています。
 `NODE_ENV` の値に応じて以下の順番でファイルを読み込みます（後で読まれたものが優先）。
 
-```
+```text
 .env → .env.local → .env.{NODE_ENV} → .env.{NODE_ENV}.local
 ```
 
@@ -61,6 +61,25 @@
 | --------------------------- | -------------------------- | -------------------------------------------------- |
 | `NEXT_PUBLIC_TURN_CRON`     | `"0 0,4,8,12,16,20 * * *"` | ターンを自動実行するcronスケジュール（croner形式） |
 | `NEXT_PUBLIC_TURN_TIMEZONE` | `"Asia/Tokyo"`             | ターンスケジュールのタイムゾーン                   |
+
+---
+
+## ログ出力設定（サーバーサイドのみ）
+
+| 変数名               | 例                                  | 説明                   |
+| -------------------- | ----------------------------------- | ---------------------- |
+| `LOG_BASE_DIR`       | `log`                               | ログ保存先ディレクトリ |
+| `LOG_TRANSPORT_MODE` | `file` / `network` / `both`         | ログの出力方式         |
+| `LOG_NETWORK_URL`    | `https://log-lb.example.com/ingest` | ネットワーク送信先URL  |
+
+- `LOG_BASE_DIR`: `access` / `turn_proceed` のサブディレクトリを配下に作成します。
+- `LOG_TRANSPORT_MODE`: `file` はローカルファイル、`network` はHTTP送信、`both` は両方へ出力します。
+- `LOG_NETWORK_URL`: `LOG_TRANSPORT_MODE` が `network` / `both` のときに使用します。
+
+> [!NOTE]
+> HTTP送信の場合は `LOG_NETWORK_URL` にURLを指定してください。
+>
+> 推奨: 本番では `LOG_TRANSPORT_MODE=both` から始めると、ネットワーク障害時もファイルログを残せます。
 
 ---
 

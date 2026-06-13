@@ -38,6 +38,7 @@ Passkey認証の仕様上、**「ブラウザのアドレスバーのURL」** �
 
 - **LAN内の別端末（スマホや別PC）からIPアドレスでテストする場合**:
   `.env.local` に以下の行を追記し、IPアドレスを書き換えます。
+
   ```env
   DOCKER_NEXT_PUBLIC_ORIGIN_URL=https://192.168.x.x
   ```
@@ -77,6 +78,17 @@ docker logs -f hakoniwa-app
 ```
 
 ※ `Ready in ...` が表示されていれば起動成功です。
+
+### 外部ログ集約サーバーへネットワーク送信する
+
+HTTP送信の場合は、以下のように環境変数へ設定してください。
+
+```env
+LOG_TRANSPORT_MODE=network
+LOG_NETWORK_URL=https://log-lb.example.com/ingest
+```
+
+運用初期は `LOG_TRANSPORT_MODE=both` を推奨します。ネットワーク障害時も `LOG_BASE_DIR` 配下へファイル出力されるため、ログ欠損のリスクを下げられます。
 
 ### データベースに直接接続する
 
