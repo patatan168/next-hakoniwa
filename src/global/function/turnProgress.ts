@@ -171,6 +171,21 @@ export async function updateTurnProgressing(
 }
 
 /**
+ * ターン処理ロックを原子的に取得する
+ * @param db DB接続情報
+ * @returns 取得できた場合 true
+ */
+export async function tryStartTurnProcessing(db: Kysely<Database> | Transaction<Database>) {
+  const result = await db
+    .updateTable('turn_state')
+    .set({ turn_processing: 1 })
+    .where('turn_processing', '=', 0)
+    .executeTakeFirst();
+
+  return Number(result.numUpdatedRows ?? 0) > 0;
+}
+
+/**
  * UUIDごとの島情報の取得
  * @param islandData 全島情報
  * @param uuid UUID

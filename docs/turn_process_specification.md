@@ -19,9 +19,9 @@
 
 `turnProceed()` は以下の順序で進行します。
 
-1. `turn_state` を取得する。
-2. `turn_processing` が `1` の場合は待機して再試行する（最大3回）。
-3. `turn_processing` を `1` に更新して排他開始。
+1. `turn_state.turn_processing = 0` のときだけ `1` に更新し、原子的に排他開始する。
+2. 別プロセスがすでに `turn_processing = 1` にしていた場合は、そのプロセスは何もせず終了する。
+3. `turn_state` を取得する。
 4. 全島データを取得し、メモリストアに展開する。
 5. 島ごとにターン処理を実行する（実行順はランダム）。
 6. 称号付与（繁栄賞、災難賞、怪獣討伐賞、記念碑賞、ターン杯）を判定する。
@@ -54,11 +54,11 @@
 
 島ループ終了後に、計画更新を1トランザクションで一括反映します。
 
-## 再実行制御
+## 実行制御
 
-- `turn_processing = 1` の間に重複実行が来た場合、待機して再試行します。
-- 待機時間は `WAIT_TIME * 試行回数`（実装値は 2000ms 基準）です。
-- 最大試行回数を超えた場合はエラーログを出して終了します。
+- `turn_processing = 0` から `1` への更新は条件付きUPDATEで原子的に行います。
+- ロードバランサー配下で複数インスタンスが同時に cron を起動しても、ロック取得に成功した1プロセスだけが実処理へ進みます。
+- 万一ほかのプロセスが `turn_processing = 1` を保持していた場合、後続プロセスは待機や再試行を行わず、そのまま終了します。
 
 ## シーケンス図
 
@@ -77,12 +77,12 @@ sequenceDiagram
     Cron-->>Child: スケジュール到達で npm run turn 実行
     Child->>Turn: tsx src/db/turn.ts
 
-    Turn->>TS: getTurnInfo()
-    alt turn_processing == 1
-        Turn->>Turn: 待機して再試行 (最大3回)
+    Turn->>TS: UPDATE turn_state SET turn_processing = 1 WHERE turn_processing = 0
+    alt 更新件数 = 0
+        Turn-->>Child: 何もせず終了
         Turn-->>Child: 終了
-    else turn_processing == 0
-        Turn->>TS: updateTurnProgressing(true)
+    else 更新件数 = 1
+        Turn->>TS: getTurnInfo()
         Turn->>DB: getAllIslands(), fetchActivePlans()
 
         loop 島ごと(ランダム順)
