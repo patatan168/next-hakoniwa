@@ -19,7 +19,7 @@ const turnLogFormat = format.printf(({ level, message, timestamp }) => {
   return `${level}:\t[${timestamp}]\t${message}`;
 });
 
-/** ベースロガーをシングルトンとして生成する */
+/** ベースロガーを生成する */
 const createBaseLogger = (dir: string, logFormat: winston.Logform.Format) => {
   const logDirectory = `log/${dir}`;
   mkdirSync(logDirectory, { recursive: true });
