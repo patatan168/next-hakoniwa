@@ -1,6 +1,6 @@
 /**
  * @module admin-api/logs
- * @description サーバーログ参照API。ローカルファイル、S3互換ストレージ、HTTP集約サーバーに対応。
+ * @description サーバーログ参照API。ローカルファイル、S3互換ストレージに対応。
  */
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
 import fs from 'fs/promises';
