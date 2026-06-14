@@ -39,12 +39,22 @@ function isLogFilePath(relativePath: string): boolean {
   return path.extname(relativePath).toLowerCase() === '.log';
 }
 
-function normalizeToSafePath(relativePath: string): string | null {
+async function normalizeToSafePath(relativePath: string): Promise<string | null> {
   const normalized = relativePath.replace(/\\/g, '/');
   const logRoot = path.resolve(process.cwd(), LOG_BASE_DIR);
   const absolute = path.resolve(logRoot, normalized);
-  if (absolute === logRoot || absolute.startsWith(`${logRoot}${path.sep}`)) {
-    return absolute;
+  if (!(absolute === logRoot || absolute.startsWith(`${logRoot}${path.sep}`))) {
+    return null;
+  }
+
+  const [realLogRoot, realAbsolute] = await Promise.all([
+    fs.realpath(logRoot).catch(() => null),
+    fs.realpath(absolute).catch(() => null),
+  ]);
+
+  if (!realLogRoot || !realAbsolute) return null;
+  if (realAbsolute === realLogRoot || realAbsolute.startsWith(`${realLogRoot}${path.sep}`)) {
+    return realAbsolute;
   }
   return null;
 }
@@ -193,7 +203,7 @@ async function listLogEntries(): Promise<LogEntry[]> {
 
 async function readLogFile(filePath: string): Promise<string | null> {
   if (useFileTransport) {
-    const safeAbsPath = normalizeToSafePath(filePath);
+    const safeAbsPath = await normalizeToSafePath(filePath);
     if (!safeAbsPath) return null;
 
     const targetStat = await fs.stat(safeAbsPath).catch(() => null);
