@@ -39,6 +39,19 @@ function isLogFilePath(relativePath: string): boolean {
   return path.extname(relativePath).toLowerCase() === '.log';
 }
 
+function isValidRequestedLogPath(input: string): boolean {
+  if (!input || input.includes('\0')) return false;
+  if (path.isAbsolute(input)) return false;
+
+  const normalized = input.replace(/\\/g, '/');
+  if (normalized.startsWith('/')) return false;
+
+  const segments = normalized.split('/');
+  if (segments.some((seg) => !seg || seg === '.' || seg === '..')) return false;
+
+  return /^[A-Za-z0-9._/-]+$/.test(normalized);
+}
+
 async function normalizeToSafePath(relativePath: string): Promise<string | null> {
   const normalized = relativePath.replace(/\\/g, '/');
   const logRoot = path.resolve(process.cwd(), LOG_BASE_DIR);
@@ -253,6 +266,10 @@ export async function GET(request: NextRequest) {
 
   if (!filePath) {
     return NextResponse.json({ entries, selectedFile: null, content: '' });
+  }
+
+  if (!isValidRequestedLogPath(filePath)) {
+    return NextResponse.json({ error: '不正なファイルパスです。' }, { status: 400 });
   }
 
   if (!isLogFilePath(filePath)) {
