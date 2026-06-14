@@ -38,6 +38,7 @@ Passkey認証の仕様上、**「ブラウザのアドレスバーのURL」** �
 
 - **LAN内の別端末（スマホや別PC）からIPアドレスでテストする場合**:
   `.env.local` に以下の行を追記し、IPアドレスを書き換えます。
+
   ```env
   DOCKER_NEXT_PUBLIC_ORIGIN_URL=https://192.168.x.x
   ```

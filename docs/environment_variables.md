@@ -11,7 +11,7 @@
 このプロジェクトは [`dotenv-flow`](https://github.com/kerimdzhanov/dotenv-flow) を使用しています。
 `NODE_ENV` の値に応じて以下の順番でファイルを読み込みます（後で読まれたものが優先）。
 
-```
+```text
 .env → .env.local → .env.{NODE_ENV} → .env.{NODE_ENV}.local
 ```
 
@@ -61,6 +61,26 @@
 | --------------------------- | -------------------------- | -------------------------------------------------- |
 | `NEXT_PUBLIC_TURN_CRON`     | `"0 0,4,8,12,16,20 * * *"` | ターンを自動実行するcronスケジュール（croner形式） |
 | `NEXT_PUBLIC_TURN_TIMEZONE` | `"Asia/Tokyo"`             | ターンスケジュールのタイムゾーン                   |
+
+---
+
+## ログ出力設定（サーバーサイドのみ）
+
+| 変数名                     | 例                          | 説明                                                      |
+| -------------------------- | --------------------------- | --------------------------------------------------------- |
+| `LOG_BASE_DIR`             | `log`                       | ローカルファイル出力時の保存先ディレクトリ                |
+| `LOG_TRANSPORT_MODE`       | `file` / `s3`               | ログの出力方式。`s3` はS3互換ストレージへの保存           |
+| `LOG_S3_BUCKET`            | `my-logs`                   | S3互換ストレージのバケット名                              |
+| `LOG_S3_REGION`            | `us-east-1`                 | S3互換ストレージのリージョン                              |
+| `LOG_S3_ENDPOINT`          | `https://minio.example.com` | S3互換APIエンドポイント                                   |
+| `LOG_S3_ACCESS_KEY_ID`     | `your-access-key`           | S3互換ストレージのアクセスキー                            |
+| `LOG_S3_SECRET_ACCESS_KEY` | `your-secret-key`           | S3互換ストレージのシークレットキー                        |
+| `LOG_S3_KEY_PREFIX`        | `logs`                      | S3に保存するオブジェクトキーのプレフィックス              |
+| `LOG_S3_FORCE_PATH_STYLE`  | `false`                     | S3互換ストレージでパススタイルアクセスを使う場合は `true` |
+
+- `LOG_BASE_DIR`: `access` / `turn_proceed` のサブディレクトリを配下に作成します。
+- `LOG_TRANSPORT_MODE`: `file` はローカルファイル、`s3` はS3互換ストレージへの保存です。カンマで区切り複数指定可能（例：`file,s3`）。
+- `LOG_S3_*` 系: `LOG_TRANSPORT_MODE` が `s3` を含むときに使います。
 
 ---
 
