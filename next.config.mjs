@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 import dotenvFlow from 'dotenv-flow';
 dotenvFlow.config({ silent: true });
+
+const requestedBuildCpus = process.env.NEXT_BUILD_CPUS;
+const buildCpus = requestedBuildCpus ? Number.parseInt(requestedBuildCpus, 10) : undefined;
+
 const nextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
@@ -13,9 +17,12 @@ const nextConfig = {
   async headers() {
     if (process.env.NODE_ENV === 'development') return [];
 
-  // CORS 設定のため、環境変数から URL を取得（デフォルトはローカルホスト）
-  // NOTE: Access-Control-Allow-Origin は末尾スラッシュ無しの Origin 形式に正規化する
-  const urlValue = (process.env.NEXT_PUBLIC_ORIGIN_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+    // CORS 設定のため、環境変数から URL を取得（デフォルトはローカルホスト）
+    // NOTE: Access-Control-Allow-Origin は末尾スラッシュ無しの Origin 形式に正規化する
+    const urlValue = (process.env.NEXT_PUBLIC_ORIGIN_URL ?? 'http://localhost:3000').replace(
+      /\/$/,
+      ''
+    );
 
     return [
       {
@@ -161,6 +168,8 @@ const nextConfig = {
     ];
   },
   experimental: {
+    // NEXT_BUILD_CPUS が指定されている場合だけ、ビルド並列数を制限する
+    cpus: Number.isFinite(buildCpus) && buildCpus > 0 ? buildCpus : undefined,
     // JS の minify を有効化（Terser のような詳細設定は不可）
     turbopackMinify: true,
   },

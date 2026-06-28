@@ -40,17 +40,18 @@ npm run db:init
 
 ## コマンド一覧
 
-| コマンド            | 説明                                         |
-| ------------------- | -------------------------------------------- |
-| `npm run dev`       | 開発サーバーの起動                           |
-| `npm run build`     | 本番ビルド                                   |
-| `npm run start`     | 本番サーバーの起動                           |
-| `npm run test`      | ユニットテストの実行                         |
-| `npm run lint`      | ESLint / Stylelint / TypeScript の静的解析   |
-| `npm run lefthook`  | Git Hook（pre-commit）のインストール         |
-| `npm run fmt`       | Prettier によるフォーマット                  |
-| `npm run storybook` | Storybook の起動（コンポーネントのカタログ） |
-| `npm run turn`      | ターン処理の手動実行                         |
+| コマンド             | 説明                                         |
+| -------------------- | -------------------------------------------- |
+| `npm run dev`        | 開発サーバーの起動                           |
+| `npm run build`      | 通常の本番ビルド                             |
+| `npm run build:mini` | 2core2GB環境想定のビルド                     |
+| `npm run start`      | 本番サーバーの起動                           |
+| `npm run test`       | ユニットテストの実行                         |
+| `npm run lint`       | ESLint / Stylelint / TypeScript の静的解析   |
+| `npm run lefthook`   | Git Hook（pre-commit）のインストール         |
+| `npm run fmt`        | Prettier によるフォーマット                  |
+| `npm run storybook`  | Storybook の起動（コンポーネントのカタログ） |
+| `npm run turn`       | ターン処理の手動実行                         |
 
 ### データベース操作
 
