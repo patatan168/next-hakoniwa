@@ -12,6 +12,7 @@
     "lefthook": "npx lefthook install",
     "dev": "next dev",
     "build": "next build",
+    "build:mini": "NODE_OPTIONS=--max-old-space-size=2048 NEXT_BUILD_CPUS=2 next build",
     "start": "next start",
     "test": "vitest",
     "turn": "tsx ./src/db/turn.ts",
