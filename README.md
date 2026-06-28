@@ -44,7 +44,7 @@ npm run db:init
 | -------------------- | -------------------------------------------- |
 | `npm run dev`        | 開発サーバーの起動                           |
 | `npm run build`      | 通常の本番ビルド                             |
-| `npm run build:mini` | 2core2GB環境想定のビルド                     |
+| `npm run build:mini` | 2CPU/2GB環境想定のビルド                     |
 | `npm run start`      | 本番サーバーの起動                           |
 | `npm run test`       | ユニットテストの実行                         |
 | `npm run lint`       | ESLint / Stylelint / TypeScript の静的解析   |
