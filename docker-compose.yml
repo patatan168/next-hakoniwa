@@ -25,8 +25,17 @@ services:
       dockerfile: Dockerfile
     container_name: hakoniwa-app
     env_file:
-      - .env
+      - path: .env
+        required: false
       - path: .env.local
+        required: false
+      - path: .env.development
+        required: false
+      - path : .env.development.local
+        required: false
+      - path: .env.production
+        required: false
+      - path: .env.production.local
         required: false
     environment:
       # build時にDB_TYPE=mysqlでビルドされているが、ここでも明示しておく
@@ -41,6 +50,30 @@ services:
     volumes:
       - ./log:/app/log
     command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
+
+  app-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: hakoniwa-app-build
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+      - path: .env.development
+        required: false
+      - path : .env.development.local
+        required: false
+      - path: .env.production
+        required: false
+      - path: .env.production.local
+        required: false
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ['npm', 'run', 'build']
 
   web:
     image: nginx:latest
