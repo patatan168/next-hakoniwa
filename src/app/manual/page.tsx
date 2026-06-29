@@ -123,7 +123,7 @@ export default function ManualPage() {
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
             <div className="mb-2 text-lg font-bold text-emerald-700">人口</div>
             <p className="text-sm leading-relaxed text-emerald-900">
-              島の発展度を示す指標です。人口が増えると消費する食料も増える点に注意が必要です。
+              島の発展度を示す指標で、他の島より多いほど順位が上がります。人口が増えると消費する食料も増える点に注意が必要です。
             </p>
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function ManualPage() {
           <ItemCard
             title="山"
             imageSrc="/img/land/mountain.gif"
-            description="高低差のある土地です。「採掘」による資源確保の対象になることがあります。「地ならし」で平地に戻すことも可能です。"
+            description="高低差のある土地です。「採掘」による資源確保の対象になることがあります。「掘削」で平地に戻すことも可能です。"
           />
         </div>
 
@@ -189,7 +189,7 @@ export default function ManualPage() {
           <ItemCard
             title="工場"
             imageSrc="/img/facility/factory.gif"
-            description="「資金」を効率よく生産します。ただし、工業規模が大きくなると島全体の人口増に悪影響（公害）を及ぼすリスクがあります。"
+            description="「資金」を効率よく生産します。"
             info={`1人規模あたり毎ターン ${META_DATA.FACTORY_PER_PEOPLE}${META_DATA.UNIT_MONEY} の資金を生産します。`}
           />
           <ItemCard
@@ -274,7 +274,7 @@ export default function ManualPage() {
               <tr>
                 <td className="px-4 py-3 font-medium text-gray-800">地盤沈下</td>
                 <td className="px-4 py-3">
-                  面積{META_DATA.FALL_DOWN_BORDER}万坪以上時 {META_DATA.FALL_DOWN_RATE}%
+                  面積{META_DATA.FALL_DOWN_BORDER}万坪を超える時 {META_DATA.FALL_DOWN_RATE}%
                 </td>
                 <td className="px-4 py-3">
                   陸地の一部が水没し、浅瀬になります。過度な埋め立てには注意が必要です。
@@ -321,7 +321,7 @@ export default function ManualPage() {
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-rose-800/80">
               <li>ミサイル基地からミサイルを発射して迎撃する。</li>
-              <li>防衛施設を建設し、被害を食い止めながら撃退を待つ。</li>
+              <li>防衛施設をに到達し、周辺ごと吹き飛ばされる。</li>
             </ul>
           </div>
         </div>
