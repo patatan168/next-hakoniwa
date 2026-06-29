@@ -15,6 +15,7 @@ import {
 } from '@/global/valid/admin';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -38,6 +39,7 @@ const JSON_HEADER = {
 export default function AdminUserDetailPageClient({
   targetUuid,
 }: Readonly<AdminUserDetailPageClientProps>) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [detail, setDetail] = useState<AdminUserDetail | null>(null);
@@ -111,7 +113,7 @@ export default function AdminUserDetailPageClient({
         headers: JSON_HEADER,
         body: JSON.stringify(values),
       });
-      window.location.href = '/admin/users';
+      router.push('/admin/users');
     } catch (e) {
       setMessage((e as Error).message || 'ユーザー削除に失敗しました。');
       setBusy(false);

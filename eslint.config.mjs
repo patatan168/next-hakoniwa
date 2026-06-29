@@ -59,6 +59,8 @@ export default [
       reportUnusedDisableDirectives: 'error',
     },
     rules: {
+      // FIX_ME: react-hooksのsetStateをuseEffect内で使うと警告をoffにしているが、いずれ対応する
+      "react-hooks/set-state-in-effect": "off",
       // ===にしないとエラー
       eqeqeq: 'error',
       // サイクロマティック複雑度が15を超えるとエラー
