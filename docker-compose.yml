@@ -52,11 +52,10 @@ services:
     command: sh -c "npx tsx ./src/db/migrate.ts && npm start"
 
   app-build:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
+    user: "1000:1000"
+    image: node:24.14.1-bookworm-slim
     container_name: hakoniwa-app-build
+    working_dir: /app
     env_file:
       - path: .env
         required: false
@@ -72,8 +71,7 @@ services:
         required: false
     volumes:
       - .:/app
-      - /app/node_modules
-    command: ['npm', 'run', 'build']
+    command: sh -c "npm run build"
 
   web:
     image: nginx:latest

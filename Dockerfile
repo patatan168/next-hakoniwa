@@ -3,22 +3,24 @@ FROM node:24.14.1-alpine AS deps
 RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
-# パッケージ定義ファイルをコピー
+# 依存関係は Docker ではインストールせず、ホスト側の node_modules をマウントして利用する
 COPY package.json package-lock.json* ./
-# lefthook が .git ディレクトリを要求するため、ダミーで初期化してからインストールする
-RUN git init && npm ci
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
 FROM node:24.14.1-alpine AS prod-deps
+# ここで非 root ユーザーを作る
+RUN adduser -u 1000 -D appuser
+USER appuser
 RUN apk add --no-cache libc6-compat git python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN git init && npm ci --omit=dev --ignore-scripts
 
 # 2. ビルド用ステージ
 FROM node:24.14.1-alpine AS builder
+# ここで非 root ユーザーを作る
+RUN adduser -u 1000 -D appuser
+USER appuser
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # productionビルド時にTelemetryをオプトアウト（任意）
