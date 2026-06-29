@@ -92,7 +92,7 @@ docker compose up -d
 
 ## Dockerでビルドのみ実行する
 
-Amazon Linux などでホスト側のビルドが難しい場合は、Docker 内でビルドを実行できます。
+Amazon Linux などでホスト側のビルドが難しい場合は、Docker 内でビルドだけを実行できます。Compose の一時コンテナとして実行するため、シェルスクリプト依存なしで使えます。
 
 ```bash
 npm run build:docker
