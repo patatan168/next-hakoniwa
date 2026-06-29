@@ -25,7 +25,7 @@ export const afforest: planType = {
     '平地に木を植え、森にします。森は伐採で資金をることができる他、周辺の火災・台風による被害を軽減します。',
   otherIsland: false,
   immediate: false,
-  mapType: ['plains'],
+  mapType: ['plains', 'people'],
   cost: 50,
   costType: 'money',
   minTimes: 1,
@@ -69,7 +69,7 @@ export const immediateAfforest: planType = {
     '即座に平地を森にします。通常の植林より早く完了しますが、より多くの費用がかかります。',
   otherIsland: false,
   immediate: true,
-  mapType: ['plains'],
+  mapType: ['plains', 'people'],
   cost: 300,
   costType: 'money',
   minTimes: 1,
@@ -114,7 +114,7 @@ export const farmDev: planType = {
     '平地に農場を建設し、人口に応じた食料を生産します。すでに農場の場合は規模を拡大し、一度により多くの食料を生産できるようにします。',
   otherIsland: false,
   immediate: false,
-  mapType: ['plains', 'farm'],
+  mapType: ['plains', 'people', 'farm'],
   cost: 20,
   costType: 'money',
   minTimes: 1,
@@ -137,13 +137,6 @@ export const farmDev: planType = {
     // マップの変更
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
-      case 'plains': {
-        const { defVal } = getMapDefine('farm');
-        changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
-        // 費用の支払い
-        toIsland.money -= this.cost;
-        break;
-      }
       case 'farm': {
         const { maxVal } = getMapDefine('farm');
         // 加算する施設の値
@@ -152,6 +145,13 @@ export const farmDev: planType = {
         if (maxVal >= mapInfo.landValue + addValue) {
           changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
         }
+        // 費用の支払い
+        toIsland.money -= this.cost;
+        break;
+      }
+      default: {
+        const { defVal } = getMapDefine('farm');
+        changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         break;
@@ -176,7 +176,7 @@ export const immediateFarmDev: planType = {
     '即座に農場の建設または規模拡大を行います。指定した回数分だけターンを消費せずに連続で実行できますが、費用は割高です。',
   otherIsland: false,
   immediate: true,
-  mapType: ['plains', 'farm'],
+  mapType: ['plains', 'people', 'farm'],
   cost: 400,
   costType: 'money',
   minTimes: 1,
@@ -203,14 +203,6 @@ export const immediateFarmDev: planType = {
     let devCount = 0;
     for (let i = 0; i < plan.times; i++) {
       switch (mapInfo.type) {
-        case 'plains': {
-          const { defVal } = getMapDefine('farm');
-          changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
-          // 費用の支払い
-          toIsland.money -= this.cost;
-          devCount++;
-          break;
-        }
         case 'farm': {
           const { maxVal } = getMapDefine('farm');
           // 加算する施設の値
@@ -219,6 +211,14 @@ export const immediateFarmDev: planType = {
           if (maxVal >= mapInfo.landValue + addValue) {
             changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'add', value: addValue });
           }
+          // 費用の支払い
+          toIsland.money -= this.cost;
+          devCount++;
+          break;
+        }
+        default: {
+          const { defVal } = getMapDefine('farm');
+          changeMapData(toIsland, plan.x, plan.y, 'farm', { type: 'ins', value: defVal });
           // 費用の支払い
           toIsland.money -= this.cost;
           devCount++;
@@ -250,7 +250,7 @@ export const factoryDev: planType = {
     '平地に工場を建設し、人口に応じた資金を生産します。すでに工場の場合は規模を拡大し、一度により多くの資金を生産できるようにします。',
   otherIsland: false,
   immediate: false,
-  mapType: ['plains', 'factory'],
+  mapType: ['plains', 'people', 'factory'],
   cost: 100,
   costType: 'money',
   minTimes: 1,
@@ -273,13 +273,6 @@ export const factoryDev: planType = {
     // マップの変更
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
     switch (mapInfo.type) {
-      case 'plains': {
-        const { defVal } = getMapDefine('factory');
-        changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
-        // 費用の支払い
-        toIsland.money -= this.cost;
-        break;
-      }
       case 'factory': {
         const { maxVal } = getMapDefine('factory');
         // 加算する施設の値
@@ -288,6 +281,13 @@ export const factoryDev: planType = {
         if (maxVal >= mapInfo.landValue + addValue) {
           changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'add', value: addValue });
         }
+        // 費用の支払い
+        toIsland.money -= this.cost;
+        break;
+      }
+      default: {
+        const { defVal } = getMapDefine('factory');
+        changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
         // 費用の支払い
         toIsland.money -= this.cost;
         break;
@@ -312,7 +312,7 @@ export const immediateFactoryDev: planType = {
     '即座に工場の建設または規模拡大を行います。指定した回数分だけターンを消費せずに連続で実行できますが、費用は割高です。',
   otherIsland: false,
   immediate: true,
-  mapType: ['plains', 'factory'],
+  mapType: ['plains', 'people', 'factory'],
   cost: 600,
   costType: 'money',
   minTimes: 1,
@@ -338,14 +338,6 @@ export const immediateFactoryDev: planType = {
     let devCount = 0;
     for (let i = 0; i < plan.times; i++) {
       switch (mapInfo.type) {
-        case 'plains': {
-          const { defVal } = getMapDefine('factory');
-          changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
-          // 費用の支払い
-          toIsland.money -= this.cost;
-          devCount++;
-          break;
-        }
         case 'factory': {
           const { maxVal } = getMapDefine('factory');
           // 加算する施設の値
@@ -354,6 +346,14 @@ export const immediateFactoryDev: planType = {
           if (maxVal >= mapInfo.landValue + addValue) {
             changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'add', value: addValue });
           }
+          // 費用の支払い
+          toIsland.money -= this.cost;
+          devCount++;
+          break;
+        }
+        default: {
+          const { defVal } = getMapDefine('factory');
+          changeMapData(toIsland, plan.x, plan.y, 'factory', { type: 'ins', value: defVal });
           // 費用の支払い
           toIsland.money -= this.cost;
           devCount++;
@@ -521,7 +521,7 @@ export const missileDev: planType = {
     '平地にミサイル基地を建設します。ミサイル攻撃を行うために必要となり、レベルが高いほど、多くのミサイルを発射できます。',
   otherIsland: false,
   immediate: false,
-  mapType: ['plains'],
+  mapType: ['plains', 'people'],
   cost: 300,
   costType: 'money',
   minTimes: 1,
@@ -566,7 +566,7 @@ export const immediateMissileDev: planType = {
     '即座にミサイル基地を建設します。ターンの経過を待たずに建設できますが、割高な費用がかかります。',
   otherIsland: false,
   immediate: true,
-  mapType: ['plains'],
+  mapType: ['plains', 'people'],
   cost: 800,
   costType: 'money',
   minTimes: 1,
@@ -612,7 +612,7 @@ export const defenseBaseDev: planType = {
     '平地に防衛施設を建設し、他島からのミサイル攻撃を一定確率で迎撃できるようにします。すでに防衛施設がある場合は、周囲を巻き込んで自爆します。',
   otherIsland: false,
   immediate: false,
-  mapType: ['plains', 'defense_base'],
+  mapType: ['plains', 'people', 'defense_base'],
   cost: 800,
   costType: 'money',
   minTimes: 1,
@@ -672,7 +672,7 @@ export const immediateDefenseBaseDev: planType = {
   description: '即座に防衛施設を建設、または自爆を行います。',
   otherIsland: false,
   immediate: true,
-  mapType: ['plains', 'defense_base'],
+  mapType: ['plains', 'people', 'defense_base'],
   cost: 2000,
   costType: 'money',
   minTimes: 1,
@@ -780,7 +780,7 @@ export const monumentDev: planType = {
     '平地にモノリスを建造します。すでにモノリスがある場所に対して実行すると、対象の島へモノリスを発射します。発射されたモノリスは巨大隕石と同等の被害を与えます。',
   otherIsland: true,
   immediate: false,
-  mapType: ['plains', 'wasteland', 'ruins', 'monument'],
+  mapType: ['plains', 'people', 'wasteland', 'ruins', 'monument'],
   cost: 9999,
   costType: 'money',
   minTimes: 1,
