@@ -32,6 +32,7 @@
     "pentest": "./scripts/pentest.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1050.0",
     "@formkit/auto-animate": "0.9.0",
     "@hookform/resolvers": "5.2.2",
     "@simplewebauthn/browser": "13.3.0",
@@ -53,10 +54,10 @@
     "react-icons": "5.6.0",
     "react-virtuoso": "4.18.7",
     "tsx": "4.22.1",
+    "typescript": "6.0.3",
     "uuidv7": "1.2.1",
     "winston": "3.19.0",
     "winston-daily-rotate-file": "5.0.0",
-    "@aws-sdk/client-s3": "^3.1050.0",
     "zod": "4.4.3",
     "zustand": "5.0.13"
   },
@@ -102,7 +103,6 @@
     "tailwindcss": "4.3.0",
     "terser-webpack-plugin": "5.6.0",
     "typedoc": "0.28.19",
-    "typescript": "6.0.3",
     "vitest": "4.1.6"
   }
 }
