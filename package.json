@@ -13,7 +13,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:mini": "NODE_OPTIONS=--max-old-space-size=2048 NEXT_BUILD_CPUS=2 next build",
-    "build:docker": "docker compose run app-build",
+    "build:docker": "if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then docker compose run --rm app-build; elif command -v docker-compose >/dev/null 2>&1 && [ -x \"$(command -v docker-compose)\" ]; then docker-compose run --rm app-build; else echo 'Docker Compose is not available'; exit 1; fi",
     "start": "next start",
     "test": "vitest",
     "turn": "tsx ./src/db/turn.ts",

@@ -2,13 +2,14 @@
 .github
 .vscode
 node_modules
-
+.next
 coverage
 storybook-static
 pentest-results
 log
 
-docs
+.docs
+cache
 
 *.log
 *.tmp
