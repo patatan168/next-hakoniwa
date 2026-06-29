@@ -6,14 +6,14 @@ WORKDIR /app
 # パッケージ定義ファイルをコピー
 COPY package.json package-lock.json* ./
 # lefthook が .git ディレクトリを要求するため、ダミーで初期化してからインストールする
-RUN git init && npm ci
+RUN git init && npm install --no-audit --progress=false
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
 FROM node:24.14.1-alpine AS prod-deps
 RUN apk add --no-cache libc6-compat git python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN git init && npm ci --omit=dev --ignore-scripts
+RUN git init && npm install --omit=dev --no-audit --progress=false
 
 # 2. ビルド用ステージ
 FROM node:24.14.1-alpine AS builder

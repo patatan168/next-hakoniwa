@@ -73,7 +73,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: ['npm', 'run', 'build']
+    command: >-
+      sh -c "npm install --ignore-scripts --no-audit --progress=false && npm run build"
 
   web:
     image: nginx:latest
