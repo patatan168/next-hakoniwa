@@ -1,15 +1,16 @@
 # 1. 依存関係のインストール用ステージ
 FROM node:24.14.1-alpine AS deps
+ARG BUILD_TARGET=default
 RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
 # パッケージ定義ファイルをコピー
 COPY package.json package-lock.json* ./
-# lefthook が .git ディレクトリを要求するため、ダミーで初期化してからインストールする
-RUN git init && npm install --no-audit --progress=false
+RUN if [ "$BUILD_TARGET" = "builder" ]; then npm install --omit=dev --no-audit --progress=false; else npm install --no-audit --progress=false; fi
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
 FROM node:24.14.1-alpine AS prod-deps
+ARG BUILD_TARGET=default
 RUN apk add --no-cache libc6-compat git python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
