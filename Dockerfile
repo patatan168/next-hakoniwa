@@ -8,12 +8,18 @@ COPY package.json package-lock.json* ./
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
 FROM node:24.14.1-alpine AS prod-deps
+# ここで非 root ユーザーを作る
+RUN adduser -u 1000 -D appuser
+USER appuser
 RUN apk add --no-cache libc6-compat git python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # 2. ビルド用ステージ
 FROM node:24.14.1-alpine AS builder
+# ここで非 root ユーザーを作る
+RUN adduser -u 1000 -D appuser
+USER appuser
 WORKDIR /app
 COPY . .
 
