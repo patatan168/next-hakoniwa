@@ -40,18 +40,19 @@ npm run db:init
 
 ## コマンド一覧
 
-| コマンド             | 説明                                         |
-| -------------------- | -------------------------------------------- |
-| `npm run dev`        | 開発サーバーの起動                           |
-| `npm run build`      | 通常の本番ビルド                             |
-| `npm run build:mini` | 2CPU/2GB環境想定のビルド                     |
-| `npm run start`      | 本番サーバーの起動                           |
-| `npm run test`       | ユニットテストの実行                         |
-| `npm run lint`       | ESLint / Stylelint / TypeScript の静的解析   |
-| `npm run lefthook`   | Git Hook（pre-commit）のインストール         |
-| `npm run fmt`        | Prettier によるフォーマット                  |
-| `npm run storybook`  | Storybook の起動（コンポーネントのカタログ） |
-| `npm run turn`       | ターン処理の手動実行                         |
+| コマンド               | 説明                                                  |
+| ---------------------- | ----------------------------------------------------- |
+| `npm run dev`          | 開発サーバーの起動                                    |
+| `npm run build`        | 通常の本番ビルド                                      |
+| `npm run build:mini`   | 2CPU/2GB環境想定のビルド                              |
+| `npm run build:docker` | ホスト側のビルドが難しい場合は、Docker 内でビルド実行 |
+| `npm run start`        | 本番サーバーの起動                                    |
+| `npm run test`         | ユニットテストの実行                                  |
+| `npm run lint`         | ESLint / Stylelint / TypeScript の静的解析            |
+| `npm run lefthook`     | Git Hook（pre-commit）のインストール                  |
+| `npm run fmt`          | Prettier によるフォーマット                           |
+| `npm run storybook`    | Storybook の起動（コンポーネントのカタログ）          |
+| `npm run turn`         | ターン処理の手動実行                                  |
 
 ### データベース操作
 
@@ -87,6 +88,14 @@ Passkey（WebAuthn）を用いた認証や、自己署名証明書によるHTTPS
 ```bash
 docker compose build app
 docker compose up -d
+```
+
+## Dockerでビルドのみ実行する
+
+Amazon Linux などでホスト側のビルドが難しい場合は、Docker 内でビルドを実行できます。
+
+```bash
+npm run build:docker
 ```
 
 ## ドキュメント
