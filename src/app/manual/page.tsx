@@ -321,7 +321,7 @@ export default function ManualPage() {
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-rose-800/80">
               <li>ミサイル基地からミサイルを発射して迎撃する。</li>
-              <li>防衛施設をに到達し、周辺ごと吹き飛ばされる。</li>
+              <li>防衛施設に到達し、周辺ごと吹き飛ばされる。</li>
             </ul>
           </div>
         </div>
