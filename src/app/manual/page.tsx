@@ -163,12 +163,12 @@ export default function ManualPage() {
             title="森"
             imageSrc="/img/land/forest.gif"
             description={`木が茂っており、開発するには「伐採」が必要です。伐採すると資金（100本あたり${META_DATA.FOREST_VALUE}${META_DATA.UNIT_MONEY}）を得られます。`}
-            info="自然発生のほか、「植林」によって意図的に育てることも可能です。"
+            info="平地を「植林」によって森にすることが可能です。"
           />
           <ItemCard
             title="山"
             imageSrc="/img/land/mountain.gif"
-            description="高低差のある土地です。「採掘」による資源確保の対象になることがあります。「掘削」で平地に戻すことも可能です。"
+            description="高低差のある土地です。「採掘場整備」をするこで。「掘削」で平地に戻すことも可能です。"
           />
         </div>
 
@@ -193,9 +193,15 @@ export default function ManualPage() {
             info={`1人規模あたり毎ターン ${META_DATA.FACTORY_PER_PEOPLE}${META_DATA.UNIT_MONEY} の資金を生産します。`}
           />
           <ItemCard
-            title="鉱山・海底油田"
+            title="採掘場"
             imageSrc="/img/facility/mining.gif"
-            description="山からは鉱山、海の油田からは継続的に多額の資金を得ることができます。ただし油田はいずれ枯渇します。"
+            description="「資金」を効率よく生産します。"
+            info={`1人規模あたり毎ターン ${META_DATA.MINING_PER_PEOPLE}${META_DATA.UNIT_MONEY} の資金を生産します。`}
+          />
+          <ItemCard
+            title="海底油田"
+            imageSrc="/img/facility/oil_field.gif"
+            description="海底油田からは継続的に多額の資金を得ることができます。ただし油田はいずれ枯渇します。"
             info={`油田からは毎ターン ${META_DATA.OIL_EARN}${META_DATA.UNIT_MONEY}、鉱山は規模×${META_DATA.MINING_PER_PEOPLE}${META_DATA.UNIT_MONEY} の収入があります。`}
           />
         </div>
@@ -238,7 +244,8 @@ export default function ManualPage() {
                 <td className="px-4 py-3 font-medium text-gray-800">地震</td>
                 <td className="px-4 py-3">{META_DATA.EARTHQUAKE_RATE}%</td>
                 <td className="px-4 py-3">
-                  島全体の施設が被害を受けます。全壊確率は{META_DATA.EARTHQUAKE_DESTROY_RATE}%です。
+                  島全体の都市・施設が被害を受けます。全壊確率は{META_DATA.EARTHQUAKE_DESTROY_RATE}
+                  %です。
                 </td>
               </tr>
               <tr>
@@ -247,19 +254,28 @@ export default function ManualPage() {
                 <td className="px-4 py-3">海岸沿いの施設が流される危険があります。</td>
               </tr>
               <tr>
+                <td className="px-4 py-3 font-medium text-gray-800">火災</td>
+                <td className="px-4 py-3">{META_DATA.FIRE_RATE}%</td>
+                <td className="px-4 py-3">都市・施設が火災で被害を受けます。</td>
+              </tr>
+              <tr>
                 <td className="px-4 py-3 font-medium text-gray-800">台風</td>
                 <td className="px-4 py-3">{META_DATA.TYPHOON_RATE}%</td>
+                <td className="px-4 py-3">農場が吹き飛ばされてしまいます。</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 font-medium text-gray-800">隕石</td>
+                <td className="px-4 py-3">{META_DATA.METEORITE_RATE}%</td>
                 <td className="px-4 py-3">
-                  農場の食料生産が損なわれたり、施設が破壊されたりします。
+                  着弾地点周辺が海（浅瀬）になり、{META_DATA.CONTINUOUS_METEORITE_RATE}
+                  %の確率で連続発生します。
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-3 font-medium text-gray-800">隕石・巨大隕石</td>
+                <td className="px-4 py-3 font-medium text-gray-800">巨大隕石</td>
+                <td className="px-4 py-3">{META_DATA.HUGE_METEORITE_RATE}%</td>
                 <td className="px-4 py-3">
-                  {META_DATA.METEORITE_RATE}% / {META_DATA.HUGE_METEORITE_RATE}%
-                </td>
-                <td className="px-4 py-3">
-                  着弾地点周辺が海（浅瀬）になり、甚大な被害をもたらします。
+                  着弾地点周辺が海（浅瀬）になり、更に周囲を荒地にします。
                 </td>
               </tr>
               <tr>
