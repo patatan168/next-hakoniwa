@@ -282,8 +282,8 @@ export default function ManualPage() {
                 <td className="px-4 py-3 font-medium text-gray-800">飢饉（食料不足）</td>
                 <td className="px-4 py-3">食料がマイナス時毎ターン</td>
                 <td className="px-4 py-3 text-red-600">
-                  人口の減少({META_DATA.PEOPLE_LOSS.FAMINE}
-                  百人/ターン)や、各種施設・暴動による破壊（{META_DATA.LACK_FOOD_DESTROY_RATE}
+                  人口の減少({META_DATA.PEOPLE_LOSS.FAMINE * 100}
+                  人/ターン)や、各種施設・暴動による破壊（{META_DATA.LACK_FOOD_DESTROY_RATE}
                   %）が発生します。
                 </td>
               </tr>
