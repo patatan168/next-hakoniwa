@@ -21,12 +21,6 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'false' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Accept, Accept-Language, Content-Language, Content-Type Range',
-          },
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin',
@@ -56,11 +50,6 @@ const nextConfig = {
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Accept, Accept-Language, Content-Language, Content-Type Range',
-          },
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin',
@@ -89,11 +78,6 @@ const nextConfig = {
       {
         source: '/api/auth/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Accept, Accept-Language, Content-Language, Content-Type Range',
-          },
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin',
@@ -122,11 +106,6 @@ const nextConfig = {
       {
         source: '/api/admin/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,POST,PUT,PATCH' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Accept, Accept-Language, Content-Language, Content-Type Range',
-          },
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin',
