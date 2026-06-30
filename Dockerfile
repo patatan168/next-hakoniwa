@@ -1,5 +1,5 @@
 # 1. 依存関係のインストール用ステージ
-FROM node:24.14.1-alpine AS deps
+FROM node:24.14.1-slim AS deps
 RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
@@ -7,19 +7,17 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # 1.5. 本番依存のみのステージ（npm prune を回避して高速化）
-FROM node:24.14.1-alpine AS prod-deps
-# ここで非 root ユーザーを作る
-RUN adduser -u 1000 -D appuser
-USER appuser
+FROM node:24.14.1-slim AS prod-deps
 RUN apk add --no-cache libc6-compat git python3 make g++
+# node公式イメージに含まれる非rootユーザー(node)を利用する
+USER node
 WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # 2. ビルド用ステージ
-FROM node:24.14.1-alpine AS builder
-# ここで非 root ユーザーを作る
-RUN adduser -u 1000 -D appuser
-USER appuser
+FROM node:24.14.1-slim AS builder
+# node公式イメージに含まれる非rootユーザー(node)を利用する
+USER node
 WORKDIR /app
 COPY . .
 
@@ -35,7 +33,7 @@ ENV DB_CONNECTION_STRING mysql://dummy:dummy@localhost:3306/hakoniwa
 RUN npm run build
 
 # 3. 実行用ステージ
-FROM node:24.14.1-alpine AS runner
+FROM node:24.14.1-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -44,14 +42,12 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# node公式イメージに含まれる非rootユーザー(node)を利用する
-
 # 実行に必要な成果物のみコピーしてイメージを軽量化する
 COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/package-lock.json ./package-lock.json
 COPY --from=builder --chown=node:node /app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=node:node /app/tsconfig.json ./tsconfig.json
-COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/.next ./.next
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/src/db ./src/db
@@ -59,6 +55,7 @@ COPY --from=builder --chown=node:node /app/src/global ./src/global
 
 # Next.js キャッシュ保存先を実行ユーザー(node)専用にする
 RUN mkdir -p /app/.next/cache && chown -R node:node /app/.next/cache && chmod 700 /app/.next/cache
+# node公式イメージに含まれる非rootユーザー(node)を利用する
 USER node
 
 EXPOSE 3000
