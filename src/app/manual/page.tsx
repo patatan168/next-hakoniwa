@@ -202,7 +202,7 @@ export default function ManualPage() {
             title="海底油田"
             imageSrc="/img/facility/oil_field.gif"
             description="海底油田からは継続的に多額の資金を得ることができます。ただし油田はいずれ枯渇します。"
-            info={`油田からは毎ターン ${META_DATA.OIL_EARN}${META_DATA.UNIT_MONEY}、鉱山は規模×${META_DATA.MINING_PER_PEOPLE}${META_DATA.UNIT_MONEY} の収入があります。`}
+            info={`油田からは毎ターン ${META_DATA.OIL_EARN}${META_DATA.UNIT_MONEY} の収入があります。`}
           />
         </div>
 

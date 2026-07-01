@@ -133,16 +133,19 @@
 
 ### 人口
 
-| 変数名                                  | 例   | 説明                                |
-| --------------------------------------- | ---- | ----------------------------------- |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE`     | `10` | 村の人口増加量（毎ターン）          |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_TOWN`        | `10` | 町の人口増加量（毎ターン）          |
-| `NEXT_PUBLIC_PEOPLE_GROWTH_CITY`        | `0`  | 都市の人口増加量（毎ターン）        |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_VILLAGE` | `30` | プロパガンダ時の村の人口増加量/10   |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_TOWN`    | `30` | プロパガンダ時の町の人口増加量/10   |
-| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_CITY`    | `3`  | プロパガンダ時の都市の人口増加量/10 |
-| `NEXT_PUBLIC_PEOPLE_LOSS_FAMINE`        | `3`  | 飢饉時の人口減少量（毎ターン）      |
-| `NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE`   | `20` | 平地に村が出現する確率 (%)          |
+| 変数名                                  | 例   | 説明                             |
+| --------------------------------------- | ---- | -------------------------------- |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_VILLAGE`     | `10` | 村の人口増加量（毎ターン）       |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_TOWN`        | `10` | 町の人口増加量（毎ターン）       |
+| `NEXT_PUBLIC_PEOPLE_GROWTH_CITY`        | `0`  | 都市の人口増加量（毎ターン）     |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_VILLAGE` | `30` | プロパガンダ時の村の人口増加量   |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_TOWN`    | `30` | プロパガンダ時の町の人口増加量   |
+| `NEXT_PUBLIC_PEOPLE_PROPAGANDA_CITY`    | `3`  | プロパガンダ時の都市の人口増加量 |
+| `NEXT_PUBLIC_PEOPLE_LOSS_FAMINE`        | `30` | 飢饉時の人口減少量（毎ターン）   |
+| `NEXT_PUBLIC_VILLAGE_APPEARANCE_RATE`   | `20` | 平地に村が出現する確率 (%)       |
+
+> [!NOTE]
+> 人口の実数は設定値の100倍です。(1 = 100人)
 
 ### 植林
 
