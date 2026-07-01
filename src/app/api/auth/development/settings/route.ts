@@ -16,7 +16,6 @@ import { developmentSettingsSchema } from '@/global/valid/server/developmentSett
 import { NextRequest, NextResponse } from 'next/server';
 
 const nowUnix = () => Math.floor(Date.now() / 1000);
-const nowUnixString = () => String(nowUnix());
 
 const errorResponse = (error: string, status: number) => NextResponse.json({ error }, { status });
 
@@ -30,7 +29,7 @@ async function getCurrentUser(uuid: string) {
 
 async function validateIslandNameChange(
   uuid: string,
-  currentUser: { island_name_changed_at: string },
+  currentUser: { island_name_changed_at: number },
   nextIslandName?: string
 ) {
   if (nextIslandName === undefined) return null;
@@ -103,7 +102,7 @@ async function updateDevelopmentSettings(
     if (nextIslandName !== undefined) {
       await trx
         .updateTable('user')
-        .set({ island_name: nextIslandName, island_name_changed_at: nowUnixString() })
+        .set({ island_name: nextIslandName, island_name_changed_at: nowUnix() })
         .where('uuid', '=', uuid)
         .execute();
     }

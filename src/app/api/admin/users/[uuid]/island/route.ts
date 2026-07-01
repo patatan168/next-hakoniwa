@@ -9,7 +9,7 @@ import { adminUserIslandUpdateSchema } from '@/global/valid/server/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAdminContext } from '../../_shared';
 
-const nowUnixString = () => String(Math.floor(Date.now() / 1000));
+const nowUnix = () => Math.floor(Date.now() / 1000);
 
 export async function OPTIONS() {
   return NextResponse.json({});
@@ -54,7 +54,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ u
       .updateTable('user')
       .set({
         island_name: islandName,
-        island_name_changed_at: nowUnixString(),
+        island_name_changed_at: nowUnix(),
       })
       .where('uuid', '=', uuid)
       .execute();
