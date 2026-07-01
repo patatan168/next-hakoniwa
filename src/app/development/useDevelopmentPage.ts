@@ -7,6 +7,7 @@ import META_DATA from '@/global/define/metadata';
 import { uuid25Regex } from '@/global/define/regex';
 import { isEqual, sortBy, uniqBy } from '@/global/function/collection';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
+import { LoginBonusResult } from '@/global/function/loginBonus';
 import { useClientRect } from '@/global/function/useClientRect';
 import { useWindowSize } from '@/global/function/useWindowSize';
 import { developmentStore } from '@/global/store/api/auth/development';
@@ -93,8 +94,9 @@ export const useDevelopmentPage = () => {
   const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
   const [listRect, listCallback] = useClientRect<HTMLDivElement>();
 
+  const [pendingLoginBonus, setPendingLoginBonus] = useState<LoginBonusResult | null>(null);
   const [isLoginBonusClosed, setIsLoginBonusClosed] = useState(false);
-  const showLoginBonus = !!developData.get?.loginBonus && !isLoginBonusClosed;
+  const showLoginBonus = !!pendingLoginBonus && !isLoginBonusClosed;
   const ownIslandUuid = developData.get?.uuid;
   const currentSelectedIslandUuid = selectedIslandUuid || ownIslandUuid || '';
   const isOtherIslandView =
@@ -107,6 +109,7 @@ export const useDevelopmentPage = () => {
   const setShowLoginBonus = (show: boolean) => {
     if (!show) {
       setIsLoginBonusClosed(true);
+      setPendingLoginBonus(null);
     }
   };
 
@@ -124,6 +127,17 @@ export const useDevelopmentPage = () => {
     fetchPlan({ method: 'GET' });
     fetchIslandList({ method: 'GET' });
   }, [fetchDevelop, fetchTurn, fetchPlan, fetchIslandList]);
+
+  useEffect(() => {
+    const loginBonus = developData.get?.loginBonus;
+    if (loginBonus && !isLoginBonusClosed && !isEqual(loginBonus, pendingLoginBonus)) {
+      setPendingLoginBonus(loginBonus);
+    }
+    if (!loginBonus) {
+      setPendingLoginBonus(null);
+      setIsLoginBonusClosed(false);
+    }
+  }, [developData.get?.loginBonus, pendingLoginBonus, isLoginBonusClosed]);
 
   useEffect(() => {
     if (!currentSelectedIslandUuid || !ownIslandUuid) return;
