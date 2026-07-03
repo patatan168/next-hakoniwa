@@ -46,8 +46,11 @@ function MenuHeader({ developData, view }: { developData?: Props['developData'];
   const titleText = developData?.current_title_name?.trim() ?? '';
 
   return (
-    <div className="text-bold mt-2 text-center text-3xl text-red-900">
-      {`「${islandName}島」`}
+    <div className="text-bold mt-2 text-center text-xl text-red-900 lg:text-2xl xl:text-3xl">
+      <div className="grid grid-cols-[auto_auto] justify-center">
+        <div className="truncate">{`「${islandName}`}</div>
+        <div>{`島」`}</div>
+      </div>
       <span className="text-black">{VIEW_LABEL[view]}</span>
       {titleText !== '' ? (
         <div className="ml-2 text-xl text-cyan-800">{`[${titleText}]`}</div>
