@@ -51,9 +51,9 @@ function MenuHeader({ developData, view }: { developData?: Props['developData'];
         <div className="truncate">{`「${islandName}`}</div>
         <div>{`島」`}</div>
       </div>
-      <span className="text-black">{VIEW_LABEL[view]}</span>
+      <span className="text-lg text-black lg:text-xl xl:text-2xl">{VIEW_LABEL[view]}</span>
       {titleText !== '' ? (
-        <div className="ml-2 text-xl text-cyan-800">{`[${titleText}]`}</div>
+        <div className="ml-2 text-lg text-cyan-800 lg:text-xl xl:text-2xl">{`[${titleText}]`}</div>
       ) : null}
       <div className="text-center text-base text-black">
         {'ミサイル保有数: '}
