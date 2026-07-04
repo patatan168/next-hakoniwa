@@ -18,6 +18,9 @@ import { RangeSliderRHF } from './RangeSliderRHF';
 import { SelectRHF } from './SelectRHF';
 import Tooltip from './Tooltip';
 
+const isShowTimes = (times: number, edit: boolean) => times > 1 && !edit;
+const idShowToIsland = (fromUuid?: string, toUuid?: string) => fromUuid && fromUuid !== toUuid;
+
 // -----------------------------------------------------------------------------
 // Component: PlanItem
 // -----------------------------------------------------------------------------
@@ -26,6 +29,7 @@ const PlanItem = memo(
   forwardRef<HTMLDivElement, PlanItemProps>(
     (
       {
+        fromUuid,
         isChange,
         islandOptions,
         item,
@@ -37,7 +41,7 @@ const PlanItem = memo(
       }: PlanItemProps,
       itemRef
     ) => {
-      const { id, x, y, plan, times, edit } = item;
+      const { id, x, y, plan, times, edit, to_uuid } = item;
       const { name, description, immediate, otherIsland, minTimes, maxTimes } = getPlanDefine(plan);
       const { width } = useWindowSize();
       const isMobile = width < 768; // md breakpoint
@@ -201,7 +205,7 @@ const PlanItem = memo(
             </p>
           </button>
 
-          <div className="grid min-w-0 flex-1 gap-0">
+          <div>
             {edit && !isMobile ? (
               renderEditForm(false)
             ) : (
@@ -213,22 +217,29 @@ const PlanItem = memo(
                   </p>
                 }
               >
-                <div className="flex flex-col">
-                  {!edit && (
-                    <span
-                      className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
-                    >{`(${x},${y})`}</span>
-                  )}
-                  <span
-                    className={`ml-2 flex items-center gap-1.5 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
-                  >
-                    {name}
-                    {times > 1 && !edit && (
-                      <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-rose-600 px-2 py-0.5 font-mono text-xs font-bold text-white shadow-sm md:text-sm">
-                        ×{times}
-                      </span>
+                <div className="grid grid-cols-[auto_auto] items-center">
+                  <div>
+                    {!edit && (
+                      <div
+                        className={`font-mono text-sm font-extrabold text-shadow-md md:text-base`}
+                      >{`(${x},${y})`}</div>
                     )}
-                  </span>
+                    <div
+                      className={`ml-2 flex items-center gap-1.5 text-sm font-medium text-shadow-xs/30 md:text-xl ${immediate ? 'text-sky-500' : 'text-amber-500'}`}
+                    >
+                      {name}
+                      {isShowTimes(times, edit) && (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-rose-600 px-2 py-0.5 font-mono text-xs font-bold text-white shadow-sm md:text-sm">
+                          ×{times}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {idShowToIsland(fromUuid, to_uuid) && (
+                    <div className="ml-2 shrink-0 gap-0.5 truncate rounded-full bg-teal-700 px-2 py-0.5 font-mono text-xs font-bold text-white shadow-sm md:text-sm">
+                      {`目標:${islandOptions.find((opt) => opt.value === to_uuid)?.label ?? 'Unknown'}`}
+                    </div>
+                  )}
                 </div>
               </Tooltip>
             )}

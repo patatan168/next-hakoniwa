@@ -187,7 +187,7 @@ const PlanList = memo(
     const islandOptions = useMemo(() => {
       if (!islandList) return [{ label: 'Loading...', value: '' }];
       return islandList.map((island) => ({
-        label: `${island.island_name} 島`,
+        label: `${island.island_name}島`,
         value: island.uuid,
       }));
     }, [islandList]);
@@ -257,6 +257,7 @@ const PlanList = memo(
               <PlanItem
                 key={`item-${item.id}`}
                 ref={(el) => setItemRowRef(item.id, el)}
+                fromUuid={uuid}
                 isChange={isChange}
                 islandOptions={islandOptions}
                 item={itemProps}
