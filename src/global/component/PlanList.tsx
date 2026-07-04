@@ -257,6 +257,7 @@ const PlanList = memo(
               <PlanItem
                 key={`item-${item.id}`}
                 ref={(el) => setItemRowRef(item.id, el)}
+                fromUuid={uuid}
                 isChange={isChange}
                 islandOptions={islandOptions}
                 item={itemProps}

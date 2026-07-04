@@ -15,6 +15,7 @@ export type LocalPlanItem = Plan & {
 };
 
 export type PlanItemProps = {
+  fromUuid?: string;
   isChange: boolean;
   islandOptions: Array<{ label: string; value: string }>;
   item: Omit<LocalPlanItem, 'from_uuid'>;
