@@ -2,7 +2,7 @@
  * @module public/island-sight
  * @description 島の詳細情報を返す公開APIルート。
  */
-import { db, Island, isSqlite, parseJsonIslandData, User } from '@/db/kysely';
+import { db, islandInfoData, isSqlite, parseJsonIslandData } from '@/db/kysely';
 import { uuid25Regex } from '@/global/define/regex';
 import { sql } from 'kysely';
 import { NextRequest, NextResponse } from 'next/server';
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
   if (uuid !== null) {
-    const islandDataRaw = await db
+    const islandData = await db
       .selectFrom((eb) =>
         eb
           .selectFrom('user')
@@ -45,11 +45,12 @@ export async function GET(request: NextRequest) {
             'island.missile',
             'user.island_name_prefix',
             'user.island_name',
+            'user.user_name',
             'user.inhabited',
             // SQLite: json() で文字列変換が必要、MySQL: JSON 型はそのまま参照
             isSqlite
-              ? sql<string>`json(island.island_info)`.as('island_info')
-              : sql<string>`island.island_info`.as('island_info'),
+              ? sql<islandInfoData>`json(island.island_info)`.as('island_info')
+              : sql<islandInfoData>`island.island_info`.as('island_info'),
             sql<string>`island.prize`.as('prize'),
             sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
           ])
@@ -59,15 +60,13 @@ export async function GET(request: NextRequest) {
       .selectAll()
       .where('uuid', '=', uuid)
       .executeTakeFirst();
-    const islandData = islandDataRaw as unknown as Island & User;
     if (islandData === undefined) {
       return NextResponse.json({ error: 'その島は存在しません。' }, { status: 404 });
     }
-    if (islandData.inhabited === undefined) {
+    if (islandData.inhabited === 0) {
       return NextResponse.json({ error: 'その島は無人島です。' }, { status: 410 });
     }
-
-    parseJsonIslandData(islandData, true);
+    if (isSqlite) parseJsonIslandData(islandData, true);
 
     return NextResponse.json(islandData, { headers: CACHE_HEADER });
   } else {

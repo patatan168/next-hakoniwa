@@ -3,10 +3,10 @@
  * @description 島の地図表示・詳細情報コンポーネント。
  */
 'use client';
+import { Island, User } from '@/db/kysely';
 import IslandData from '@/global/component/IslandData';
 import { useClientFetch } from '@/global/function/fetch/clientFetch';
 import { useClientRect } from '@/global/function/useClientRect';
-import { islandSightStore } from '@/global/store/api/public/islandSight';
 import { turnStore } from '@/global/store/api/public/turn';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -14,23 +14,21 @@ import { useEffect } from 'react';
 const HakoniwaMap = dynamic(() => import('@/global/component/HakoniwaMap'), { ssr: false });
 
 export default function MapSight({
-  uuid,
+  islandData,
   create,
 }: {
-  uuid: string | string[] | undefined;
+  islandData: Island & Omit<User, 'island_name_changed_at'> & { rank: number };
   create?: boolean;
 }) {
-  const { data: islandData, fetch: fetchIsland, isLoading } = useClientFetch(islandSightStore);
-  const { data: turnData, fetch: fetchTurn } = useClientFetch(turnStore);
+  const { data: turnData, fetch: fetchTurn, isLoading } = useClientFetch(turnStore);
   const [mapRect, mapCallback] = useClientRect<HTMLDivElement>();
-  const displayIslandName = `${islandData.get?.island_name_prefix ?? ''}${islandData.get?.island_name ?? ''}`;
+  const displayIslandName = `${islandData.island_name_prefix ?? ''}${islandData.island_name ?? ''}`;
 
   const mapSize = mapRect
     ? `min(calc(var(--real-vw) - ${mapRect.x}px - 0.25rem), calc(var(--real-vh-minus-footer) - ${mapRect.y}px))`
     : 'min(var(--real-vw), var(--real-vh-minus-footer))';
 
   useEffect(() => {
-    fetchIsland({ method: 'GET' }, { query: `uuid=${uuid}` });
     fetchTurn({ method: 'GET', cache: 'no-store' }, { refresh: true });
   }, []);
 
@@ -51,7 +49,7 @@ export default function MapSight({
           トップへ戻る
         </Link>
       )}
-      <IslandData mode="sight" data={islandData.get} />
+      <IslandData mode="sight" data={islandData} />
       <HakoniwaMap
         ref={mapCallback}
         style={{ width: mapSize, height: 'auto', maxHeight: mapSize }}
@@ -59,7 +57,7 @@ export default function MapSight({
         isLoading={isLoading.get}
         islandName={displayIslandName}
         turn={turnData.get?.turn}
-        data={islandData.get?.island_info}
+        data={islandData.island_info}
       />
     </div>
   );
