@@ -127,6 +127,8 @@ const META_DATA = Object.freeze({
   MAX_PASSKEYS: Number(process.env.NEXT_PUBLIC_MAX_PASSKEYS ?? 5),
   /** フィンガープリントのサーバーシークレット（二段ハッシュ用ペッパー） */
   FP_PEPPER: process.env.PASSKEY_FP_PEPPER!,
+  /** 放置島の削除日数 */
+  NEGLECT_DAYS: Number(process.env.NEXT_PUBLIC_NEGLECT_DAYS ?? 30),
 });
 
 export default META_DATA;

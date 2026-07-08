@@ -7,6 +7,7 @@ import {
   Island,
   islandData,
   islandInfo,
+  islandInfoData,
   islandInfoTurnProgress,
   isSqlite,
   parseJsonIslandDataTurnProgress,
@@ -25,6 +26,7 @@ import {
   logFallMonument,
   logHugeMeteorite,
   logIslandDeath,
+  logIslandDelete,
   logLackFoods,
   logLackFoodsDamage,
   logLandSubsidence,
@@ -1142,3 +1144,63 @@ export const setAllIslandStats = (uuid: string) => {
   islandData.mining = stats.mining;
   islandData.missile = stats.missile;
 };
+
+/**
+ * 放置島の削除
+ * @param db DB接続情報
+ * @param turn ターン数
+ */
+export async function deleteNeglectedIslands(
+  db: Kysely<Database> | Transaction<Database>,
+  turn: number
+) {
+  const nowUnixTime = Math.floor(Date.now() / 1000);
+  const neglectThreshold = nowUnixTime - META_DATA.NEGLECT_DAYS * 24 * 60 * 60;
+  const island = await db
+    .selectFrom('island')
+    .innerJoin('user', 'user.uuid', 'island.uuid')
+    .innerJoin('last_login', 'user.uuid', 'last_login.uuid')
+    .select([
+      'island.uuid',
+      'island.money',
+      'island.area',
+      'island.population',
+      'island.food',
+      'island.farm',
+      'island.factory',
+      'island.mining',
+      'island.missile',
+      'user.island_name',
+      'last_login.last_login_at',
+      // SQLite: json() で文字列変換が必要、MySQL: JSON 型はそのまま参照
+      isSqlite
+        ? sql<islandInfoData>`json(island.island_info)`.as('island_info')
+        : sql<islandInfoData>`island.island_info`.as('island_info'),
+      sql<string>`island.prize`.as('prize'),
+    ])
+    .where('last_login.last_login_at', '<', neglectThreshold)
+    .execute();
+  // 島の放棄処理
+  await db.transaction().execute(async (trx) => {
+    for (const row of island) {
+      const uuid = row.uuid;
+      // 島の放棄
+      await abandonIsland(trx, uuid);
+      // 放棄ログの挿入
+      await trx
+        .insertInto('turn_log')
+        .values({
+          log_uuid: createUuid25(),
+          from_uuid: uuid,
+          to_uuid: null,
+          turn: turn,
+          secret_log: '',
+          log: logIslandDelete(row),
+        })
+        .execute();
+      // セッション削除
+      await trx.deleteFrom('access_token').where('uuid', '=', uuid).execute();
+      await trx.deleteFrom('refresh_token').where('uuid', '=', uuid).execute();
+    }
+  });
+}

@@ -23,6 +23,7 @@ export async function GET() {
       eb
         .selectFrom('user')
         .innerJoin('island', 'user.uuid', 'island.uuid')
+        .innerJoin('last_login', 'user.uuid', 'last_login.uuid')
         .select([
           'user.uuid',
           'user.user_name',
@@ -36,6 +37,7 @@ export async function GET() {
           'island.farm',
           'island.factory',
           'island.mining',
+          'last_login.last_login_at',
           sql<number>`RANK() OVER (ORDER BY island.population DESC)`.as('rank'),
         ])
         .where('user.inhabited', '=', 1)
