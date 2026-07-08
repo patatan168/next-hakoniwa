@@ -19,6 +19,7 @@ type PublicIslandListItem = {
   farm: number;
   factory: number;
   mining: number;
+  last_login_at: number;
 };
 
 const store = new FetchStore<Array<PublicIslandListItem>>('/api/public/island-list', {

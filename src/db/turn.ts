@@ -38,6 +38,7 @@ import { turnProceedLogger } from '@/global/function/logger';
 import { getResource } from '@/global/function/resource';
 import {
   batchInsertDeletePlans,
+  deleteNeglectedIslands,
   earthquakeExecute,
   eruptionExecute,
   getAllIslands,
@@ -846,6 +847,9 @@ async function turnProceed() {
       saveMissileStats(db, missileStats),
       insertLogs(db, logArray),
     ]);
+
+    // 放置島の削除（ターン進行後に実行）
+    await deleteNeglectedIslands(db, turnInfo.turn + 1);
 
     await updateTurn(db, turnInfo.turn + 1);
   } catch (error) {
