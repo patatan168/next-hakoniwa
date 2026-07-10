@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
     if (islandData.inhabited === 0) {
       return NextResponse.json({ error: 'その島は無人島です。' }, { status: 410 });
     }
-    if (isSqlite) parseJsonIslandData(islandData, true);
+    // NOTE: ここで、公開情報として資金も丸めている
+    parseJsonIslandData(islandData, true);
 
     return NextResponse.json(islandData, { headers: CACHE_HEADER });
   } else {

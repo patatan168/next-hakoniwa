@@ -56,7 +56,8 @@ export default async function Page({ searchParams }: PageProps<'/sight'>) {
     const encodedMessage = encodeURIComponent('その島は無人島になったか、存在しない島のようです。');
     redirect(`/error/404?message=${encodedMessage}`);
   }
-  if (isSqlite) parseJsonIslandData(islandData, true);
+  // NOTE: ここで、公開情報として資金も丸めている
+  parseJsonIslandData(islandData, true);
 
   return (
     <>
