@@ -217,7 +217,7 @@ const PlanItem = memo(
                   </p>
                 }
               >
-                <div className="grid grid-cols-[auto_auto] items-center">
+                <div className="grid grid-cols-[auto] grid-rows-[auto_auto] items-center">
                   <div>
                     {!edit && (
                       <div
@@ -236,7 +236,7 @@ const PlanItem = memo(
                     </div>
                   </div>
                   {idShowToIsland(fromUuid, to_uuid) && (
-                    <div className="ml-2 shrink-0 gap-0.5 truncate rounded-full bg-teal-700 px-2 py-0.5 font-mono text-xs font-bold text-white shadow-sm md:text-sm">
+                    <div className="rows-2 mt-1 mb-2 ml-2 shrink-0 truncate rounded-full bg-teal-700 px-2 py-0.5 text-center font-mono text-xs font-bold text-white shadow-sm md:text-sm">
                       {`目標:${islandOptions.find((opt) => opt.value === to_uuid)?.label ?? 'Unknown'}`}
                     </div>
                   )}
