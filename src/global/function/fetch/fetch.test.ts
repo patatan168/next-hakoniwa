@@ -126,4 +126,21 @@ describe('FetchStore - GET refresh の保留機構', () => {
     // 1 回だけ呼ばれている（2 回目はスキップ）
     expect((globalThis.fetch as any).mock.calls).toHaveLength(1);
   });
+
+  it('依存ストアのfetchedAt更新でも依存先GETが再取得される', async () => {
+    const pendingPromise = new Promise<Response>(() => undefined);
+    globalThis.fetch = vi.fn(async () => pendingPromise);
+
+    const dependencyStore = new FetchStore<{ ok: boolean }>('/api/dependency');
+    const dependentStore = new FetchStore<{ value: string }>('/api/dependent', {
+      dependsGetOn: [dependencyStore.store],
+    });
+
+    dependencyStore.store.setState((prev) => ({
+      ...prev,
+      fetchedAt: { ...prev.fetchedAt, get: Date.now() + 1 },
+    }));
+
+    expect(dependentStore.store.getState().isLoading.get).toBe(true);
+  });
 });

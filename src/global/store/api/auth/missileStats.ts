@@ -21,7 +21,7 @@ export type MissileStatData = {
 };
 
 const store = new FetchStore<MissileStatData>('/api/auth/missile-stats', {
-  dependsOn: [turnStore],
+  dependsGetOn: [turnStore],
 });
 
 export const missileStatsStore = store.store;

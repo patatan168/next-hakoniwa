@@ -8,7 +8,7 @@ import { turnStore } from '../public/turn';
 
 const store = new FetchStore<Omit<TurnResourceHistory, 'uuid'>[]>(
   '/api/auth/turn-resource-history',
-  { dependsOn: [turnStore] }
+  { dependsGetOn: [turnStore] }
 );
 
 export const turnResourceHistoryStore = store.store;

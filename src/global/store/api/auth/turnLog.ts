@@ -17,7 +17,7 @@ const store = new FetchStore<Omit<TurnLog, 'log'>[]>('/api/auth/turn-log', {
     patch: false,
     options: false,
   },
-  dependsOn: [turnStore],
+  dependsGetOn: [turnStore],
 });
 
 export const turnLogAuthStore = store.store;

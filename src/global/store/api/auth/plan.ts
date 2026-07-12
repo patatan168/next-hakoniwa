@@ -8,7 +8,7 @@ import { turnStore } from '../public/turn';
 
 const store = new FetchStore<Array<Plan>>('/api/auth/plan', {
   refreshGet: true,
-  dependsOn: [turnStore],
+  dependsGetOn: [turnStore],
 });
 
 export const planStore = store.store;
