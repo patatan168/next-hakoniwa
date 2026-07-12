@@ -12,7 +12,7 @@ export type PlanStatItem = {
 };
 
 const store = new FetchStore<PlanStatItem[]>('/api/auth/plan-stats', {
-  dependsOn: [turnStore],
+  dependsGetOn: [turnStore],
 });
 
 export const planStatsStore = store.store;

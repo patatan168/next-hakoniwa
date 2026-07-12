@@ -28,7 +28,13 @@ type CustomOptions = {
    * @example dependsOn: [turnStore]
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dependsOn?: StoreApi<any>[];
+  dependsGetOn?: StoreApi<any>[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dependsPostOn?: StoreApi<any>[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dependsPutOn?: StoreApi<any>[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dependsDeleteOn?: StoreApi<any>[];
 };
 
 type DataOptions = {
@@ -119,6 +125,74 @@ function resolveStoreData<T>(current: T, next: T, refresh: boolean, shouldMerge:
   throw new Error('型が一致していません');
 }
 
+/**
+ * 依存関係のあるストアが更新された際に、自動的にfetch(GET)を行うかを判定する
+ * @param newVal 新しいストアの状態
+ * @param oldVal 古いストアの状態
+ * @param method HTTPメソッド（get, post, put, delete）
+ * @returns 依存関係のあるストアが更新された際に、自動的にfetch(GET)を行う場合はtrue、それ以外はfalse
+ */
+function shouldTriggerDependencyFetch<T extends object | undefined, U>(
+  newVal: FetchState<T, U>,
+  oldVal: FetchState<T, U>,
+  method: 'get' | 'post' | 'put' | 'delete'
+) {
+  const dataChanged = !isEqual(newVal?.data?.[method], oldVal?.data?.[method]);
+  const fetchedAtChanged = !isEqual(newVal?.fetchedAt?.[method], oldVal?.fetchedAt?.[method]);
+
+  return dataChanged || fetchedAtChanged;
+}
+
+function dependedFetchOn<T extends object | undefined, U>(
+  store: StoreApi<FetchState<T, U>>,
+  dependsGetOn: StoreApi<FetchState<T, U>>[],
+  dependsPostOn: StoreApi<FetchState<T, U>>[],
+  dependsPutOn: StoreApi<FetchState<T, U>>[],
+  dependsDeleteOn: StoreApi<FetchState<T, U>>[]
+) {
+  // 依存するストアが更新された際に自動的にfetch(GET)を行う
+  if (dependsGetOn.length > 0) {
+    dependsGetOn.forEach((dependencyStore) => {
+      dependencyStore.subscribe((newVal, oldVal) => {
+        if (shouldTriggerDependencyFetch(newVal, oldVal, 'get')) {
+          // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
+          store.getState().fetch({ method: 'GET' }, { refresh: true });
+        }
+      });
+    });
+  }
+  if (dependsPostOn.length > 0) {
+    dependsPostOn.forEach((dependencyStore) => {
+      dependencyStore.subscribe((newVal, oldVal) => {
+        if (shouldTriggerDependencyFetch(newVal, oldVal, 'post')) {
+          // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
+          store.getState().fetch({ method: 'GET' }, { refresh: true });
+        }
+      });
+    });
+  }
+  if (dependsPutOn.length > 0) {
+    dependsPutOn.forEach((dependencyStore) => {
+      dependencyStore.subscribe((newVal, oldVal) => {
+        if (shouldTriggerDependencyFetch(newVal, oldVal, 'put')) {
+          // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
+          store.getState().fetch({ method: 'GET' }, { refresh: true });
+        }
+      });
+    });
+  }
+  if (dependsDeleteOn.length > 0) {
+    dependsDeleteOn.forEach((dependencyStore) => {
+      dependencyStore.subscribe((newVal, oldVal) => {
+        if (shouldTriggerDependencyFetch(newVal, oldVal, 'delete')) {
+          // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
+          store.getState().fetch({ method: 'GET' }, { refresh: true });
+        }
+      });
+    });
+  }
+}
+
 export type FetchState<T, U> = {
   data: ApiMethodType<T | undefined, U | undefined>;
   error: ApiMethodType<Rfc9457 | undefined>;
@@ -177,7 +251,10 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
     const mergeData = customOptions?.mergeData ?? createApiMethodDefaults(false);
     const refreshGet = customOptions?.refreshGet ?? false;
     const waitTime = customOptions?.waitTime ?? 200;
-    const dependsOn = customOptions?.dependsOn ?? [];
+    const dependsGetOn = customOptions?.dependsGetOn ?? [];
+    const dependsPostOn = customOptions?.dependsPostOn ?? [];
+    const dependsPutOn = customOptions?.dependsPutOn ?? [];
+    const dependsDeleteOn = customOptions?.dependsDeleteOn ?? [];
     let pendingGetRefresh = false;
 
     const shouldSkipFetch = (
@@ -313,21 +390,7 @@ export class FetchStore<T extends object | undefined, U = { result: boolean }> {
         }
       },
     }));
-
-    // 依存するストアが更新された際に自動的にfetch(GET)を行う
-    if (dependsOn.length > 0) {
-      dependsOn.forEach((dependencyStore) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dependencyStore.subscribe((newVal: any, oldVal: any) => {
-          // data.get の値が実際に変化した場合のみfetchをトリガーする
-          // (isLoadingやfetchedAtなど、他のプロパティの変化は無視する)
-          if (!isEqual(newVal?.data?.get, oldVal?.data?.get)) {
-            // 自動フェッチ時はrefreshフラグを立てて強制的にマージ/更新させる
-            this.store.getState().fetch({ method: 'GET' }, { refresh: true });
-          }
-        });
-      });
-    }
+    dependedFetchOn(this.store, dependsGetOn, dependsPostOn, dependsPutOn, dependsDeleteOn);
   }
 }
 

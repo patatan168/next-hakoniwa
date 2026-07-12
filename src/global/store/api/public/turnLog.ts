@@ -17,7 +17,7 @@ const store = new FetchStore<Omit<TurnLog, 'secret_log'>[]>('/api/public/turn-lo
     patch: false,
     options: false,
   },
-  dependsOn: [turnStore],
+  dependsGetOn: [turnStore],
 });
 
 export const turnLogStore = store.store;

@@ -21,6 +21,6 @@ const store = new FetchStore<
     next_island_name_change_at: number;
     loginBonus: LoginBonusResult | null;
   }
->('/api/auth/development', { dependsOn: [turnStore] });
+>('/api/auth/development', { dependsGetOn: [turnStore] });
 
 export const developmentStore = store.store;
