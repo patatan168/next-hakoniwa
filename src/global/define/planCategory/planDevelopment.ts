@@ -2,8 +2,15 @@
  * @module planDevelopment
  * @description 開発系計画の定義。
  */
+import { islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import { getBaseLog } from '@/global/define/logType';
-import { changeMapData, countMapAround, mapArrayConverter } from '@/global/function/island';
+import {
+  changeMapData,
+  countMapAround,
+  getMapAround,
+  isOpenSea,
+  mapArrayConverter,
+} from '@/global/function/island';
 import { checkProbability } from '@/global/function/utility';
 import { islandDataGetSet } from '@/global/store/turnProgress';
 import { logCommonDev, logLackCosts, logNoLandAround, logTreasure } from '../logType';
@@ -140,6 +147,79 @@ export const immediateLeveling: planType = {
   },
 };
 
+/**
+ * 埋め立てを実行
+ * @param planType 埋め立て計画自体の情報
+ * @param toIsland 埋め立てを実行す島の情報
+ * @param mapInfo マップ情報
+ * @param plan 計画情報
+ * @returns 周囲に陸地があるかどうか
+ */
+const executeLandfill = (
+  planType: planType,
+  toIsland: islandInfoTurnProgress,
+  mapInfo: islandInfo,
+  plan: {
+    plan: string;
+    from_uuid: string;
+    plan_no: number;
+    times: number;
+    to_uuid: string;
+    x: number;
+    y: number;
+  }
+): boolean => {
+  // 周囲に陸地があるか
+  let isLandAround = true;
+  switch (mapInfo.type) {
+    case 'oil_field':
+    case 'submarine_missile': {
+      changeMapData(toIsland, plan.x, plan.y, 'sea', { type: 'ins', value: 0 });
+      // 費用の支払い
+      toIsland.money -= planType.cost;
+      return isLandAround;
+    }
+    case 'sea': {
+      const aroundSea = countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1);
+      if (aroundSea < 7) {
+        changeMapData(toIsland, plan.x, plan.y, 'shallows', { type: 'ins', value: 0 });
+        // 費用の支払い
+        toIsland.money -= planType.cost;
+      } else {
+        isLandAround = false;
+      }
+      return isLandAround;
+    }
+    case 'shallows': {
+      const aroundSea = countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1);
+      if (aroundSea < 7) {
+        changeMapData(toIsland, plan.x, plan.y, 'wasteland', { type: 'ins', value: 0 });
+        // 費用の支払い
+        toIsland.money -= planType.cost;
+
+        // 周囲の海を浅瀬に変更
+        const aroundMap = getMapAround(plan.x, plan.y, 1);
+        for (const around of aroundMap) {
+          // 外海の場合はスキップ
+          if (isOpenSea(around.x, around.y)) continue;
+
+          const aroundMapInfo = toIsland.island_info[mapArrayConverter(around.x, around.y)];
+          if (aroundMapInfo.type !== 'sea') continue;
+          // 周囲の海が5マス以上ある場合は埋め立てをスキップ
+          if (countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1) > 4) continue;
+          // 浅瀬に変更
+          changeMapData(toIsland, around.x, around.y, 'shallows', { type: 'ins', value: 0 });
+        }
+      } else {
+        isLandAround = false;
+      }
+      return isLandAround;
+    }
+    default:
+      return isLandAround;
+  }
+};
+
 export const landfill: planType = {
   planNo: 102,
   type: 'landfill',
@@ -177,30 +257,8 @@ export const landfill: planType = {
     // マップの変更
     const baseLog = getBaseLog(turn, toIsland);
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
-    // 周囲に陸地があるか
-    let isLandAround = true;
-    switch (mapInfo.type) {
-      case 'oil_field':
-      case 'submarine_missile': {
-        changeMapData(toIsland, plan.x, plan.y, 'sea', { type: 'ins', value: 0 });
-        // 費用の支払い
-        toIsland.money -= this.cost;
-        break;
-      }
-      case 'shallows':
-      case 'sea': {
-        if (countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1) < 7) {
-          // 海の場合は浅瀬、浅瀬の場合は荒地に変更
-          const mapType = mapInfo.type === 'sea' ? 'shallows' : 'wasteland';
-          changeMapData(toIsland, plan.x, plan.y, mapType, { type: 'ins', value: 0 });
-          // 費用の支払い
-          toIsland.money -= this.cost;
-        } else {
-          isLandAround = false;
-        }
-        break;
-      }
-    }
+    // 埋め立てを実行し、周囲に陸地があるか判定
+    const isLandAround = executeLandfill(this, toIsland, mapInfo, plan);
     // ログ出力
     const log = isLandAround
       ? logCommonDev(toIsland, this, plan.x, plan.y)
@@ -256,30 +314,8 @@ export const immediateLandfill: planType = {
     // マップの変更
     const baseLog = getBaseLog(turn, toIsland);
     const mapInfo = toIsland.island_info[mapArrayConverter(plan.x, plan.y)];
-    // 周囲に陸地があるか
-    let isLandAround = true;
-    switch (mapInfo.type) {
-      case 'oil_field':
-      case 'submarine_missile': {
-        changeMapData(toIsland, plan.x, plan.y, 'sea', { type: 'ins', value: 0 });
-        // 費用の支払い
-        toIsland.money -= this.cost;
-        break;
-      }
-      case 'shallows':
-      case 'sea': {
-        if (countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1) < 7) {
-          // 海の場合は浅瀬、浅瀬の場合は荒地に変更
-          const mapType = mapInfo.type === 'sea' ? 'shallows' : 'wasteland';
-          changeMapData(toIsland, plan.x, plan.y, mapType, { type: 'ins', value: 0 });
-          // 費用の支払い
-          toIsland.money -= this.cost;
-        } else {
-          isLandAround = false;
-        }
-        break;
-      }
-    }
+    // 埋め立てを実行し、周囲に陸地があるか判定
+    const isLandAround = executeLandfill(this, toIsland, mapInfo, plan);
     // ログ出力
     const log = isLandAround
       ? logCommonDev(toIsland, this, plan.x, plan.y)
