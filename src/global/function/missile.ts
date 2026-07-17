@@ -5,6 +5,7 @@
 import { TurnLog, islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import {
   getBaseLog,
+  logLackCosts,
   logMissileBoatPeople,
   logMissileCaught,
   logMissileCaughtS,
@@ -33,6 +34,7 @@ import {
 } from '../define/logType';
 import { getMapDefine, getMapLevel, isMonsterHardened } from '../define/mapType';
 import META_DATA from '../define/metadata';
+import { planType } from '../define/planType';
 import {
   changeMapData,
   countMapAround,
@@ -93,8 +95,7 @@ export const executeMissile = ({
   targetY,
   missileType,
   times,
-  planName,
-  cost,
+  planType,
 }: {
   /** 現在のターン数 */
   turn: number;
@@ -110,10 +111,8 @@ export const executeMissile = ({
   missileType: 'normal' | 'pp' | 'st' | 'ld';
   /** ミサイルの発射回数（0の場合は資金と弾が尽きるまで） */
   times: number;
-  /** 計画の名称（ログ用） */
-  planName: string;
-  /** ミサイル1発あたりの費用 */
-  cost: number;
+  /** 計画タイプ */
+  planType: planType;
 }): {
   logs: TurnLog[];
   monsterKills: number;
@@ -121,9 +120,11 @@ export const executeMissile = ({
   destroyedMaps: MissileBreakdown;
   killedMonsters: MissileBreakdown;
   refugeeAccepted: number;
+  success: boolean;
 } => {
+  const { name, cost } = planType;
   if (!toIsland) {
-    const log = logMissileNoTarget(fromIsland, planName);
+    const log = logMissileNoTarget(fromIsland, name);
     return {
       logs: [{ ...getBaseLog(turn, fromIsland), secret_log: log, log }],
       monsterKills: 0,
@@ -131,12 +132,13 @@ export const executeMissile = ({
       destroyedMaps: {},
       killedMonsters: {},
       refugeeAccepted: 0,
+      success: false,
     };
   }
 
   const missileBases = findMissileBases(fromIsland);
   if (missileBases.length === 0) {
-    const log = logMissileNoBase(fromIsland, planName);
+    const log = logMissileNoBase(fromIsland, name);
     return {
       logs: [{ ...getBaseLog(turn, fromIsland), secret_log: log, log }],
       monsterKills: 0,
@@ -144,6 +146,21 @@ export const executeMissile = ({
       destroyedMaps: {},
       killedMonsters: {},
       refugeeAccepted: 0,
+      success: false,
+    };
+  }
+
+  // 資金が足りない場合は撃てないため、事前にチェックする
+  if (fromIsland.money < cost) {
+    const log = logLackCosts(fromIsland, planType);
+    return {
+      logs: [{ ...getBaseLog(turn, fromIsland), secret_log: log, log }],
+      monsterKills: 0,
+      cityKills: 0,
+      destroyedMaps: {},
+      killedMonsters: {},
+      refugeeAccepted: 0,
+      success: false,
     };
   }
 
@@ -155,7 +172,7 @@ export const executeMissile = ({
     targetY,
     missileType,
     times,
-    planName,
+    planName: name,
     cost,
     missileBases,
   });
@@ -290,7 +307,15 @@ const processMissileImpacts = ({
     if (refugeeResult.log) logs.push(refugeeResult.log);
   }
 
-  return { logs, monsterKills, cityKills, destroyedMaps, killedMonsters, refugeeAccepted };
+  return {
+    logs,
+    monsterKills,
+    cityKills,
+    destroyedMaps,
+    killedMonsters,
+    refugeeAccepted,
+    success: flagShot,
+  };
 };
 
 /**

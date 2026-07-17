@@ -1,5 +1,6 @@
 import type { islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
+import { ldMissile } from '@/global/define/planCategory/planAtack';
 import { mapArrayConverter } from '@/global/function/island';
 import * as utility from '@/global/function/utility';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -86,7 +87,7 @@ describe('executeMissile land destruction hardening', () => {
       islandName: 'To',
       defaultType: 'sanjira',
       defaultLandValue: 2,
-      money: 0,
+      money: 9999,
     });
 
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
@@ -99,8 +100,7 @@ describe('executeMissile land destruction hardening', () => {
       targetY: 5,
       missileType: 'ld',
       times: 1,
-      planName: '陸地破壊弾発射',
-      cost: 0,
+      planType: ldMissile,
     });
 
     const shallowsCount = toIsland.island_info.filter((cell) => cell.type === 'shallows').length;
@@ -125,7 +125,7 @@ describe('executeMissile land destruction hardening', () => {
       islandName: 'To',
       defaultType: 'sanjira',
       defaultLandValue: 2,
-      money: 0,
+      money: 9999,
     });
 
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
@@ -138,8 +138,7 @@ describe('executeMissile land destruction hardening', () => {
       targetY: 5,
       missileType: 'ld',
       times: 1,
-      planName: '陸地破壊弾発射',
-      cost: 0,
+      planType: ldMissile,
     });
 
     const shallowsCount = toIsland.island_info.filter((cell) => cell.type === 'shallows').length;

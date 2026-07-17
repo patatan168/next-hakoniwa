@@ -40,8 +40,7 @@ export const normaMissile: planType = {
       targetY: plan.y,
       missileType: 'normal',
       times: plan.times ?? 1,
-      planName: this.name,
-      cost: this.cost,
+      planType: this,
     });
     // 実行回数をリセット
     plan.times = 0;
@@ -49,6 +48,7 @@ export const normaMissile: planType = {
     return {
       nextPlan: this.immediate,
       log: result.logs,
+      success: result.success,
       missileMonsterKills: result.monsterKills,
       missileCityKills: result.cityKills,
       missileDestroyedMaps: result.destroyedMaps,
@@ -92,8 +92,7 @@ export const ppMissile: planType = {
       targetY: plan.y,
       missileType: 'pp',
       times: plan.times ?? 1,
-      planName: this.name,
-      cost: this.cost,
+      planType: this,
     });
     plan.times = 0;
 
@@ -143,8 +142,7 @@ export const stMissile: planType = {
       targetY: plan.y,
       missileType: 'st',
       times: plan.times ?? 1,
-      planName: this.name,
-      cost: this.cost,
+      planType: this,
     });
     plan.times = 0;
 
@@ -194,8 +192,7 @@ export const ldMissile: planType = {
       targetY: plan.y,
       missileType: 'ld',
       times: plan.times ?? 1,
-      planName: this.name,
-      cost: this.cost,
+      planType: this,
     });
     plan.times = 0;
 
