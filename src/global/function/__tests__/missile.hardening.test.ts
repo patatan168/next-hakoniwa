@@ -1,7 +1,9 @@
 import type { islandInfo, islandInfoTurnProgress } from '@/db/kysely';
 import META_DATA from '@/global/define/metadata';
+import { changeDataArgs, planType } from '@/global/define/planType';
 import { mapArrayConverter } from '@/global/function/island';
 import * as utility from '@/global/function/utility';
+import { islandDataGetSet } from '@/global/store/turnProgress';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { executeMissile } from '../missile';
 
@@ -57,6 +59,55 @@ const createIsland = ({
   } as unknown as islandInfoTurnProgress;
 };
 
+const dummyPlan: planType = {
+  planNo: 9999999,
+  type: 'dummy_ld_missile',
+  coordinate: true,
+  category: '攻撃',
+  name: '陸地破壊爆弾発射(ダミー)',
+  description: '',
+  otherIsland: true,
+  immediate: false,
+  mapType: ['monster', 'kujira', 'sanjira'],
+  cost: 0,
+  costType: 'money',
+  minTimes: 0,
+  maxTimes: 99,
+  maxTimesPerTurn: 99,
+  unit: '回',
+  changeData: function ({ turn, uuid, plan }: changeDataArgs) {
+    using fromIslandGetSet = islandDataGetSet(uuid.fromIsland);
+    const fromIsland = fromIslandGetSet.islandData;
+    if (!fromIsland) throw new Error(`発射元の島情報が見つかりません。uuid=${uuid.fromIsland}`);
+
+    using toIslandGetSet = islandDataGetSet(uuid.toIsland);
+    const toIsland = toIslandGetSet.islandData;
+    if (!toIsland) throw new Error(`発射先の島情報が見つかりません。uuid=${uuid.toIsland}`);
+
+    const result = executeMissile({
+      turn,
+      fromIsland,
+      toIsland,
+      targetX: plan.x,
+      targetY: plan.y,
+      missileType: 'ld',
+      times: plan.times ?? 1,
+      planType: this,
+    });
+    plan.times = 0;
+
+    return {
+      nextPlan: this.immediate,
+      log: result.logs,
+      missileMonsterKills: result.monsterKills,
+      missileCityKills: result.cityKills,
+      missileDestroyedMaps: result.destroyedMaps,
+      missileKilledMonsters: result.killedMonsters,
+      missileRefugeesAccepted: result.refugeeAccepted,
+    };
+  },
+};
+
 const setMissileBase = (island: islandInfoTurnProgress, x: number, y: number) => {
   island.island_info[mapArrayConverter(x, y)] = {
     x,
@@ -86,7 +137,7 @@ describe('executeMissile land destruction hardening', () => {
       islandName: 'To',
       defaultType: 'sanjira',
       defaultLandValue: 2,
-      money: 0,
+      money: 9999,
     });
 
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
@@ -99,8 +150,7 @@ describe('executeMissile land destruction hardening', () => {
       targetY: 5,
       missileType: 'ld',
       times: 1,
-      planName: '陸地破壊弾発射',
-      cost: 0,
+      planType: dummyPlan,
     });
 
     const shallowsCount = toIsland.island_info.filter((cell) => cell.type === 'shallows').length;
@@ -125,7 +175,7 @@ describe('executeMissile land destruction hardening', () => {
       islandName: 'To',
       defaultType: 'sanjira',
       defaultLandValue: 2,
-      money: 0,
+      money: 9999,
     });
 
     vi.spyOn(utility, 'randomIntInRange').mockReturnValue(0);
@@ -138,8 +188,7 @@ describe('executeMissile land destruction hardening', () => {
       targetY: 5,
       missileType: 'ld',
       times: 1,
-      planName: '陸地破壊弾発射',
-      cost: 0,
+      planType: dummyPlan,
     });
 
     const shallowsCount = toIsland.island_info.filter((cell) => cell.type === 'shallows').length;
