@@ -205,7 +205,7 @@ const executeLandfill = (
 
           const aroundMapInfo = toIsland.island_info[mapArrayConverter(around.x, around.y)];
           if (aroundMapInfo.type !== 'sea') continue;
-          // 周囲の海が5マス以上ある場合は埋め立てをスキップ
+          // 周囲の海が5マス以上ある場合は浅瀬にしない
           if (countMapAround(toIsland.island_info, 'sea', plan.x, plan.y, 1) > 4) continue;
           // 浅瀬に変更
           changeMapData(toIsland, around.x, around.y, 'shallows', { type: 'ins', value: 0 });
