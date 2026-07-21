@@ -20,7 +20,7 @@ import { islandListStore } from '@/global/store/api/public/islandList';
 import { islandSightStore } from '@/global/store/api/public/islandSight';
 import { turnStore } from '@/global/store/api/public/turn';
 import { usePlanDataStore } from '@/global/store/usePlanDataStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const normalizePlanItems = (initPlans: Plan[], uuid: string) => {
   const defaultPlans = Array.from({ length: META_DATA.PLAN_LENGTH }, (_, i) => ({
@@ -52,6 +52,70 @@ const normalizePlanItems = (initPlans: Plan[], uuid: string) => {
     plan_no: index,
     edit: false,
   }));
+};
+
+type LoginBonusModalState = {
+  pendingLoginBonus: LoginBonusResult | null;
+  isLoginBonusClosed: boolean;
+  shouldUpdate: boolean;
+};
+
+export const getNextLoginBonusModalState = ({
+  loginBonus,
+  pendingLoginBonus,
+  isLoginBonusClosed,
+  lastProcessedLoginBonus,
+}: {
+  loginBonus?: LoginBonusResult | null;
+  pendingLoginBonus: LoginBonusResult | null;
+  isLoginBonusClosed: boolean;
+  lastProcessedLoginBonus: LoginBonusResult | null;
+}): LoginBonusModalState => {
+  if (!loginBonus) {
+    return {
+      pendingLoginBonus,
+      isLoginBonusClosed,
+      shouldUpdate: false,
+    };
+  }
+
+  if (isEqual(loginBonus, lastProcessedLoginBonus)) {
+    return {
+      pendingLoginBonus,
+      isLoginBonusClosed,
+      shouldUpdate: false,
+    };
+  }
+
+  if (isEqual(loginBonus, pendingLoginBonus)) {
+    return {
+      pendingLoginBonus,
+      isLoginBonusClosed,
+      shouldUpdate: false,
+    };
+  }
+
+  return {
+    pendingLoginBonus: loginBonus,
+    isLoginBonusClosed: false,
+    shouldUpdate: true,
+  };
+};
+
+export const getDisplayedLoginBonus = ({
+  showLoginBonus,
+  pendingLoginBonus,
+  latestLoginBonus,
+}: {
+  showLoginBonus: boolean;
+  pendingLoginBonus: LoginBonusResult | null;
+  latestLoginBonus?: LoginBonusResult | null;
+}) => {
+  if (showLoginBonus && pendingLoginBonus) {
+    return pendingLoginBonus;
+  }
+
+  return latestLoginBonus ?? null;
 };
 
 export const useDevelopmentPage = () => {
@@ -96,7 +160,13 @@ export const useDevelopmentPage = () => {
 
   const [pendingLoginBonus, setPendingLoginBonus] = useState<LoginBonusResult | null>(null);
   const [isLoginBonusClosed, setIsLoginBonusClosed] = useState(false);
+  const lastProcessedLoginBonusRef = useRef<LoginBonusResult | null>(null);
   const showLoginBonus = !!pendingLoginBonus && !isLoginBonusClosed;
+  const displayedLoginBonus = getDisplayedLoginBonus({
+    showLoginBonus,
+    pendingLoginBonus,
+    latestLoginBonus: developData.get?.loginBonus,
+  });
   const ownIslandUuid = developData.get?.uuid;
   const currentSelectedIslandUuid = selectedIslandUuid || ownIslandUuid || '';
   const isOtherIslandView =
@@ -130,13 +200,20 @@ export const useDevelopmentPage = () => {
 
   useEffect(() => {
     const loginBonus = developData.get?.loginBonus;
-    if (loginBonus && !isLoginBonusClosed && !isEqual(loginBonus, pendingLoginBonus)) {
-      setPendingLoginBonus(loginBonus);
+    const nextState = getNextLoginBonusModalState({
+      loginBonus,
+      pendingLoginBonus,
+      isLoginBonusClosed,
+      lastProcessedLoginBonus: lastProcessedLoginBonusRef.current,
+    });
+
+    if (!nextState.shouldUpdate) {
+      return;
     }
-    if (!loginBonus) {
-      setPendingLoginBonus(null);
-      setIsLoginBonusClosed(false);
-    }
+
+    lastProcessedLoginBonusRef.current = loginBonus ?? null;
+    setPendingLoginBonus(nextState.pendingLoginBonus);
+    setIsLoginBonusClosed(nextState.isLoginBonusClosed);
   }, [developData.get?.loginBonus, pendingLoginBonus, isLoginBonusClosed]);
 
   useEffect(() => {
@@ -232,6 +309,7 @@ export const useDevelopmentPage = () => {
     isLoading,
     showLoginBonus,
     setShowLoginBonus,
+    displayedLoginBonus,
     refreshDevelopData,
   };
 };
