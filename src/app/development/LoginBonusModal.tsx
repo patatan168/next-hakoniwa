@@ -30,12 +30,12 @@ export const LoginBonusModal = ({
               本日のログイン報酬として以下を獲得しました。
             </p>
             <ul className="mt-2 text-lg font-semibold text-blue-600 dark:text-blue-400">
-              {loginBonus?.money ? (
+              {loginBonus?.money !== undefined ? (
                 <li>
                   資金 {loginBonus.money.toLocaleString()} {META_DATA.UNIT_MONEY}
                 </li>
               ) : null}
-              {loginBonus?.food ? (
+              {loginBonus?.food !== undefined ? (
                 <li>
                   食料 {loginBonus.food.toLocaleString()} {META_DATA.UNIT_FOOD}
                 </li>

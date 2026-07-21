@@ -120,6 +120,7 @@ export default function IslandList() {
     listCallback,
     showLoginBonus,
     setShowLoginBonus,
+    displayedLoginBonus,
     refreshDevelopData,
   } = useDevelopmentPage();
   const ownIslandUuid = developData.get?.uuid ?? '';
@@ -276,7 +277,7 @@ export default function IslandList() {
       <LoginBonusModal
         showLoginBonus={showLoginBonus}
         setShowLoginBonus={setShowLoginBonus}
-        loginBonus={developData.get?.loginBonus}
+        loginBonus={displayedLoginBonus}
       />
     </>
   );
