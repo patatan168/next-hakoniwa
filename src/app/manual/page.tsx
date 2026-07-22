@@ -13,6 +13,8 @@ export const metadata = {
   description: '箱庭諸島の取扱説明書・遊び方ガイドです。',
 };
 
+export const dynamic = 'force-static';
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="mt-12 mb-6 flex items-center gap-2 border-b-2 border-emerald-200 pb-2 text-xl font-bold text-gray-800">
