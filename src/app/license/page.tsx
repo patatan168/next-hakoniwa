@@ -7,6 +7,8 @@ import { MDXRemote } from 'next-mdx-remote-client/rsc';
 import { notFound } from 'next/navigation';
 import path from 'path';
 
+export const dynamic = 'force-static';
+
 export default async function Page() {
   const filePath = path.join(process.cwd(), 'src', 'app', 'license', 'md', 'hako.mdx');
   if (!fs.existsSync(filePath)) {

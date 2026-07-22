@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: '箱庭諸島の利用規約です。',
 };
 
+export const dynamic = 'force-static';
+
 /** MDX要素をスタイル付きコンポーネントにマッピング */
 const components: MDXComponents = {
   h1: (props) => <h1 className={styles.h1} {...props} />,
