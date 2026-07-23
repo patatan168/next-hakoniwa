@@ -26,13 +26,31 @@ export async function GET(request: NextRequest) {
     );
     return response;
   }
+  const userUuid = searchParams.get('user_uuid');
+  if (userUuid && !uuid25Regex.test(userUuid)) {
+    const response = NextResponse.json(
+      { error: 'Invalid Input' },
+      {
+        status: 400,
+      }
+    );
+    return response;
+  }
 
-  const query = db
-    .selectFrom('turn_log')
-    .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'log'])
-    .where('log', 'is not', null)
-    .where('log_uuid', '<', logUuid)
-    .orderBy('log_uuid', 'desc');
+  const query = userUuid
+    ? db
+        .selectFrom('turn_log')
+        .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'log'])
+        .where('log', 'is not', null)
+        .where('log_uuid', '<', logUuid)
+        .where((eb) => eb.or([eb('from_uuid', '=', userUuid), eb('to_uuid', '=', userUuid)]))
+        .orderBy('log_uuid', 'desc')
+    : db
+        .selectFrom('turn_log')
+        .select(['log_uuid', 'from_uuid', 'to_uuid', 'turn', 'log'])
+        .where('log', 'is not', null)
+        .where('log_uuid', '<', logUuid)
+        .orderBy('log_uuid', 'desc');
 
   const log = await query.limit(100).execute();
   return NextResponse.json(log, { headers: CACHE_HEADER });

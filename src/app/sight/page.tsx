@@ -61,7 +61,7 @@ export default async function Page({ searchParams }: PageProps<'/sight'>) {
 
   return (
     <>
-      <MapSight islandData={islandData} create={create === 'true'} />
+      <MapSight islandData={islandData} uuid={uuid} create={create === 'true'} />
     </>
   );
 }
