@@ -111,26 +111,24 @@ npm run build:docker
 | [Define追加ガイド](./docs/define/README.md)                  | plan/map/log/achievement 定義の追加手順と注意点 |
 | [Docker検証環境手順](./docs/docker_verification.md)          | 本番相当環境（Nginx+MySQL）でのローカル検証手順 |
 
-## 依存ライブラリ
+## 依存ライブラリ (主要)
 
-| ライブラリ                | バージョン |
-| ------------------------- | ---------- |
-| Node.js                   | 24.14.1    |
-| React                     | 19.2.6     |
-| Next.js                   | 16.2.6     |
-| Tailwind CSS              | 4.3.0      |
-| sass                      | 1.99.0     |
-| React Icons               | 5.6.0      |
-| react-virtuoso            | 4.18.7     |
-| better-sqlite3            | 12.10.0    |
-| react-hook-form           | 7.76.0     |
-| zod                       | 4.4.3      |
-| kysely                    | 0.29.2     |
-| jsonwebtoken              | 9.0.3      |
-| winston                   | 3.19.0     |
-| winston-daily-rotate-file | 5.0.0      |
-| argon2                    | 0.44.0     |
-| auto-animate              | 0.9.0      |
-| zustand                   | 5.0.13     |
-| croner                    | 10.0.1     |
-| simpleWebAuthn            | 13.3.0     |
+| ライブラリ      | バージョン |
+| --------------- | ---------- |
+| Node.js         | 24.14.1    |
+| TypeScript      | 6.0.3      |
+| React           | 19.2.8     |
+| Next.js         | 16.2.11    |
+| Tailwind CSS    | 4.3.0      |
+| kysely          | 0.29.4     |
+| better-sqlite3  | 12.11.1    |
+| mysql2          | 3.23.1     |
+| sass            | 1.102.0    |
+| zod             | 4.4.3      |
+| argon2          | 0.45.1     |
+| simpleWebAuthn  | 13.3.0     |
+| zustand         | 5.0.14     |
+| react-virtuoso  | 4.18.11    |
+| react-hook-form | 7.76.0     |
+| jsonwebtoken    | 9.0.3      |
+| winston         | 3.19.0     |
